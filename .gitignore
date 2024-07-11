@@ -1,5 +1,91 @@
-contracts/
-reference data/
-results/
+# Project specifics
+contracts/*.xlsx
+reference data/*.xlsx
+results/tsv/*.tsv
+results/xlsx/*.xlsx
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
 env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# PyBuilder
+target/
+
+# dotenv
+.env
+.env.*
+
+# IDEs
 .idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Backup files
+*.bak
+*.swp
+
+# Middleman
+.data/
+.tmp/
+
+# Bundler
+.bundle/
+config/
+
+# PDF
+*.pdf
