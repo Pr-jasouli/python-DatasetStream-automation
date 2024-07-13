@@ -1,8 +1,8 @@
-# Project specifics
-contracts/*.xlsx
-reference data/*.xlsx
-results/tsv/*.tsv
-results/xlsx/*.xlsx
+# ExcelAggregator
+ExcelAggregator/results/**/*.tsv
+ExcelAggregator/build/
+ExcelAggregator/dist/
+*.xlsx
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -14,9 +14,7 @@ __pycache__/
 env/
 venv/
 ENV/
-build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -34,7 +32,6 @@ share/python-wheels/
 
 # PyInstaller
 *.manifest
-*.spec
 
 # Installer logs
 pip-log.txt
