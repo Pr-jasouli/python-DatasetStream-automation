@@ -1,9 +1,12 @@
-import pdfplumber
-import pandas as pd
 import os
 import re
+import pandas as pd
+import pdfplumber
+
 from tkinter import messagebox, Frame, Label, Spinbox, Checkbutton, IntVar, StringVar
-from strategies import ColumnStrategy, TelenetColumnStrategy, VOOColumnStrategy
+
+from strategies import ColumnStrategy
+
 
 class PDFProcessor:
     def __init__(self, column_strategy: ColumnStrategy):
@@ -47,7 +50,7 @@ class PDFProcessor:
         page_include = [not bool(entry[2].get()) for entry in entries]
         for entry in entries:
             if not entry[2].get():
-                processed_data.append((entry[0], entry[1].get(), True))
+                processed_data.append((entry[0], int(entry[1].get()), True))
         return processed_data if any(page_include) else []
 
     def define_columns(self, page, num_columns):
@@ -81,8 +84,10 @@ class PDFProcessor:
                                             'X1': x1
                                         })
                             column_index += 1
+            print(f"Extracted {len(all_data)} entries from {file_path}")
         except Exception as e:
             messagebox.showerror("Error", f"Error processing PDF: {e}")
+            print(f"Error processing PDF: {e}")
 
     def export_to_excel(self, all_data):
         output_file = os.path.join(os.path.abspath('../outputs/xlsx'), 'extracted_data.xlsx')
