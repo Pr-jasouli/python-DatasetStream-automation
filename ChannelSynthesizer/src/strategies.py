@@ -1,55 +1,35 @@
 class ColumnStrategy:
-    """
-    Abstract base class for defining column strategies.
-    Subclasses must implement the define_columns method.
-    """
+    def __init__(self, name="Configure strategies..."):
+        self.name = name
+        self.max_columns = 8
+        self.buffers_start = [0] * self.max_columns
+        self.buffers_end = [0] * self.max_columns
+
+    def update_name(self, new_name):
+        self.name = new_name
+
+    def update_buffers(self, buffers_start, buffers_end):
+        self.buffers_start = buffers_start[:self.max_columns]
+        self.buffers_end = buffers_end[:self.max_columns]
 
     def define_columns(self, page, num_columns):
-        """
-        Define the column boundaries for a given page and number of columns.
-
-        Args:
-            page (pdfplumber.Page): The PDF page to process.
-            num_columns (int): Number of columns to split the page into.
-
-        Returns:
-            list of tuples: Each tuple contains the coordinates (x0, top, x1, bottom) for a column.
-        """
         raise NotImplementedError("Subclasses must implement this method")
 
 
 class TelenetColumnStrategy(ColumnStrategy):
-    """
-    Column strategy specific to the Telenet PDF template.
-    """
+    def __init__(self, name="Telenet Original"):
+        super().__init__(name)
+        if self.max_columns >= 7:
+            self.buffers_end[4] = 12
+            self.buffers_start[5] = 0
+            self.buffers_end[5] = 11
+            self.buffers_start[6] = -9
 
     def define_columns(self, page, num_columns):
-        buffers_start = [0] * num_columns
-        buffers_end = [0] * num_columns
-
-        if num_columns >= 7:
-            buffers_end[4] = 12
-            buffers_start[5] = 0
-            buffers_end[5] = 11
-            buffers_start[6] = -9
-
-        return self.calculate_columns(page, num_columns, buffers_start, buffers_end)
+        return self.calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)
 
     def calculate_columns(self, page, num_columns, buffers_start, buffers_end):
-        """
-        Calculates column boundaries with specified buffer adjustments.
-
-        Args:
-            page (pdfplumber.Page): The PDF page to process.
-            num_columns (int): Number of columns to define.
-            buffers_start (list): Start buffer for each column.
-            buffers_end (list): End buffer for each column.
-
-        Returns:
-            list of tuples: Each tuple contains the coordinates (x0, top, x1, bottom) for a column.
-        """
         column_width = page.width / num_columns
-
         columns = []
         for i in range(num_columns):
             x0 = i * column_width + buffers_start[i] if i != 0 else 0
@@ -61,33 +41,15 @@ class TelenetColumnStrategy(ColumnStrategy):
 
 
 class VOOColumnStrategy(ColumnStrategy):
-    """
-    Column strategy specific to the VOO PDF template.
-    """
+    def __init__(self, name="VOO Original"):
+        super().__init__(name)
 
 
     def define_columns(self, page, num_columns):
-        return self.calculate_columns(page, num_columns)
+        return self.calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)
 
-    def calculate_columns(self, page, num_columns, buffers_start=None, buffers_end=None):
-        """
-        Calculates column boundaries with optional buffer adjustments.
-
-        Args:
-            page (pdfplumber.Page): The PDF page to process.
-            num_columns (int): Number of columns to define.
-            buffers_start (list): Start buffer for each column.
-            buffers_end (list): End buffer for each column.
-
-        Returns:
-            list of tuples: Each tuple contains the coordinates (x0, top, x1, bottom) for a column.
-        """
+    def calculate_columns(self, page, num_columns, buffers_start, buffers_end):
         column_width = page.width / num_columns
-        if buffers_start is None:
-            buffers_start = [0] * num_columns
-        if buffers_end is None:
-            buffers_end = [0] * num_columns
-
         columns = []
         for i in range(num_columns):
             x0 = i * column_width + buffers_start[i] if i != 0 else 0
