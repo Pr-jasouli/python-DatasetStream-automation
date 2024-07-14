@@ -3,8 +3,15 @@ import pandas as pd
 import os
 import re
 from tkinter import messagebox, Frame, Label, Spinbox, Checkbutton, IntVar, StringVar
+from strategies import ColumnStrategy, TelenetColumnStrategy, VOOColumnStrategy
 
 class PDFProcessor:
+    def __init__(self, column_strategy: ColumnStrategy):
+        self.column_strategy = column_strategy
+
+    def set_column_strategy(self, strategy: ColumnStrategy):
+        self.column_strategy = strategy
+
     def process_file_gui(self, file_path, window):
         entries = []
         try:
@@ -44,31 +51,15 @@ class PDFProcessor:
         return processed_data if any(page_include) else []
 
     def define_columns(self, page, num_columns):
-        ## template telen
-        column_width = page.width / num_columns
-        columns = []
-        buffers_start = [0] * num_columns
-        buffers_end = [0] * num_columns
-        if num_columns >= 7:
-            buffers_end[4] = 12
-            buffers_start[5] = 0
-            buffers_end[5] = 11
-            buffers_start[6] = -9
-        for i in range(num_columns):
-            x0 = i * column_width + buffers_start[i] if i != 0 else 0
-            x1 = (i + 1) * column_width - buffers_end[i] if i != num_columns - 1 else page.width
-            x0 = max(0, min(x0, page.width))
-            x1 = max(x0, min(x1, page.width))
-            columns.append((x0, 0, x1, page.height))
-        return columns
+        return self.column_strategy.define_columns(page, num_columns)
 
     def extract_data(self, file_path, num_columns_list, page_include, all_data):
         try:
             with pdfplumber.open(file_path) as pdf:
-                for page_number, include in zip(range(1, len(page_include)+1), page_include):
+                for page_number, include in zip(range(1, len(page_include) + 1), page_include):
                     if include:
                         page = pdf.pages[page_number - 1]
-                        num_columns = num_columns_list[page_number - 1]
+                        num_columns = int(num_columns_list[page_number - 1])
                         columns = self.define_columns(page, num_columns)
                         column_index = 1
                         for coords in columns:
