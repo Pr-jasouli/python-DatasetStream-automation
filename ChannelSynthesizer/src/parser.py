@@ -22,7 +22,6 @@ class PDFProcessor:
     def process_file_gui(self, file_path, window):
         strategy = self.determine_strategy(file_path)
         default_columns = strategy.default_columns if strategy else 2
-        print(f"Using strategy: {strategy.name} with default columns: {default_columns}")  # Debug print
 
         entries = []
         try:
@@ -38,8 +37,7 @@ class PDFProcessor:
     def create_page_settings(self, page_num, window, default_columns=2):
         frame = Frame(window)
         frame.pack(fill='x', padx=50, pady=5)
-        num_columns_var = StringVar(value=str(default_columns))  # Ensure this value is passed correctly
-        print(f"Setting up page settings for page {page_num} with default columns: {default_columns}")  # Debug print
+        num_columns_var = StringVar(value=str(default_columns))
 
         include_page_var = IntVar(value=0)
         Label(frame, text=f'Page {page_num}:').pack(side='left')
@@ -54,7 +52,6 @@ class PDFProcessor:
 
     def determine_strategy(self, file_path):
         filename = os.path.basename(file_path).lower()
-        # Attempt to find a strategy in the list, or default to creating a new one if none are found
         if "telenet" in filename:
             self.column_strategy = next((s for s in self.strategies if isinstance(s, TelenetColumnStrategy)),
                                         TelenetColumnStrategy())
