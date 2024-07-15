@@ -16,6 +16,10 @@ class PDFProcessor:
         self.column_strategy = strategy
 
     def process_file_gui(self, file_path, window):
+        strategy = self.determine_strategy(file_path)
+        default_columns = strategy.default_columns if strategy else 2
+        print(f"Using strategy: {strategy.name} with default columns: {default_columns}")  # Debug print
+
         entries = []
         try:
             with pdfplumber.open(file_path) as pdf:
@@ -27,20 +31,20 @@ class PDFProcessor:
             window.destroy()
             return None
 
-    def create_page_settings(self, page_num, page, window):
+    def create_page_settings(self, page_num, window, default_columns=2):
         frame = Frame(window)
         frame.pack(fill='x', padx=50, pady=5)
-        num_columns_var = StringVar(value="2")
-        include_page_var = IntVar(value=1)
+        num_columns_var = StringVar(value=str(default_columns))  # Ensure this value is passed correctly
+        print(f"Setting up page settings for page {page_num} with default columns: {default_columns}")  # Debug print
+
+        include_page_var = IntVar(value=0)
         Label(frame, text=f'Page {page_num}:').pack(side='left')
         Label(frame, text="Columns:").pack(side='left')
-        num_columns_spinbox = Spinbox(frame, from_=1, to=10, textvariable=num_columns_var, width=5)
+        num_columns_spinbox = Spinbox(frame, from_=1, to=self.column_strategy.max_columns, textvariable=num_columns_var,
+                                      width=5)
         num_columns_spinbox.pack(side='left', padx=10)
         checkbutton = Checkbutton(frame, text="Exclude this page?", variable=include_page_var)
         checkbutton.pack(side='left')
-
-        num_columns_spinbox.bind("<Button-1>", lambda *args, var=include_page_var: var.set(0))
-        num_columns_spinbox.bind("<Key>", lambda *args, var=include_page_var: var.set(0))
 
         return [(page_num, num_columns_var, include_page_var)]
 

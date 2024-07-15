@@ -1,6 +1,7 @@
 class ColumnStrategy:
-    def __init__(self, name="Configure strategies..."):
+    def __init__(self, name="Configure strategies...", default_columns=2):
         self.name = name
+        self.default_columns = default_columns
         self.max_columns = 8
         self.buffers_start = [0] * self.max_columns
         self.buffers_end = [0] * self.max_columns
@@ -37,17 +38,17 @@ def calculate_columns(page, num_columns, buffers_start, buffers_end):
 
 
 class TelenetColumnStrategy(ColumnStrategy):
-    def __init__(self, name="Telenet v1"):
-        super().__init__(name)
-        self.update_buffers([0]*7, [0, 0, 0, 0, 12, 11, 0])
+    def __init__(self, name="Telenet v1", default_columns=7):
+        super().__init__(name, default_columns)
+        self.update_buffers([0, 0, 0, 0, 0, 0, -9], [0, 0, 0, 0, 12, 11, 0])
 
     def define_columns(self, page, num_columns):
         return calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)
 
 
 class VOOColumnStrategy(ColumnStrategy):
-    def __init__(self, name="VOO v1"):
-        super().__init__(name)
+    def __init__(self, name="VOO v1", default_columns=6):
+        super().__init__(name, default_columns)
         self.update_buffers([15, -10, -10, -10, -5, -5, -5, -5], [19, 20, 10, 10, 5, 0, 0, 0])
 
     def define_columns(self, page, num_columns):
@@ -55,8 +56,8 @@ class VOOColumnStrategy(ColumnStrategy):
 
 
 class OrangeColumnStrategy(ColumnStrategy):
-    def __init__(self, name="Orange v1"):
-        super().__init__(name)
+    def __init__(self, name="Orange v1", default_columns=3):
+        super().__init__(name, default_columns)
 
     def define_columns(self, page, num_columns):
         return calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)
