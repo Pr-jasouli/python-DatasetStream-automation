@@ -1,5 +1,6 @@
 import os
 import tkinter as tk
+import webbrowser
 from tkinter import filedialog, messagebox, Label, Button, OptionMenu, StringVar, Frame, Entry, Toplevel
 
 from parser import PDFProcessor
@@ -17,6 +18,8 @@ class ChannelSynthesizerGUI:
         self.config_window = None
         self.process_button = Button(self.root, text="Process All", command=self.process_all_files)
         self.process_button.pack(pady=10)
+        self.view_result_button = Button(self.root, text="View Result", command=self.view_result)
+        self.view_result_button.pack(pady=10)
         self.files_data = []
         self.file_labels = {}
         self.strategies = [TelenetColumnStrategy(), VOOColumnStrategy(), OrangeColumnStrategy()]
@@ -27,6 +30,13 @@ class ChannelSynthesizerGUI:
         file_path = filedialog.askopenfilename(title='Select PDF', filetypes=[("PDF files", "*.pdf")])
         if file_path:
             self.configure_file(file_path)
+
+    def view_result(self):
+        output_file = os.path.join(os.path.abspath('../outputs/xlsx'), 'extracted_data.xlsx')
+        try:
+            webbrowser.open(output_file)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open the file: {e}")
 
     def configure_file(self, file_path):
         file_settings_window = Toplevel(self.root)
