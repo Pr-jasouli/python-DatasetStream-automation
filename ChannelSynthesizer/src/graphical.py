@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import filedialog, messagebox, Label, Button, OptionMenu, StringVar, Frame, Entry
+from tkinter import filedialog, messagebox, Label, Button, OptionMenu, StringVar, Frame, Entry, Toplevel
 
 from parser import PDFProcessor
 from strategies import TelenetColumnStrategy, VOOColumnStrategy, OrangeColumnStrategy
@@ -29,34 +29,24 @@ class ChannelSynthesizerGUI:
             self.configure_file(file_path)
 
     def configure_file(self, file_path):
-        file_settings_window = tk.Toplevel(self.root)
+        file_settings_window = Toplevel(self.root)
         file_settings_window.title("Configure Parser")
-        default_strategy = self.determine_strategy(file_path)
-        self.pdf_processors[file_path] = PDFProcessor(default_strategy)
+
+        self.pdf_processors[file_path] = PDFProcessor(strategies=self.strategies)
         entries = self.pdf_processors[file_path].process_file_gui(file_path, file_settings_window)
 
         def on_done():
             if entries:
-                # num_columns_list = [int(entry[1].get()) for entry in entries]
                 page_include = [not bool(entry[2].get()) for entry in entries]
                 if any(page_include):
                     processed_data = self.pdf_processors[file_path].process_pdf(entries, file_path)
                     if processed_data:
-                        self.display_file_data(file_path, processed_data, default_strategy.name)
+                        strategy_name = self.pdf_processors[file_path].get_strategy_name()
+                        self.display_file_data(file_path, processed_data, strategy_name)
             file_settings_window.destroy()
 
         done_button = Button(file_settings_window, text="Done", command=on_done)
         done_button.pack(pady=20)
-
-    def determine_strategy(self, file_path):
-        filename = os.path.basename(file_path).lower()
-        if "telenet" in filename:
-            return next((s for s in self.strategies if isinstance(s, TelenetColumnStrategy)), TelenetColumnStrategy())
-        elif "voo" in filename:
-            return next((s for s in self.strategies if isinstance(s, VOOColumnStrategy)), VOOColumnStrategy())
-        elif "orange" in filename:
-            return next((s for s in self.strategies if isinstance(s, OrangeColumnStrategy)), OrangeColumnStrategy())
-        return next((s for s in self.strategies if isinstance(s, TelenetColumnStrategy)), TelenetColumnStrategy())
 
     def update_all_strategy_dropdowns(self):
         for file_data in self.files_data:

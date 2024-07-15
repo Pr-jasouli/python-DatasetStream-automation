@@ -5,15 +5,19 @@ import pdfplumber
 
 from tkinter import messagebox, Frame, Label, Spinbox, Checkbutton, IntVar, StringVar
 
-from strategies import ColumnStrategy
+from strategies import ColumnStrategy, TelenetColumnStrategy, VOOColumnStrategy, OrangeColumnStrategy
 
 
 class PDFProcessor:
-    def __init__(self, column_strategy: ColumnStrategy):
-        self.column_strategy = column_strategy
+    def __init__(self, strategies):
+        self.strategies = strategies
+        self.column_strategy = None
 
     def set_column_strategy(self, strategy: ColumnStrategy):
         self.column_strategy = strategy
+
+    def get_strategy_name(self):
+        return self.column_strategy.name if self.column_strategy else "No Strategy"
 
     def process_file_gui(self, file_path, window):
         strategy = self.determine_strategy(file_path)
@@ -24,7 +28,7 @@ class PDFProcessor:
         try:
             with pdfplumber.open(file_path) as pdf:
                 for page_num, page in enumerate(pdf.pages, start=1):
-                    entries += self.create_page_settings(page_num, page, window)
+                    entries += self.create_page_settings(page_num, window, default_columns)
             return entries
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open PDF file: {e}")
@@ -47,6 +51,23 @@ class PDFProcessor:
         checkbutton.pack(side='left')
 
         return [(page_num, num_columns_var, include_page_var)]
+
+    def determine_strategy(self, file_path):
+        filename = os.path.basename(file_path).lower()
+        # Attempt to find a strategy in the list, or default to creating a new one if none are found
+        if "telenet" in filename:
+            self.column_strategy = next((s for s in self.strategies if isinstance(s, TelenetColumnStrategy)),
+                                        TelenetColumnStrategy())
+        elif "voo" in filename:
+            self.column_strategy = next((s for s in self.strategies if isinstance(s, VOOColumnStrategy)),
+                                        VOOColumnStrategy())
+        elif "orange" in filename:
+            self.column_strategy = next((s for s in self.strategies if isinstance(s, OrangeColumnStrategy)),
+                                        OrangeColumnStrategy())
+        else:
+            self.column_strategy = next((s for s in self.strategies if isinstance(s, TelenetColumnStrategy)),
+                                        TelenetColumnStrategy())
+        return self.column_strategy
 
     def process_pdf(self, entries, file_path):
         processed_data = []
