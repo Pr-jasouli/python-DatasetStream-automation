@@ -9,35 +9,40 @@ class ColumnStrategy:
         self.name = new_name
 
     def update_buffers(self, buffers_start, buffers_end):
-        self.buffers_start = buffers_start[:self.max_columns]
-        self.buffers_end = buffers_end[:self.max_columns]
+        if len(buffers_start) > self.max_columns or len(buffers_end) > self.max_columns:
+            raise ValueError("Buffer lists exceed maximum column count")
+        self.buffers_start = buffers_start
+        self.buffers_end = buffers_end
 
     def define_columns(self, page, num_columns):
         raise NotImplementedError("Subclasses must implement this method")
 
 
+def calculate_columns(page, num_columns, buffers_start, buffers_end):
+    if num_columns <= 0:
+        raise ValueError("Number of columns must be positive")
+    column_width = page.width / num_columns
+    columns = []
+
+    for i in range(num_columns):
+        start_buffer = buffers_start[i] if i < len(buffers_start) else 0
+        end_buffer = buffers_end[i] if i < len(buffers_end) else 0
+
+        x0 = max(0, i * column_width + start_buffer)
+        x1 = min(page.width, (i + 1) * column_width - end_buffer) if i != num_columns - 1 else page.width
+
+        columns.append((x0, 0, x1, page.height))
+
+    return columns
+
+
 class TelenetColumnStrategy(ColumnStrategy):
-    def __init__(self, name="Telenet Original"):
+    def __init__(self, name="Telenet v1"):
         super().__init__(name)
-        if self.max_columns >= 7:
-            self.buffers_end[4] = 12
-            self.buffers_start[5] = 0
-            self.buffers_end[5] = 11
-            self.buffers_start[6] = -9
+        self.update_buffers([0]*7, [0, 0, 0, 0, 12, 11, 0])
 
     def define_columns(self, page, num_columns):
-        return self.calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)
-
-    def calculate_columns(self, page, num_columns, buffers_start, buffers_end):
-        column_width = page.width / num_columns
-        columns = []
-        for i in range(num_columns):
-            x0 = i * column_width + buffers_start[i] if i != 0 else 0
-            x1 = (i + 1) * column_width - buffers_end[i] if i != num_columns - 1 else page.width
-            x0 = max(0, min(x0, page.width))
-            x1 = max(x0, min(x1, page.width))
-            columns.append((x0, 0, x1, page.height))
-        return columns
+        return calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)
 
 
 class VOOColumnStrategy(ColumnStrategy):
