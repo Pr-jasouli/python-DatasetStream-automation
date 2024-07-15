@@ -46,20 +46,17 @@ class TelenetColumnStrategy(ColumnStrategy):
 
 
 class VOOColumnStrategy(ColumnStrategy):
-    def __init__(self, name="VOO Original"):
+    def __init__(self, name="VOO v1"):
         super().__init__(name)
-
+        self.update_buffers([15, -10, -10, -10, -5, -5, -5, -5], [19, 20, 10, 10, 5, 0, 0, 0])
 
     def define_columns(self, page, num_columns):
-        return self.calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)
+        return calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)
 
-    def calculate_columns(self, page, num_columns, buffers_start, buffers_end):
-        column_width = page.width / num_columns
-        columns = []
-        for i in range(num_columns):
-            x0 = i * column_width + buffers_start[i] if i != 0 else 0
-            x1 = (i + 1) * column_width - buffers_end[i] if i != num_columns - 1 else page.width
-            x0 = max(0, min(x0, page.width))
-            x1 = max(x0, min(x1, page.width))
-            columns.append((x0, 0, x1, page.height))
-        return columns
+
+class OrangeColumnStrategy(ColumnStrategy):
+    def __init__(self, name="Orange v1"):
+        super().__init__(name)
+
+    def define_columns(self, page, num_columns):
+        return calculate_columns(page, num_columns, self.buffers_start, self.buffers_end)

@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, Label, Button, OptionMenu, StringVar, Frame, Entry
 
 from parser import PDFProcessor
-from strategies import TelenetColumnStrategy, VOOColumnStrategy
+from strategies import TelenetColumnStrategy, VOOColumnStrategy, OrangeColumnStrategy
 
 
 class ChannelSynthesizerGUI:
@@ -19,7 +19,7 @@ class ChannelSynthesizerGUI:
         self.process_button.pack(pady=10)
         self.files_data = []
         self.file_labels = {}
-        self.strategies = [TelenetColumnStrategy(), VOOColumnStrategy()]
+        self.strategies = [TelenetColumnStrategy(), VOOColumnStrategy(), OrangeColumnStrategy()]
         self.strategy_listbox = None
         self.pdf_processors = {}
 
@@ -54,6 +54,8 @@ class ChannelSynthesizerGUI:
             return next((s for s in self.strategies if isinstance(s, TelenetColumnStrategy)), TelenetColumnStrategy())
         elif "voo" in filename:
             return next((s for s in self.strategies if isinstance(s, VOOColumnStrategy)), VOOColumnStrategy())
+        elif "orange" in filename:
+            return next((s for s in self.strategies if isinstance(s, OrangeColumnStrategy)), OrangeColumnStrategy())
         return next((s for s in self.strategies if isinstance(s, TelenetColumnStrategy)), TelenetColumnStrategy())
 
     def update_all_strategy_dropdowns(self):
@@ -170,7 +172,7 @@ class ChannelSynthesizerGUI:
                 end_entry.pack(side='left', padx=10)
                 entries = []
 
-                if isinstance(strategy, (TelenetColumnStrategy, VOOColumnStrategy)):
+                if isinstance(strategy, (TelenetColumnStrategy, VOOColumnStrategy, OrangeColumnStrategy)):
                     start_entry.config(state='disabled')
                     end_entry.config(state='disabled')
                 entries.append((start_entry, end_entry))
