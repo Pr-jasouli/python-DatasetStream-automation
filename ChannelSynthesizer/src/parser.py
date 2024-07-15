@@ -103,10 +103,10 @@ class PDFProcessor:
                                             'Page': page_number,
                                             'Column': column_index,
                                             'Text': phrase.strip(),
-                                            'Top': top,
-                                            'Bottom': bottom,
-                                            'X0': x0,
-                                            'X1': x1
+                                            # 'Top': top,
+                                            # 'Bottom': bottom,
+                                            # 'X0': x0,
+                                            # 'X1': x1
                                         })
                             column_index += 1
             print(f"Extracted {len(all_data)} entries from {file_path}")
