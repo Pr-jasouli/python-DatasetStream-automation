@@ -51,7 +51,7 @@ class AudienceTab(ttk.Frame):
                 #     self.config_ui_callback('audience_src', file_path)
                 self.config_data['audience_src'] = file_path
             except Exception as e:
-                utils.show_message("Error", f"Failed to load the file:\n{str(e)}", 'error')
+                utils.show_message("Error", f"Failed to load the file:\n{str(e)}", type='error', master=self, custom=True)
 
 
     def update_file_details_label(self, file_path):
@@ -120,27 +120,27 @@ class AudienceTab(ttk.Frame):
             month = int(self.month_entry.get())
             year = int(self.year_entry.get())
             if datetime(year, month, 1) > datetime.now():
-                messagebox.showerror("Error", "The reference date cannot be in the future.")
+                utils.show_message("Error", "The reference date cannot be in the future.", type='error', master=self, custom=True)
             elif self.df is not None:
                 self.check_date_in_data(year, month)
             else:
-                messagebox.showerror("Error", "Load an Excel file first.")
+                utils.show_message("Error", "Load an Excel file first.", type='error', master=self, custom=True)
         except ValueError:
-            messagebox.showerror("Error", "Invalid date. Please enter a valid month and year.")
+            utils.show_message("Error", "Invalid date. Please enter a valid month and year.", type='error', master=self, custom=True)
 
     def check_date_in_data(self, year, month):
         """Checks if the date exists in the loaded data and updates the user."""
         mask = (self.df['PERIOD_YEAR'] == year) & (self.df['PERIOD_MONTH'] == month)
         if mask.any():
-            messagebox.showinfo("Validation", "Date is valid and found in the file.")
+            utils.show_message("Validation", "Date is valid and found in the file.", type='info', master=self, custom=True)
         else:
             specific_data = self.df[(self.df['PERIOD_YEAR'] == year)]
-            messagebox.showerror("Validation", f"Date not found in the file. Debug: Year({year}), Month({month})\nSample rows where year matches:\n{specific_data.head()}")
+            utils.show_message("Validation", f"Date not found in the file. Debug: Year({year}), Month({month})\nSample rows where year matches:\n{specific_data.head()}", type='error', master=self, custom=True)
 
     def show_columns(self):
         """Displays the column names from the loaded DataFrame."""
         if self.df is not None:
             columns = '\n'.join(self.df.columns)
-            messagebox.showinfo("Columns", f"Columns in the file:\n{columns}")
+            utils.show_message("Columns", f"Columns in the file:\n{columns}", type='info', master=self, custom=True)
         else:
-            messagebox.showerror("Error", "Load an Excel file first.")
+            utils.show_message("Error", "Load an Excel file first.", type='info', master=self, custom=True)

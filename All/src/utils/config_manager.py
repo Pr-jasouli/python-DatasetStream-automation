@@ -2,6 +2,8 @@ import json
 import os
 from tkinter import messagebox
 
+from All.src.utils import utils
+
 
 class ConfigManager:
     def __init__(self, config_file=None):
@@ -26,7 +28,7 @@ class ConfigManager:
         except (json.JSONDecodeError, ValueError, FileNotFoundError) as e:
             self.config_data = self.default_config()
             self.save_config()
-            messagebox.showinfo("Configuration Issue", f"{str(e)}. Loading default configuration.")
+            utils.show_message("Configuration Issue", f"{str(e)}. Loading default configuration.", type="info", master=self, custom=True)
         return self.config_data
 
     def save_config(self):
@@ -48,3 +50,4 @@ class ConfigManager:
 
     def get_config(self):
         return self.config_data
+

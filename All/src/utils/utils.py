@@ -66,9 +66,9 @@ def select_file(callback, filetypes):
         callback(file_selected)
 
 
-def show_message(title, message, type='info'):
+def show_message(title, message, type='info', master=None, custom=False):
     """
-    Displays a message box of specified type.
+    Displays a message box of specified type. Optionally uses a custom dialog.
 
     Args:
         title (str): The title of the message box.
@@ -78,9 +78,58 @@ def show_message(title, message, type='info'):
     if type == 'info':
         messagebox.showinfo(title, message)
     elif type == 'error':
-        messagebox.showerror(title, message)
+        tk.messagebox.showerror(title, message)
 
+def show_custom_message(master, title, message, type='info'):
+    """
+    Displays a custom message box with selectable text that adapts its height based on content length.
+    Scrolls appear after 20 lines.
 
+    Args:
+        master (tk.Widget): The parent widget.
+        title (str): The title of the message box.
+        message (str): The message to display.
+        type (str): The type of message box ('info' or 'error').
+    """
+    top = tk.Toplevel(master)
+    top.title(title)
+
+    screen_width = master.winfo_screenwidth()
+    screen_height = master.winfo_screenheight()
+    window_width = min(350, max(300, len(message) * 7))
+
+    characters_per_line = window_width // 7
+    estimated_lines = len(message) // characters_per_line + (1 if len(message) % characters_per_line else 0)
+    window_height = min(150 + 18 * min(20, estimated_lines), screen_height - 100)
+
+    x_coordinate = (screen_width - window_width) // 2
+    y_coordinate = (screen_height - window_height) // 2
+    top.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+
+    top.transient(master)
+    top.grab_set()
+
+    bg_color = '#dddddd' if type == 'info' else '#ffdddd'
+
+    text_frame = tk.Frame(top)
+    text_frame.pack(fill='both', expand=True)
+    text_scroll = tk.Scrollbar(text_frame)
+    text_scroll.pack(side='right', fill='y')
+    text_widget = tk.Text(text_frame, wrap='word', yscrollcommand=text_scroll.set,
+                          background=bg_color, borderwidth=0, highlightthickness=0)
+    text_widget.insert('end', message)
+    text_widget.config(state='disabled', height=min(25, estimated_lines))
+    text_widget.pack(pady=20, padx=20, fill='both', expand=True)
+    text_scroll.config(command=text_widget.yview)
+
+    def on_click(event):
+        if event.widget is not text_widget:
+            top.destroy()
+
+    top.bind("<FocusOut>", lambda event: top.destroy())
+    top.bind("<Button-1>", on_click)
+    top.focus_set()
+    top.wait_window()
 def select_directory(entry_field):
     """
     Opens a directory dialog to select a folder and updates the entry field.
@@ -104,3 +153,4 @@ def clean_file_path(file_path):
         str: The cleaned file path.
     """
     return file_path.strip().strip('"')
+

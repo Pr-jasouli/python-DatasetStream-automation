@@ -92,9 +92,9 @@ class ConfigUI(tk.Toplevel):
         if file_selected:
             try:
                 self.config_manager.load_config(file_selected)
-                messagebox.showinfo("Load Configuration", "Configuration loaded successfully!")
+                utils.show_message("Load Configuration", "Configuration loaded successfully!", type="info", master=self, custom=True)
             except Exception as e:
-                messagebox.showerror("Error Loading Configuration", f"An error occurred: {str(e)}")
+                utils.show_message("Error Loading Configuration", f"An error occurred: {str(e)}", type="info", master=self, custom=True)
 
     def save_configuration(self):
         """Saves the current configuration settings."""
@@ -102,7 +102,7 @@ class ConfigUI(tk.Toplevel):
             cleaned_path = utils.clean_file_path(entry.get())
             self.config_manager.update_config(key, cleaned_path)
         self.config_manager.save_config()
-        messagebox.showinfo("Save Configuration", "Configuration saved successfully!")
+        utils.show_message("Save Configuration", "Configuration saved successfully!", type="info", master=self, custom=True)
 
     def view_configuration(self):
         config_path = self.config_manager.config_file
@@ -110,7 +110,7 @@ class ConfigUI(tk.Toplevel):
         if os.path.exists(config_path):
             os.startfile(config_path)
         else:
-            messagebox.showerror("View Configuration", "Configuration file does not exist.")
+            utils.show_message("View Configuration", "Configuration file does not exist.", type="info", master=self, custom=True)
 
     def center_window(self):
         """Centers the window on the screen based on the master window's size."""

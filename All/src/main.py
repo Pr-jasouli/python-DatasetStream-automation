@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from All.src.utils import utils
+from All.src.utils import utils, config_manager
 from All.src.utils.config_manager import ConfigManager
 from All.src.ui.audience_tab import AudienceTab
 from All.src.ui import config_ui
@@ -13,6 +13,7 @@ class MainApplication(tk.Tk):
         self.config_manager = ConfigManager()
         self.config_data = self.config_manager.load_config()
         self.config_ui_callback = self.update_config_data
+
         self.initialize_ui()
 
     def initialize_ui(self):
@@ -100,19 +101,24 @@ class MainApplication(tk.Tk):
         self.config_ui = config_ui.ConfigUI(self, tab_names)
 
     def file_open(self):
-        messagebox.showinfo("Open", "Open a file!")
+        utils.show_message("Open", "Open a file!", type="info", master=self, custom=True)
 
-    def file_save(self):
-        messagebox.showinfo("Save", "Save the file!")
+    def save_configuration(self):
+        """Saves the current configuration using the ConfigManager."""
+        try:
+            self.config_manager.save_config()
+            utils.show_message("Configuration", "Configuration saved successfully!", type="info", master=self, custom=True)
+        except Exception as e:
+            utils.show_message("Error", "Failed to save configuration:\n" + str(e), type="error", master=self, custom=True)
 
     def exit_app(self):
         self.quit()
 
     def edit_undo(self):
-        utils.show_message("Undo", "Undo the last action!")
+        utils.show_message("Undo", "Undo the last action!", type="info", master=self, custom=True)
 
     def edit_redo(self):
-        utils.show_message("Redo", "Redo the last undone action!")
+        utils.show_message("Open", "Open a file!", type="info", master=self, custom=True)
 
     def update_config_data(self, key, value):
         self.config_manager.update_config(key, value)
