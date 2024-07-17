@@ -1,11 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from All.src import utils
-from All.src.config_manager import ConfigManager
-from audience_tab import AudienceTab
-from pdf_tab import PDFTab
-import config_ui
+from All.src.utils import utils
+from All.src.utils.config_manager import ConfigManager
+from All.src.ui.audience_tab import AudienceTab
+from All.src.ui import config_ui
 
 
 class MainApplication(tk.Tk):

@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from functools import partial
 
-from All.src import utils
+from All.src.utils import utils
 
 
 class ConfigUI(tk.Toplevel):
@@ -20,6 +20,7 @@ class ConfigUI(tk.Toplevel):
         self.resizable(False, False)
         self.create_menus()
         self.create_frames()
+        self.create_frames()
         self.transient(self.master)
         self.grab_set()
         self.wait_window(self)
@@ -27,7 +28,7 @@ class ConfigUI(tk.Toplevel):
     def create_menus(self):
         """Creates menu items for the window."""
         menu_items = [
-            {"label": "Config", "command": partial(self.toggle_frame, "config")},
+            {"label": "Config", "command": partial(self.toggle_frame, ".config")},
             {"label": "Sources", "command": partial(self.toggle_frame, "sources")}
         ]
         utils.create_menu(self, menu_items)
@@ -60,6 +61,7 @@ class ConfigUI(tk.Toplevel):
         """Sets the initial path in the entry field from config."""
         key = f"{tab_name.lower()}_src"
         if key in self.config_manager.config_data:
+            self.entries[key].delete(0, tk.END)
             self.entries[key].insert(0, self.config_manager.config_data[key])
 
     def build_config_frame(self):
@@ -70,7 +72,7 @@ class ConfigUI(tk.Toplevel):
 
     def toggle_frame(self, frame_name):
         """Toggles between different frames in the UI based on the user's choice."""
-        if frame_name == "config":
+        if frame_name == ".config":
             self.sources_destinations_frame.grid_remove()
             self.config_frame.grid()
         else:
@@ -94,6 +96,7 @@ class ConfigUI(tk.Toplevel):
         for key, entry in self.entries.items():
             cleaned_path = utils.clean_file_path(entry.get())
             self.config_manager.update_config(key, cleaned_path)
+        self.config_manager.save_config()
         messagebox.showinfo("Save Configuration", "Configuration saved successfully!")
 
     def center_window(self):

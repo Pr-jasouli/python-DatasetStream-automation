@@ -4,7 +4,7 @@ from tkinter import messagebox
 
 
 class ConfigManager:
-    def __init__(self, config_file='config.json'):
+    def __init__(self, config_file='.config/config.json'):
         self.config_file = config_file
         self.config_data = {}
 
@@ -15,10 +15,11 @@ class ConfigManager:
         else:
             self.config_data = self.default_config()
             self.save_config()
-            messagebox.showinfo("Configuration", "No config.json found. A new empty configuration file has been created.")
+            messagebox.showinfo("Configuration", "No .config.json found. A new empty configuration file has been created.")
         return self.config_data
 
     def save_config(self):
+        """Write the configuration data to disk."""
         with open(self.config_file, 'w') as file:
             json.dump(self.config_data, file, indent=4)
 

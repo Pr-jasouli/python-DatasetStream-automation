@@ -4,7 +4,7 @@ from tkinter import ttk
 
 import pandas as pd
 
-from All.src import utils
+from All.src.utils import utils
 
 
 class AudienceTab(ttk.Frame):
@@ -34,7 +34,6 @@ class AudienceTab(ttk.Frame):
         ttk.Label(self, text="REFERENCES", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
         self.setup_buttons_and_entries()
 
-
     def setup_file_loading(self, parent):
         ttk.Button(parent, text="⇓", command=self.prompt_excel_load, style='AudienceTab.TButton').pack(side='left', padx=10)
 
@@ -47,8 +46,10 @@ class AudienceTab(ttk.Frame):
             try:
                 self.df = pd.read_excel(file_path)
                 self.update_file_details_label(file_path)
-                if self.config_ui_callback:
-                    self.config_ui_callback('audience_src', file_path)
+                # AUTO SAVES CONFIG AS YOU LOAD AN EXCEL
+                # if self.config_ui_callback:
+                #     self.config_ui_callback('audience_src', file_path)
+                self.config_data['audience_src'] = file_path
             except Exception as e:
                 utils.show_message("Error", f"Failed to load the file:\n{str(e)}", 'error')
 
@@ -90,12 +91,10 @@ class AudienceTab(ttk.Frame):
         self.file_details_label = ttk.Label(file_details_container, text="No file loaded", anchor='w')
         self.file_details_label.pack(side='left', fill='y', expand=False, padx=10)
 
-
     def load_initial_excel(self):
         src_audience_path = self.config_data.get('audience_src')
         if src_audience_path:
             self.load_excel(src_audience_path)
-
 
     def validate_month(self, P):
         """Validate the month entry to ensure it's empty or a valid month number."""
@@ -104,7 +103,6 @@ class AudienceTab(ttk.Frame):
         if P.isdigit() and 1 <= int(P) <= 12:
             return True
         return False
-
 
     def validate_year(self, P):
         """Validate the year entry to ensure it meets specified conditions."""
