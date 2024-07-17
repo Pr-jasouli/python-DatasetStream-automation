@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from functools import partial
@@ -58,7 +59,7 @@ class ConfigUI(tk.Toplevel):
         self.entries[f"{tab_name.lower()}_src"] = entry
 
     def set_initial_path(self, tab_name):
-        """Sets the initial path in the entry field from config."""
+        """Sets the initial path in the entry field from .config."""
         key = f"{tab_name.lower()}_src"
         if key in self.config_manager.config_data:
             self.entries[key].delete(0, tk.END)
@@ -66,9 +67,9 @@ class ConfigUI(tk.Toplevel):
 
     def build_config_frame(self):
         """Creates user interface for configuration management."""
-        utils.create_styled_button(self.config_frame, "Load Configuration").pack(pady=10, expand=True, fill="x")
+        utils.create_styled_button(self.config_frame, "Load Configuration", command=self.load_configuration).pack(pady=10, expand=True, fill="x")
+        utils.create_styled_button(self.config_frame, "View Configuration", command=self.view_configuration).pack(pady=10, expand=True, fill="x")
         utils.create_styled_button(self.config_frame, "Save Configuration", command=self.save_configuration).pack(pady=10, expand=True, fill="x")
-
 
     def toggle_frame(self, frame_name):
         """Toggles between different frames in the UI based on the user's choice."""
@@ -87,9 +88,13 @@ class ConfigUI(tk.Toplevel):
             entry_field.insert(0, file_selected)
 
     def load_configuration(self):
-        """Loads the configuration settings."""
-        self.config_manager.load_config()
-        messagebox.showinfo("Load Configuration", "Configuration loaded successfully!")
+        file_selected = filedialog.askopenfilename(filetypes=[("JSON Files", "*.json")])
+        if file_selected:
+            try:
+                self.config_manager.load_config(file_selected)
+                messagebox.showinfo("Load Configuration", "Configuration loaded successfully!")
+            except Exception as e:
+                messagebox.showerror("Error Loading Configuration", f"An error occurred: {str(e)}")
 
     def save_configuration(self):
         """Saves the current configuration settings."""
@@ -98,6 +103,14 @@ class ConfigUI(tk.Toplevel):
             self.config_manager.update_config(key, cleaned_path)
         self.config_manager.save_config()
         messagebox.showinfo("Save Configuration", "Configuration saved successfully!")
+
+    def view_configuration(self):
+        config_path = self.config_manager.config_file
+
+        if os.path.exists(config_path):
+            os.startfile(config_path)
+        else:
+            messagebox.showerror("View Configuration", "Configuration file does not exist.")
 
     def center_window(self):
         """Centers the window on the screen based on the master window's size."""
