@@ -92,3 +92,15 @@ def select_directory(entry_field):
     if folder_selected:
         entry_field.delete(0, tk.END)
         entry_field.insert(0, folder_selected)
+
+def clean_file_path(file_path):
+    """
+    Cleans up the file path by removing leading and trailing quotes.
+
+    Args:
+        file_path (str): The file path to clean.
+
+    Returns:
+        str: The cleaned file path.
+    """
+    return file_path.strip().strip('"')

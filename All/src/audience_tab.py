@@ -52,6 +52,7 @@ class AudienceTab(ttk.Frame):
             except Exception as e:
                 utils.show_message("Error", f"Failed to load the file:\n{str(e)}", 'error')
 
+
     def update_file_details_label(self, file_path):
         rows, cols = self.df.shape
         relative_path = '/'.join(file_path.split('/')[-3:])
@@ -91,10 +92,9 @@ class AudienceTab(ttk.Frame):
 
 
     def load_initial_excel(self):
-        src_audience_path = self.config_data.get('src_audience')
+        src_audience_path = self.config_data.get('audience_src')
         if src_audience_path:
             self.load_excel(src_audience_path)
-
 
 
     def validate_month(self, P):
@@ -104,6 +104,7 @@ class AudienceTab(ttk.Frame):
         if P.isdigit() and 1 <= int(P) <= 12:
             return True
         return False
+
 
     def validate_year(self, P):
         """Validate the year entry to ensure it meets specified conditions."""

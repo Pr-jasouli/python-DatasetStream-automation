@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 from functools import partial
 
 from All.src import utils
@@ -11,6 +11,7 @@ class ConfigUI(tk.Toplevel):
         self.title("Configuration")
         self.tabs = tabs
         self.entries = {}
+        self.config_manager = master.config_manager
         self.init_ui()
 
     def init_ui(self):
@@ -45,14 +46,21 @@ class ConfigUI(tk.Toplevel):
         """Creates user interface for source file settings."""
         for idx, tab_name in enumerate(self.tabs):
             self.create_source_widgets(tab_name, idx)
+            self.set_initial_path(tab_name)
 
     def create_source_widgets(self, tab_name, row):
         """Helper function to create label, entry, and button for a source file."""
         ttk.Label(self.sources_destinations_frame, text=f"{tab_name} Reference file:").grid(row=row, column=0, padx=10, pady=5, sticky="ew")
         entry = ttk.Entry(self.sources_destinations_frame)
         entry.grid(row=row, column=1, padx=10, pady=5, sticky="ew")
-        utils.create_styled_button(self.sources_destinations_frame, "Browse", command=lambda e=entry: utils.select_file(e, [("All Files", "*.*"), ("Excel Files", "*.xls;*.xlsx"), ("Text Files", "*.txt"), ("CSV Files", "*.csv")])).grid(row=row, column=2, padx=10, pady=5, sticky="ew")
+        ttk.Button(self.sources_destinations_frame, text="Browse", command=lambda e=entry: self.select_file(e)).grid(row=row, column=2, padx=10, pady=5, sticky="ew")
         self.entries[f"{tab_name.lower()}_src"] = entry
+
+    def set_initial_path(self, tab_name):
+        """Sets the initial path in the entry field from config."""
+        key = f"{tab_name.lower()}_src"
+        if key in self.config_manager.config_data:
+            self.entries[key].insert(0, self.config_manager.config_data[key])
 
     def build_config_frame(self):
         """Creates user interface for configuration management."""
@@ -76,9 +84,17 @@ class ConfigUI(tk.Toplevel):
             entry_field.delete(0, tk.END)
             entry_field.insert(0, file_selected)
 
+    def load_configuration(self):
+        """Loads the configuration settings."""
+        self.config_manager.load_config()
+        messagebox.showinfo("Load Configuration", "Configuration loaded successfully!")
+
     def save_configuration(self):
-        """Placeholder method to simulate saving configuration settings."""
-        utils.show_message("Save Configuration", "Configuration saved!")
+        """Saves the current configuration settings."""
+        for key, entry in self.entries.items():
+            cleaned_path = utils.clean_file_path(entry.get())
+            self.config_manager.update_config(key, cleaned_path)
+        messagebox.showinfo("Save Configuration", "Configuration saved successfully!")
 
     def center_window(self):
         """Centers the window on the screen based on the master window's size."""

@@ -2,15 +2,18 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from All.src import utils
+from All.src.config_manager import ConfigManager
 from audience_tab import AudienceTab
 from pdf_tab import PDFTab
 import config_ui
 
+
 class MainApplication(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.config_ui_callback = None
-        self.config_data = {}
+        self.config_manager = ConfigManager()
+        self.config_data = self.config_manager.load_config()
+        self.config_ui_callback = self.update_config_data
         self.initialize_ui()
 
     def initialize_ui(self):
@@ -80,9 +83,10 @@ class MainApplication(tk.Tk):
         self.tab_control = ttk.Notebook(self, padding=10)
         self.audience_tab = AudienceTab(parent=self.tab_control, config_data=self.config_data,
                                         config_ui_callback=self.config_ui_callback)
-        self.pdf_tab = PDFTab(self.tab_control)
+        # self.pdf_tab = PDFTab(self.tab_control, config_data=self.config_data,
+        #                       config_ui_callback=self.config_ui_callback)
         self.tab_control.add(self.audience_tab, text='Audience')
-        self.tab_control.add(self.pdf_tab, text='PDF')
+        # self.tab_control.add(self.pdf_tab, text='PDF')
         self.tab_control.pack(expand=1, fill='both', padx=15, pady=15)
 
     def create_bottom_frame(self):
@@ -90,7 +94,6 @@ class MainApplication(tk.Tk):
         bottom_frame = ttk.Frame(self, padding=10, style='Bottom.TFrame')
         bottom_frame.pack(fill='x', side='bottom')
         utils.create_styled_button(bottom_frame, '\U0001F527', self.open_config).pack(side='left', padx=10)
-
 
     def open_config(self):
         """Open the configuration UI."""
@@ -105,11 +108,16 @@ class MainApplication(tk.Tk):
 
     def exit_app(self):
         self.quit()
+
     def edit_undo(self):
         utils.show_message("Undo", "Undo the last action!")
 
     def edit_redo(self):
         utils.show_message("Redo", "Redo the last undone action!")
+
+    def update_config_data(self, key, value):
+        self.config_manager.update_config(key, value)
+
 
 if __name__ == "__main__":
     app = MainApplication()
