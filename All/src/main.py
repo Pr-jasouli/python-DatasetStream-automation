@@ -72,8 +72,6 @@ class MainApplication(tk.Tk):
     def setup_edit_menu(self):
         """Create and return the edit menu."""
         edit_menu = tk.Menu(self.menubar, tearoff=0, background='SystemButtonFace', fg='black')
-        edit_menu.add_command(label="Undo", command=lambda: utils.show_message("Undo", "Undo the last action!"))
-        edit_menu.add_command(label="Redo", command=lambda: utils.show_message("Redo", "Redo the last undone action!"))
         edit_menu.add_command(label="Undo", command=lambda: utils.show_message("Undo", "Undo the last action!", type="info", master=self, custom=True))
         edit_menu.add_command(label="Redo", command=lambda: utils.show_message("Redo", "Redo the last undone action!", type="info", master=self, custom=True))
         edit_menu.add_separator()

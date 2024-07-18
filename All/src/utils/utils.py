@@ -111,7 +111,6 @@ def show_custom_message(master, title, message, type='info'):
     top.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
 
     top.transient(master)
-    top.grab_set()
 
     bg_color = '#dddddd' if type == 'info' else '#ffdddd'
 
@@ -133,7 +132,7 @@ def show_custom_message(master, title, message, type='info'):
     top.bind("<FocusOut>", lambda event: top.destroy())
     top.bind("<Button-1>", on_click)
     top.focus_set()
-    top.wait_window()
+
 def select_directory(entry_field):
     """
     Opens a directory dialog to select a folder and updates the entry field.
