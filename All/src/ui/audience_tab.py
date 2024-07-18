@@ -1,3 +1,5 @@
+import json
+import subprocess
 import tkinter as tk
 from datetime import datetime
 from tkinter import filedialog
@@ -16,6 +18,7 @@ class AudienceTab(ttk.Frame):
         self.df = None
         self.config_ui_callback = config_ui_callback
         self.config_data = config_data
+        self.file_path = None
         self.setup_ui()
 
     def process_widgets_setup(self):
@@ -24,9 +27,42 @@ class AudienceTab(ttk.Frame):
         container.pack(side='top', fill='x', expand=False, padx=20, pady=10)
         ttk.Label(container, text="PROCESS", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
 
-        # Directly use start_processing method of the class
-        self.process_button = ttk.Button(container, text="Start Processing", )
+        self.process_button = ttk.Button(container, text="Start Processing", command=self.start_processing)
         self.process_button.pack(side='top', fill='x', padx=10, pady=(5, 5))
+    def start_processing(self):
+        references_month = self.references_month.get()
+        references_year = self.references_year.get()
+        target_start_year = self.target_start_year.get()
+        target_end_year = self.target_end_year.get()
+        output_path = self.output_path.get()
+        file_path = self.file_path.get()
+
+        if self.file_path is None:
+            utils.show_message("Error", "No file selected.", type='error', master=self, custom=True)
+            return
+
+        file_path = self.file_path
+
+        # Log the retrieved values (for debugging purposes)
+        print(f"References Month: {references_month}, Year: {references_year}")
+        print(f"Target Start Year: {target_start_year}, End Year: {target_end_year}")
+        print(f"Output Path: {output_path}, File Path: {file_path}")
+
+        self.call_script(references_month, references_year, target_start_year, target_end_year, output_path, file_path)
+
+
+    def call_script(self, references_month, references_year, target_start_year, target_end_year, output_path, file_path):
+        script_path = "audience_parser.py"
+        args = {
+            "references_month": references_month,
+            "references_year": references_year,
+            "target_start_year": target_start_year,
+            "target_end_year": target_end_year,
+            "output_path": output_path,
+            "file_path": file_path
+        }
+
+        subprocess.run(["python", script_path, json.dumps(args)])
 
     def date_fields_setup(self, parent, context):
         if context == 'REFERENCES':
