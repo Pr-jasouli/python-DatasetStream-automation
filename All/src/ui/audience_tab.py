@@ -1,14 +1,12 @@
 import json
+import os
 import subprocess
-import tkinter as tk
 from datetime import datetime
 from tkinter import filedialog
 from tkinter import ttk
 
 import pandas as pd
 
-from All.src.ui.audience_parser import get_column_names, save_dataframe, duplicate_data, adjust_viewing_columns, \
-    load_excel_data
 from All.src.utils import utils
 
 
@@ -35,7 +33,7 @@ class AudienceTab(ttk.Frame):
         target_start_year = self.target_start_year.get()
         target_end_year = self.target_end_year.get()
         output_path = self.output_path.get()
-        file_path = self.file_path.get()
+        file_path = self.file_path
 
         if self.file_path is None:
             utils.show_message("Error", "No file selected.", type='error', master=self, custom=True)
@@ -51,8 +49,10 @@ class AudienceTab(ttk.Frame):
         self.call_script(references_month, references_year, target_start_year, target_end_year, output_path, file_path)
 
 
-    def call_script(self, references_month, references_year, target_start_year, target_end_year, output_path, file_path):
-        script_path = "audience_parser.py"
+    def call_script(self, references_month, references_year, target_start_year, target_end_year, output_path, file_path,
+                    current_dir=None):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        script_path = os.path.join(current_dir, 'audience_parser.py')
         args = {
             "references_month": references_month,
             "references_year": references_year,
@@ -109,17 +109,13 @@ class AudienceTab(ttk.Frame):
         if folder_selected:
             self.output_path.delete(0, 'end')
             self.output_path.insert(0, folder_selected)
+
     def references_file_details(self, parent):
         """Configure and place the file details label within the given container."""
         self.file_details_label = ttk.Label(parent, text="No file loaded", anchor='w')
         self.file_details_label.pack(side='top', fill='x', expand=False, padx=10, pady=(5, 10))
 
-
-
-
     def prompt_excel_load(self):
-        # filetypes = [("Excel files", "*.xlsx *.xls")]
-        # utils.select_file(self.load_excel, filetypes)
         filetypes = [("Excel files", "*.xlsx *.xls")]
         filepath = filedialog.askopenfilename(filetypes=filetypes)
         if filepath:
@@ -136,6 +132,7 @@ class AudienceTab(ttk.Frame):
 
 
     def update_file_details_label(self, file_path):
+        self.file_path = file_path
         if self.df is not None and not self.df.empty:
             rows, cols = self.df.shape
             relative_path = '/'.join(file_path.split('/')[-3:])
@@ -205,7 +202,6 @@ class AudienceTab(ttk.Frame):
 
     def validate_references(self):
         try:
-            # Check if a file is loaded first
             if self.df is None:
                 utils.show_message("Error", "Load an Excel file first.", type='error', master=self, custom=True)
                 return
@@ -213,7 +209,6 @@ class AudienceTab(ttk.Frame):
             month = int(self.references_month.get())
             year = int(self.references_year.get())
 
-            # Validate the date against the current date
             if datetime(year, month, 1) > datetime.now():
                 utils.show_message("Error", "The reference date cannot be in the future.", type='error', master=self,
                                    custom=True)
@@ -226,17 +221,14 @@ class AudienceTab(ttk.Frame):
 
     def validate_target(self):
         try:
-            # Check if a reference file is loaded
             if self.df is None:
                 utils.show_message("Error", "A reference file must be set.", type='error', master=self, custom=True)
                 return
 
-            # Check if the output path entry is populated
             if not self.output_path.get():
                 utils.show_message("Error", "Select an output folder first.", type='error', master=self, custom=True)
                 return
 
-            # Check if a reference date is set
             if not self.references_year.get() or not self.references_month.get():
                 utils.show_message("Error", "A reference date must be set.", type='error', master=self, custom=True)
                 return
@@ -246,7 +238,6 @@ class AudienceTab(ttk.Frame):
             start_year = int(self.target_start_year.get())
             end_year = int(self.target_end_year.get())
 
-            # Validate years based on the new rules
             if reference_month != 12:
                 if start_year < reference_year or end_year < reference_year:
                     utils.show_message("Error",
