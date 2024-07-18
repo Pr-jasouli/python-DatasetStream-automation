@@ -29,8 +29,8 @@ class ConfigUI(tk.Toplevel):
     def create_menus(self):
         """Creates menu items for the window."""
         menu_items = [
+            {"label": "Sources", "command": partial(self.toggle_frame, "sources")},
             {"label": "Config", "command": partial(self.toggle_frame, ".config")},
-            {"label": "Sources", "command": partial(self.toggle_frame, "sources")}
         ]
         utils.create_menu(self, menu_items)
 

@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 
 from All.src.utils import utils, config_manager
 from All.src.utils.config_manager import ConfigManager
@@ -47,7 +47,7 @@ class MainApplication(tk.Tk):
 
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label="Open", command=self.file_open)
-        file_menu.add_command(label="Save", command=self.file_save)
+        file_menu.add_command(label="Save Configuration", command=self.save_configuration)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.exit_app)
 
@@ -63,8 +63,8 @@ class MainApplication(tk.Tk):
     def setup_file_menu(self):
         """Create and return the file menu."""
         file_menu = tk.Menu(self.menubar, tearoff=0, background='SystemButtonFace', fg='black')
-        file_menu.add_command(label="Open", command=lambda: utils.show_message("Open", "Open a file!"))
-        file_menu.add_command(label="Save", command=lambda: utils.show_message("Save", "Save the file!"))
+        file_menu.add_command(label="Open", command=lambda: utils.show_message("Open", "Open a file!", type="info", master=self, custom=True))
+        file_menu.add_command(label="Save Configuration", command=config_manager.save_config)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.exit_app)
         return file_menu
@@ -74,6 +74,8 @@ class MainApplication(tk.Tk):
         edit_menu = tk.Menu(self.menubar, tearoff=0, background='SystemButtonFace', fg='black')
         edit_menu.add_command(label="Undo", command=lambda: utils.show_message("Undo", "Undo the last action!"))
         edit_menu.add_command(label="Redo", command=lambda: utils.show_message("Redo", "Redo the last undone action!"))
+        edit_menu.add_command(label="Undo", command=lambda: utils.show_message("Undo", "Undo the last action!", type="info", master=self, custom=True))
+        edit_menu.add_command(label="Redo", command=lambda: utils.show_message("Redo", "Redo the last undone action!", type="info", master=self, custom=True))
         edit_menu.add_separator()
         edit_menu.add_command(label="Preferences", command=self.open_config)
         return edit_menu

@@ -74,9 +74,13 @@ def show_message(title, message, type='info', master=None, custom=False):
         title (str): The title of the message box.
         message (str): The message to display.
         type (str): The type of message box ('info' or 'error').
+        master (tk.Widget, optional): The parent widget if using a custom dialog.
+        custom (bool): Whether to use the custom dialog.
     """
-    if type == 'info':
-        messagebox.showinfo(title, message)
+    if custom and master is not None:
+        show_custom_message(master, title, message, type)
+    elif type == 'info':
+        tk.messagebox.showinfo(title, message)
     elif type == 'error':
         tk.messagebox.showerror(title, message)
 
