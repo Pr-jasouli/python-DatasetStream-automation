@@ -9,7 +9,7 @@ class ConfigManager:
     def __init__(self, config_file=None):
         if config_file is None:
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            self.config_file = os.path.join(base_dir, '..', '.config', 'config.json')
+            self.config_file = os.path.join('..', '.config', 'config.json')
         else:
             self.config_file = config_file
         self.config_data = {}
@@ -39,6 +39,7 @@ class ConfigManager:
     def default_config(self):
         return {
             'audience_src': '',
+            'audience_dest': '',
             #OTHERS HERE
         }
 
