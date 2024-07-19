@@ -1,9 +1,9 @@
 import os
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog
 from functools import partial
 
-from All.src.utils import utils
+from utilities.utils import center_window, create_menu, show_message, clean_file_path, create_styled_button
 
 
 class ConfigUI(tk.Toplevel):
@@ -17,7 +17,7 @@ class ConfigUI(tk.Toplevel):
 
     def init_ui(self):
         """Initializes the user interface components and lays out the window."""
-        utils.center_window(self, self.master)
+        center_window(self, self.master)
         self.resizable(False, False)
         self.create_menus()
         self.create_frames()
@@ -32,7 +32,7 @@ class ConfigUI(tk.Toplevel):
             {"label": "Sources", "command": partial(self.toggle_frame, "sources")},
             {"label": "Config", "command": partial(self.toggle_frame, ".config")},
         ]
-        utils.create_menu(self, menu_items)
+        create_menu(self, menu_items)
 
     def create_frames(self):
         """Initializes frames for configuration settings and source file settings."""
@@ -67,9 +67,9 @@ class ConfigUI(tk.Toplevel):
 
     def build_config_frame(self):
         """Creates user interface for configuration management."""
-        utils.create_styled_button(self.config_frame, "Load Configuration", command=self.load_configuration).pack(pady=10, expand=True, fill="x")
-        utils.create_styled_button(self.config_frame, "View Configuration", command=self.view_configuration).pack(pady=10, expand=True, fill="x")
-        utils.create_styled_button(self.config_frame, "Save Configuration", command=self.save_configuration).pack(pady=10, expand=True, fill="x")
+        create_styled_button(self.config_frame, "Load Configuration", command=self.load_configuration).pack(pady=10, expand=True, fill="x")
+        create_styled_button(self.config_frame, "View Configuration", command=self.view_configuration).pack(pady=10, expand=True, fill="x")
+        create_styled_button(self.config_frame, "Save Configuration", command=self.save_configuration).pack(pady=10, expand=True, fill="x")
 
     def toggle_frame(self, frame_name):
         """Toggles between different frames in the UI based on the user's choice."""
@@ -92,17 +92,17 @@ class ConfigUI(tk.Toplevel):
         if file_selected:
             try:
                 self.config_manager.load_config(file_selected)
-                utils.show_message("Load Configuration", "Configuration loaded successfully!", type="info", master=self, custom=True)
+                show_message("Load Configuration", "Configuration loaded successfully!", type="info", master=self, custom=True)
             except Exception as e:
-                utils.show_message("Error Loading Configuration", f"An error occurred: {str(e)}", type="info", master=self, custom=True)
+                show_message("Error Loading Configuration", f"An error occurred: {str(e)}", type="info", master=self, custom=True)
 
     def save_configuration(self):
         """Saves the current configuration settings."""
         for key, entry in self.entries.items():
-            cleaned_path = utils.clean_file_path(entry.get())
+            cleaned_path = clean_file_path(entry.get())
             self.config_manager.update_config(key, cleaned_path)
         self.config_manager.save_config()
-        utils.show_message("Save Configuration", "Configuration saved successfully!", type="info", master=self, custom=True)
+        show_message("Save Configuration", "Configuration saved successfully!", type="info", master=self, custom=True)
 
     def view_configuration(self):
         config_path = self.config_manager.config_file
@@ -110,7 +110,7 @@ class ConfigUI(tk.Toplevel):
         if os.path.exists(config_path):
             os.startfile(config_path)
         else:
-            utils.show_message("View Configuration", "Configuration file does not exist.", type="info", master=self, custom=True)
+            show_message("View Configuration", "Configuration file does not exist.", type="info", master=self, custom=True)
 
     def center_window(self):
         """Centers the window on the screen based on the master window's size."""

@@ -2,7 +2,7 @@ import tkinter as tk
 
 import pandas as pd
 
-from All.src.ui.audience_tab import AudienceTab
+from ui.audience_tab import AudienceTab
 
 def setup_ui(audience_tab):
     """Simulates setting up user input and application paths."""

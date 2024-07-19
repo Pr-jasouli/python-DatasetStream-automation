@@ -8,7 +8,7 @@ from tkinter import ttk
 
 import pandas as pd
 
-from All.src.utils import utils
+from utilities.utils import show_message
 
 
 class AudienceTab(ttk.Frame):
@@ -37,7 +37,7 @@ class AudienceTab(ttk.Frame):
         file_path = self.file_path
 
         if self.file_path is None:
-            utils.show_message("Error", "No file selected.", type='error', master=self, custom=True)
+            show_message("Error", "No file selected.", type='error', master=self, custom=True)
             return
 
         file_path = self.file_path
@@ -53,7 +53,8 @@ class AudienceTab(ttk.Frame):
     def call_script(self, references_month, references_year, target_start_year, target_end_year, output_path, file_path,
                     current_dir=None):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        script_path = os.path.join(current_dir, 'audience_parser.py')
+        script_path = os.path.join('..', 'src', 'ui', 'audience_parser.py')
+        print(f"Script Path: {script_path}")
         args = {
             "references_month": references_month,
             "references_year": references_year,
@@ -89,7 +90,8 @@ class AudienceTab(ttk.Frame):
     def load_initial_excel(self):
         src_audience_path = self.config_data.get('audience_src')
         if src_audience_path:
-            self.df = self.load_excel(src_audience_path)
+            # CAUSES DOUBLE EXCEL LOAD AT STARTUP
+            # self.df = self.load_excel(src_audience_path)
             self.load_excel(src_audience_path)
 
 
@@ -143,7 +145,7 @@ class AudienceTab(ttk.Frame):
             rows, cols = self.df.shape
             relative_path = '/'.join(file_path.split('/')[-3:])
             self.file_details_label.config(text=f".../{relative_path} | rows: {rows} ~ columns: {cols}")
-            utils.show_message("Success", "Excel file loaded successfully!", type="info", master=self, custom=True)
+            show_message("Success", "Excel file loaded successfully!", type="info", master=self, custom=True)
         else:
             self.file_details_label.config(text="Failed to load file or file is empty")
 
@@ -161,9 +163,9 @@ class AudienceTab(ttk.Frame):
         """Displays the column names from the loaded DataFrame."""
         if self.df is not None:
             columns = '\n'.join(self.df.columns)
-            utils.show_message("Columns", f"Columns in the file:\n{columns}", type='info', master=self, custom=True)
+            show_message("Columns", f"Columns in the file:\n{columns}", type='info', master=self, custom=True)
         else:
-            utils.show_message("Error", "Load an Excel file first.", type='info', master=self, custom=True)
+            show_message("Error", "Load an Excel file first.", type='info', master=self, custom=True)
     def tab_style(self):
         """Configure styles used within the tab."""
         style = ttk.Style(self)
@@ -209,34 +211,34 @@ class AudienceTab(ttk.Frame):
     def validate_references(self):
         try:
             if self.df is None:
-                utils.show_message("Error", "Load an Excel file first.", type='error', master=self, custom=True)
+                show_message("Error", "Load an Excel file first.", type='error', master=self, custom=True)
                 return
 
             month = int(self.references_month.get())
             year = int(self.references_year.get())
 
             if datetime(year, month, 1) > datetime.now():
-                utils.show_message("Error", "The reference date cannot be in the future.", type='error', master=self,
+                show_message("Error", "The reference date cannot be in the future.", type='error', master=self,
                                    custom=True)
             else:
                 self.validation_references_dates(year, month)
 
         except ValueError:
-            utils.show_message("Error", "Invalid date. Please enter a valid month and year.", type='error', master=self,
+            show_message("Error", "Invalid date. Please enter a valid month and year.", type='error', master=self,
                                custom=True)
 
     def validate_target(self):
         try:
             if self.df is None:
-                utils.show_message("Error", "A reference file must be set.", type='error', master=self, custom=True)
+                show_message("Error", "A reference file must be set.", type='error', master=self, custom=True)
                 return
 
             if not self.output_path.get():
-                utils.show_message("Error", "Select an output folder first.", type='error', master=self, custom=True)
+                show_message("Error", "Select an output folder first.", type='error', master=self, custom=True)
                 return
 
             if not self.references_year.get() or not self.references_month.get():
-                utils.show_message("Error", "A reference date must be set.", type='error', master=self, custom=True)
+                show_message("Error", "A reference date must be set.", type='error', master=self, custom=True)
                 return
 
             reference_year = int(self.references_year.get())
@@ -246,35 +248,37 @@ class AudienceTab(ttk.Frame):
 
             if reference_month != 12:
                 if start_year < reference_year or end_year < reference_year:
-                    utils.show_message("Error",
+                    show_message("Error",
                                        "Target years must be after or equal to the reference year when the reference month is not December.",
                                        type='error', master=self, custom=True)
             else:
                 if start_year <= reference_year or end_year <= reference_year:
-                    utils.show_message("Error",
+                    show_message("Error",
                                        "Target years must be strictly after the reference year when the reference month is December.",
                                        type='error', master=self, custom=True)
 
             if start_year > reference_year + 1:
-                utils.show_message("Error", "Target start year cannot be more than 1 year after the reference year.",
+                show_message("Error", "Target start year cannot be more than 1 year after the reference year.",
                                    type='error', master=self, custom=True)
             elif abs(start_year - end_year) > 5:
-                utils.show_message("Error", "The difference between start and end year cannot exceed 5 years.",
+                show_message("Error", "The difference between start and end year cannot exceed 5 years.",
                                    type='error', master=self, custom=True)
             else:
-                utils.show_message("Validation", "Target years are valid.", type='info', master=self, custom=True)
+                show_message("Validation", "Target years are valid.", type='info', master=self, custom=True)
         except ValueError:
-            utils.show_message("Error", "Invalid year. Please enter a valid year.", type='error', master=self,
+            show_message("Error", "Invalid year. Please enter a valid year.", type='error', master=self,
                                custom=True)
+
 
     def validation_references_dates(self, year, month):
         """Checks if the date exists in the loaded data and updates the user."""
         mask = (self.df['PERIOD_YEAR'] == year) & (self.df['PERIOD_MONTH'] == month)
         if mask.any():
-            utils.show_message("Validation", "Date is valid and found in the file.", type='info', master=self, custom=True)
+            show_message("Validation", "Date is valid and found in the file.", type='info', master=self, custom=True)
         else:
             specific_data = self.df[(self.df['PERIOD_YEAR'] == year)]
-            utils.show_message("Validation", f"Date not found in the file. Debug: Year({year}), Month({month})\nSample rows where year matches:\n{specific_data.head()}", type='error', master=self, custom=True)
+            show_message("Validation", f"Date not found in the file. Debug: Year({year}), Month({month})\nSample rows where year matches:\n{specific_data.head()}", type='error', master=self, custom=True)
+
     def validate_month(self, P):
         """Validate the month entry to ensure it's empty or a valid month number."""
         return P == "" or (P.isdigit() and 1 <= int(P) <= 12)
