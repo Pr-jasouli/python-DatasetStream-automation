@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import sys
 import traceback
 from datetime import datetime
 from tkinter import filedialog
@@ -40,9 +41,7 @@ class AudienceTab(ttk.Frame):
             show_message("Error", "No file selected.", type='error', master=self, custom=True)
             return
 
-        file_path = self.file_path
 
-        # Log the retrieved values (for debugging purposes)
         print(f"References Month: {references_month}, Year: {references_year}")
         print(f"Target Start Year: {target_start_year}, End Year: {target_end_year}")
         print(f"Output Path: {output_path}, File Path: {file_path}")
@@ -50,10 +49,17 @@ class AudienceTab(ttk.Frame):
         self.call_script(references_month, references_year, target_start_year, target_end_year, output_path, file_path)
 
 
-    def call_script(self, references_month, references_year, target_start_year, target_end_year, output_path, file_path,
-                    current_dir=None):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        script_path = os.path.join('..', 'src', 'ui', 'audience_parser.py')
+    def call_script(self, references_month, references_year, target_start_year, target_end_year, output_path, file_path):
+        if getattr(sys, 'frozen', False):
+            base_dir = sys._MEIPASS
+            print(f"Hook: Application is frozen. _MEIPASS directory is {base_dir}")
+            print(f"Hook: Contents of _MEIPASS directory: {os.listdir(base_dir)}")
+        else:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        script_path = os.path.join(base_dir, 'audience_parser.py')
+
+        script_path = os.path.abspath(script_path)
         print(f"Script Path: {script_path}")
         args = {
             "references_month": references_month,

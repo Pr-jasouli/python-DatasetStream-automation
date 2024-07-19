@@ -8,6 +8,9 @@ from utilities.utils import show_message, create_styled_button
 from utilities.config_manager import ConfigManager
 
 
+"""
+$ python -m src.main
+"""
 class MainApplication(tk.Tk):
     def __init__(self):
         super().__init__()
