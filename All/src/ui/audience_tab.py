@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import traceback
 from datetime import datetime
 from tkinter import filedialog
 from tkinter import ttk
@@ -123,12 +124,17 @@ class AudienceTab(ttk.Frame):
 
     def load_excel(self, file_path):
         try:
-            data_frame = pd.read_excel(file_path)
+            self.df = pd.read_excel(file_path)
+            print("File loaded, checking content...")
+            if self.df.empty:
+                print("DataFrame is empty after loading.")
+            else:
+                print(f"DataFrame loaded with {self.df.shape[0]} rows and {self.df.shape[1]} columns.")
             self.update_file_details_label(file_path)
-            return data_frame
         except Exception as e:
-            utils.show_message("Error", f"Failed to load the file:\n{str(e)}", type='error', master=self, custom=True)
-            return pd.DataFrame()
+            print(f"Exception occurred: {str(e)}")
+            print(traceback.format_exc())
+            self.df = pd.DataFrame()
 
 
     def update_file_details_label(self, file_path):
