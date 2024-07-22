@@ -1,6 +1,10 @@
 import os
 import fitz
 
+
+"""
+Ce script détecte chaque section sur base de la couleur de police, écris dans un fichier {filename}a.tsv
+"""
 def extract_text(pdf_path):
     document = fitz.open(pdf_path)
     colored_text = []
@@ -38,15 +42,15 @@ def parse(text):
     current_section = None
     for line in lines:
         words = line.split()
-        if len(words) == 0:  # Skip empty lines
+        if len(words) == 0:
             continue
         if 1 < len(words) <= 3 and not any(char.isdigit() for char in line):
             if current_section:
                 sections.append(current_section)
-            current_section = [line.strip()]  # Start a new section
+            current_section = [line.strip()]
         else:
             if current_section is not None:
-                current_section.append(line.strip())  # Add channels to the current section
+                current_section.append(line.strip())
     if current_section:
         sections.append(current_section)
     return sections
@@ -54,7 +58,7 @@ def parse(text):
 def write_section_tsv(file, sections):
     with open(file, 'w', encoding='utf-8') as f:
         for section in sections:
-            f.write('\t'.join([section[0]]) + '\n')  # Write only section names to SECTION.tsv
+            f.write('\t'.join([section[0]]) + '\n')
 
 def process(folder_path):
     for file in os.listdir(folder_path):
