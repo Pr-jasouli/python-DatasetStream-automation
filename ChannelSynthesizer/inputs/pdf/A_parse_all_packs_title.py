@@ -3,7 +3,16 @@ import os
 from utils.utils import extract_text, parse, write_section_tsv, get_provider_colors, detect_provider_and_year, get_pages_to_process, remove_redundant_sections
 
 """
-This script detects each section based on the font color and writes it to a single TSV file.
+Ce script va venir détecter tous les "menus" ou "sections" présents dans les listes de chaines (PDF) de n'importe quel provider.
+Une fois déterminée, cette liste est envoyée au script 'B' qui va nettoyer l'entierete des pdf de cette façon:
+                -> row: section name
+                -> row: channel number
+                -> row: channel text (+additional tags for VOO)
+Quand c'est OK, script 'C' formate le resultat de 'B' en une feuille excel centralisée
+Cette séparation va permettre de localiser à quel moment les problèmes surviennent, chaque résultat intermédiaire ('A' et 'B') étant auditable
+le script utils contient l'implementation précis de chaque step.
+
+ctrl + left_click sur un appel de fonction pour inspecter son implémentation
 """
 
 PAGE_SELECTION_FILE = "page_selection.json"
