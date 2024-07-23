@@ -31,7 +31,6 @@ def extract_text(pdf_path, colors, provider, page_number):
                         sizes.add(span["size"])
                         extracted_text.append(span["text"])
 
-    # Determine the maximum font size to exclude for VOO
     max_size = max(sizes) if provider == "VOO" else None
 
     filtered_text = []
@@ -107,12 +106,14 @@ def parse(text, provider, max_size=None):
         sections.append(current_section)
 
     return remove_redundant_sections(sections)
+
+
 def remove_redundant_sections(sections):
     seen_sections = set()
     unique_sections = []
     for section in sections:
         section_name = section[0]
-        if section_name not in seen_sections:
+        if section_name and section_name not in seen_sections:
             unique_sections.append(section)
             seen_sections.add(section_name)
     return unique_sections
@@ -121,7 +122,8 @@ def remove_redundant_sections(sections):
 def write_section_tsv(file, sections):
     with open(file, 'w', encoding='utf-8') as f:
         for section in sections:
-            f.write(section[0] + '\n')
+            if section[0]:
+                f.write(section[0] + '\n')
 
 
 def get_provider_colors(provider):
@@ -191,3 +193,21 @@ def get_pages_to_process(pdf_path):
             return pages
         else:
             print(f"Invalid input. Please enter page numbers between 1 and {page_count}.")
+
+
+def process_pdf(pdf_path):
+    provider, year = detect_provider_and_year(pdf_path)
+    colors = get_provider_colors(provider)
+    pages_to_process = get_pages_to_process(pdf_path)
+
+    all_sections = []
+
+    for page_number in pages_to_process:
+        extracted_text, max_size = extract_text(pdf_path, colors, provider, page_number)
+        sections = parse(extracted_text, provider, max_size)
+        all_sections.extend(sections)
+
+    all_sections = remove_redundant_sections(all_sections)
+
+    tsv_filename = os.path.splitext(pdf_path)[0] + '.tsv'
+    write_section_tsv(tsv_filename, all_sections)
