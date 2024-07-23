@@ -19,19 +19,17 @@ def extract_text(pdf_path, colors, provider, page_number):
         if 'lines' in block:
             for line in block["lines"]:
                 for span in line["spans"]:
-                    bgcolor = span.get("bgcolor", TELENET_WHITE_COLOR)
                     if provider == "Telenet":
-                        if bgcolor != TELENET_WHITE_COLOR:
-                            extracted_text.append(span["text"])
-                        elif span["color"] == TELENET_BLACK_COLOR and span["text"].isupper() and "bold" in span["flags"]:
-                            extracted_text.append(span["text"])
-                    elif provider == "Orange" and span["color"] == TELENET_WHITE_COLOR and (span["text"][0].isupper() or span["text"].startswith('+')):
+                        sizes.add(span["size"])
+                        is_bold = "bold" in span["font"].lower()
+                        extracted_text.append((span["text"], span["color"], span["size"], is_bold))
+                    elif provider == "Orange" and span["color"] == TELENET_WHITE_COLOR and (
+                            span["text"][0].isupper() or span["text"].startswith('+')):
                         extracted_text.append(span["text"])
                     elif span["color"] in colors:
                         sizes.add(span["size"])
                         extracted_text.append(span["text"])
 
-    # Determine the maximum font size to exclude for VOO
     max_size = max(sizes) if provider == "VOO" else None
 
     filtered_text = []
@@ -40,11 +38,10 @@ def extract_text(pdf_path, colors, provider, page_number):
             for line in block["lines"]:
                 for span in line["spans"]:
                     if provider == "Telenet":
-                        if bgcolor != TELENET_WHITE_COLOR:
-                            filtered_text.append((span["text"], span["color"], span["size"]))
-                        elif span["color"] == TELENET_BLACK_COLOR and span["text"].isupper() and "bold" in span["flags"]:
-                            filtered_text.append((span["text"], span["color"], span["size"]))
-                    elif provider == "Orange" and span["color"] == TELENET_WHITE_COLOR and (span["text"][0].isupper() or span["text"].startswith('+')):
+                        is_bold = "bold" in span["font"].lower()
+                        filtered_text.append((span["text"], span["color"], span["size"], is_bold))
+                    elif provider == "Orange" and span["color"] == TELENET_WHITE_COLOR and (
+                            span["text"][0].isupper() or span["text"].startswith('+')):
                         filtered_text.append((span["text"], span["color"]))
                     elif span["color"] in colors and (provider != "VOO" or span["size"] != max_size):
                         filtered_text.append((span["text"], span["color"]))
@@ -60,9 +57,16 @@ def parse(text, provider, max_size=None):
 
     for line_info in lines:
         if provider == "Telenet":
-            line, color, size = line_info
-            if size is not None and max_size is not None and size > max_size:
-                continue
+            line, color, size, is_bold = line_info
+            if color == TELENET_WHITE_COLOR:
+                sections.append([line.strip()])
+            elif color == TELENET_BLACK_COLOR and line.isupper() and len(line) >= 4 and not any(
+                    char.isdigit() for char in line):
+                sections.append([line.strip()])
+            elif is_bold:
+                sections.append([line.strip()])
+            continue
+
         else:
             line, color = line_info
 
@@ -70,9 +74,7 @@ def parse(text, provider, max_size=None):
         if len(words) == 0:
             continue
 
-        if provider == "Telenet":
-            sections.append([line.strip()])
-        elif provider == "Orange" and (len(words) > 0 and (line[0].isupper() or line.startswith('+'))):
+        if provider == "Orange" and (len(words) > 0 and (line[0].isupper() or line.startswith('+'))):
             if current_section:
                 sections.append(current_section)
             current_section = [line.strip()]
