@@ -7,6 +7,7 @@ PAGE_SELECTION_FILE = "page_selection.json"
 TELENET_WHITE_COLOR = 16777215
 TELENET_BLACK_COLOR = 1113103  # (hex 11110f)
 
+
 def extract_text(pdf_path, colors, provider, page_number):
     document = fitz.open(pdf_path)
     extracted_text = []
@@ -22,7 +23,7 @@ def extract_text(pdf_path, colors, provider, page_number):
                     if provider == "Telenet":
                         sizes.add(span["size"])
                         is_bold = "bold" in span["font"].lower()
-                        extracted_text.append((span["text"], span["color"], span["size"], is_bold))
+                        extracted_text.append((span["text"], span["color"], span["size"], is_bold, line["bbox"]))
                     elif provider == "Orange" and span["color"] == TELENET_WHITE_COLOR and (
                             span["text"][0].isupper() or span["text"].startswith('+')):
                         extracted_text.append(span["text"])
@@ -30,6 +31,7 @@ def extract_text(pdf_path, colors, provider, page_number):
                         sizes.add(span["size"])
                         extracted_text.append(span["text"])
 
+    # Determine the maximum font size to exclude for VOO
     max_size = max(sizes) if provider == "VOO" else None
 
     filtered_text = []
@@ -39,7 +41,7 @@ def extract_text(pdf_path, colors, provider, page_number):
                 for span in line["spans"]:
                     if provider == "Telenet":
                         is_bold = "bold" in span["font"].lower()
-                        filtered_text.append((span["text"], span["color"], span["size"], is_bold))
+                        filtered_text.append((span["text"], span["color"], span["size"], is_bold, line["bbox"]))
                     elif provider == "Orange" and span["color"] == TELENET_WHITE_COLOR and (
                             span["text"][0].isupper() or span["text"].startswith('+')):
                         filtered_text.append((span["text"], span["color"]))
@@ -54,17 +56,32 @@ def parse(text, provider, max_size=None):
     lines = text
     sections = []
     current_section = None
+    prev_line_info = None
 
     for line_info in lines:
         if provider == "Telenet":
-            line, color, size, is_bold = line_info
-            if color == TELENET_WHITE_COLOR:
+            line, color, size, is_bold, bbox = line_info
+            parsable = False
+            if color == TELENET_WHITE_COLOR or (
+                    color == TELENET_BLACK_COLOR and line.isupper() and len(line) >= 4 and not any(
+                    char.isdigit() for char in line)) or is_bold:
+                parsable = True
+
+            if prev_line_info:
+                prev_line, prev_color, prev_size, prev_is_bold, prev_bbox = prev_line_info
+                prev_parsable = prev_color == TELENET_WHITE_COLOR or (
+                            prev_color == TELENET_BLACK_COLOR and prev_line.isupper() and len(
+                        prev_line) >= 4 and not any(char.isdigit() for char in prev_line)) or prev_is_bold
+                if parsable and prev_parsable and abs(bbox[1] - prev_bbox[3]) < 10:
+                    sections[-1] = [line.strip()]
+                    prev_line_info = line_info
+                    continue
+
+            if parsable:
                 sections.append([line.strip()])
-            elif color == TELENET_BLACK_COLOR and line.isupper() and len(line) >= 4 and not any(
-                    char.isdigit() for char in line):
-                sections.append([line.strip()])
-            elif is_bold:
-                sections.append([line.strip()])
+                prev_line_info = line_info
+            else:
+                prev_line_info = None
             continue
 
         else:
@@ -90,8 +107,6 @@ def parse(text, provider, max_size=None):
         sections.append(current_section)
 
     return remove_redundant_sections(sections)
-
-
 def remove_redundant_sections(sections):
     seen_sections = set()
     unique_sections = []
