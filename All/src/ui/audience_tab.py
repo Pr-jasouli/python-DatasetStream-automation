@@ -5,8 +5,9 @@ import sys
 import time
 import traceback
 from datetime import datetime
-from tkinter import filedialog
+from tkinter import filedialog, Listbox, MULTIPLE, BooleanVar, Toplevel
 from tkinter import ttk
+from tkinter.ttk import Scrollbar
 
 import pandas as pd
 from PIL import ImageTk, Image
@@ -275,10 +276,9 @@ class AudienceTab(ttk.Frame):
         self.tab_style()
         self.references_widgets_setup()
         self.target_widgets_setup()
+        self.specifics_widgets_setup()
         self.process_widgets_setup()
         self.load_initial_excel()
-
-
 
     def references_widgets_setup(self):
         container = ttk.Frame(self)
@@ -299,6 +299,74 @@ class AudienceTab(ttk.Frame):
         audience_dest = self.config_data.get('audience_dest')
         if audience_dest:
             self.output_path.insert(0, audience_dest)
+
+    def specifics_widgets_setup(self):
+        """Sets up the specifics selection widget."""
+        container = ttk.Frame(self)
+        container.pack(side='top', fill='x', expand=False, padx=20, pady=10)
+        ttk.Label(container, text="SPECIFICS", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
+
+        self.specifics_var = BooleanVar()
+        self.specifics_checkbox = ttk.Checkbutton(container, text="Enable Specifics",
+                                                  variable=self.specifics_var, command=self.toggle_specifics)
+        self.specifics_checkbox.pack(side='left', padx=10, pady=(5, 5))
+
+        self.specifics_frame = ttk.Frame(container)
+        self.specifics_frame.pack(side='top', fill='both', expand=True, padx=10, pady=(5, 5))
+
+        # Create and pack PROD_NUM Listbox
+        prod_num_frame = ttk.Frame(self.specifics_frame)
+        prod_num_frame.pack(side='left', fill='both', expand=True, padx=5, pady=5)
+        ttk.Label(prod_num_frame, text="PROD_NUM:").pack(side='top', padx=5)
+        self.prod_num_listbox = Listbox(prod_num_frame, selectmode=MULTIPLE, exportselection=False,
+                                        height=10)
+        self.prod_num_listbox.pack(side='top', fill='both', expand=True)
+        prod_num_scrollbar = Scrollbar(self.prod_num_listbox, orient="vertical")
+        prod_num_scrollbar.config(command=self.prod_num_listbox.yview)
+        prod_num_scrollbar.pack(side="right", fill="y")
+
+        # Create and pack BUS_CHANL_NUM Listbox
+        bus_chanl_frame = ttk.Frame(self.specifics_frame)
+        bus_chanl_frame.pack(side='left', fill='both', expand=True, padx=5, pady=5)
+        ttk.Label(bus_chanl_frame, text="BUS_CHANL_NUM:").pack(side='top', padx=5)
+        self.bus_chanl_num_listbox = Listbox(bus_chanl_frame, selectmode=MULTIPLE, exportselection=False,
+                                             height=10)
+        self.bus_chanl_num_listbox.pack(side='top', fill='both', expand=True)
+        bus_chanl_scrollbar = Scrollbar(self.bus_chanl_num_listbox, orient="vertical")
+        bus_chanl_scrollbar.config(command=self.bus_chanl_num_listbox.yview)
+        bus_chanl_scrollbar.pack(side="right", fill="y")
+
+        # Initially hide the listboxes
+        self.toggle_specifics()
+
+    def toggle_specifics(self):
+        """Toggles the visibility and content of the specifics listboxes based on the checkbox state."""
+        if self.specifics_var.get():
+            self.load_specifics()
+        else:
+            self.prod_num_listbox.delete(0, 'end')
+            self.bus_chanl_num_listbox.delete(0, 'end')
+            self.prod_num_listbox.config(height=20)
+            self.bus_chanl_num_listbox.config(height=20)
+
+    def load_specifics(self):
+        """Loads unique values from the reference file into listboxes for selection."""
+        if self.specifics_var.get() and self.df is not None:
+            self.prod_num_listbox.delete(0, 'end')
+            self.bus_chanl_num_listbox.delete(0, 'end')
+
+            unique_prod_num = sorted(self.df['PROD_NUM'].unique())
+            for value in unique_prod_num:
+                self.prod_num_listbox.insert('end', value)
+
+            unique_bus_chanl_num = sorted(self.df['BUS_CHANL_NUM'].unique())
+            for value in unique_bus_chanl_num:
+                self.bus_chanl_num_listbox.insert('end', value)
+
+        # Explicitly set the height after populating to ensure it retains the set height
+        self.prod_num_listbox.config(height=20)
+        self.bus_chanl_num_listbox.config(height=20)
+        self.specifics_frame.update_idletasks()
 
     def validate_all(self):
         valid_references = self.validate_references()
