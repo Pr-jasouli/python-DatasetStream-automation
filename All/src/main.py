@@ -85,9 +85,9 @@ class MainApplication(tk.Tk):
     def create_tabs(self):
         """Initialize tab controls and tabs."""
         self.tab_control = ttk.Notebook(self, padding=10)
-        self.audience_tab = AudienceTab(parent=self.tab_control, config_data=self.config_data,
+        self.audience_tab = AudienceTab(parent=self.tab_control, config_manager=self.config_manager,
                                         config_ui_callback=self.config_ui_callback)
-        # self.pdf_tab = PDFTab(self.tab_control, config_data=self.config_data,
+        # self.pdf_tab = PDFTab(self.tab_control, config_manager=self.config_manager,
         #                       config_ui_callback=self.config_ui_callback)
         self.tab_control.add(self.audience_tab, text='Audience')
         # self.tab_control.add(self.pdf_tab, text='PDF')

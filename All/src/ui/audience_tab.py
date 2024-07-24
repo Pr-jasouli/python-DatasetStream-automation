@@ -13,11 +13,12 @@ from utilities.utils import show_message
 
 
 class AudienceTab(ttk.Frame):
-    def __init__(self, parent, config_data, config_ui_callback=None):
+    def __init__(self, parent, config_manager, config_ui_callback=None):
         super().__init__(parent)
         self.df = None
         self.config_ui_callback = config_ui_callback
-        self.config_data = config_data
+        self.config_manager = config_manager
+        self.config_data = config_manager.get_config()
         self.file_path = None
         self.setup_ui()
 
@@ -118,6 +119,8 @@ class AudienceTab(ttk.Frame):
         if folder_selected:
             self.output_path.delete(0, 'end')
             self.output_path.insert(0, folder_selected)
+            self.config_manager.update_config('audience_dest', folder_selected)
+
 
     def references_file_details(self, parent):
         """Configure and place the file details label within the given container."""
@@ -207,6 +210,14 @@ class AudienceTab(ttk.Frame):
         self.output_path.pack(side='top', fill='x', padx=10, pady=(5, 5))
         self.setup_buttons_and_entries(container, context='TARGET')
 
+        audience_dest = self.config_data.get('audience_dest')
+        if audience_dest:
+            self.output_path.insert(0, audience_dest)
+
+    def validate_all(self):
+        valid_references = self.validate_references()
+        valid_target = self.validate_target()
+        return valid_references and valid_target
 
     def validate_year(self, P):
         """Validate the year entry to ensure it meets specified conditions."""
