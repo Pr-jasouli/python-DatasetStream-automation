@@ -100,15 +100,12 @@ class AudienceTab(ttk.Frame):
                                              validatecommand=(self.register(self.validate_year), '%P'))
             self.references_year.pack(side='left', padx=(2, 10))
 
-            month_names_fr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre",
-                              "Octobre", "Novembre", "Décembre"]
 
             icon_path = os.path.join(os.path.dirname(__file__), 'question-mark.png')
             help_icon_image = Image.open(icon_path)
             help_icon_image = help_icon_image.resize((16, 16), Image.Resampling.LANCZOS)
             self.help_icon = ImageTk.PhotoImage(help_icon_image)
 
-            # Add the help icon label
             help_label = ttk.Label(parent, image=self.help_icon, cursor="hand2")
             help_label.pack(side='left', padx=(2, 10))
             help_label.bind("<Enter>", self.update_tooltip)
@@ -146,7 +143,7 @@ class AudienceTab(ttk.Frame):
         target_end_year = self.target_end_year.get()
 
         if not references_month or not references_year or not target_start_year or not target_end_year:
-            help_text = "Remplir toutes les dates pour lire l'aide"
+            help_text = "Remplir toutes les dates pour obtenir de l'aide"
             self.show_tooltip(event, help_text)
             return
 
@@ -366,6 +363,7 @@ class AudienceTab(ttk.Frame):
 
     def validate_all(self):
         valid_references = self.validate_references()
+
         valid_target = self.validate_target()
         return valid_references and valid_target
 
@@ -392,7 +390,7 @@ class AudienceTab(ttk.Frame):
                     return False
                 else:
                     self.validation_references_dates(df, year, month)
-                    return True
+                    # return True
             except ValueError:
                 show_message("Error", "Invalid date. Please enter a valid month and year.", type='error', master=self,
                              custom=True)
@@ -447,11 +445,7 @@ class AudienceTab(ttk.Frame):
                                      type='error', master=self, custom=True)
                         return False
 
-                if start_year > reference_year + 1:
-                    show_message("Error", "Target start year cannot be more than 1 year after the reference year.",
-                                 type='error', master=self, custom=True)
-                    return False
-                elif abs(start_year - end_year) > 10:
+                if abs(start_year - end_year) > 10:
                     show_message("Error", "The difference between start and end year cannot exceed 10 years.",
                                  type='error', master=self, custom=True)
                     return False
@@ -479,6 +473,8 @@ class AudienceTab(ttk.Frame):
             show_message("Validation",
                          f"Date not found in the file. Debug: Year({year}), Month({month})\nSample rows where year matches:\n{specific_data.head()}",
                          type='error', master=self, custom=True)
+            return False
+        return True
 
     def validate_month(self, P):
         """Validate the month entry to ensure it's empty or a valid month number."""
