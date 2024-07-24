@@ -30,25 +30,29 @@ class AudienceTab(ttk.Frame):
 
         self.process_button = ttk.Button(container, text="Start Processing", command=self.start_processing)
         self.process_button.pack(side='top', fill='x', padx=10, pady=(5, 5))
+
     def start_processing(self):
-        references_month = self.references_month.get()
-        references_year = self.references_year.get()
-        target_start_year = self.target_start_year.get()
-        target_end_year = self.target_end_year.get()
-        output_path = self.output_path.get()
-        file_path = self.file_path
+        if self.validate_all():
+            references_month = self.references_month.get()
+            references_year = self.references_year.get()
+            target_start_year = self.target_start_year.get()
+            target_end_year = self.target_end_year.get()
+            output_path = self.output_path.get()
+            file_path = self.file_path
 
-        if self.file_path is None:
-            show_message("Error", "No file selected.", type='error', master=self, custom=True)
-            return
+            if self.file_path is None:
+                show_message("Error", "No file selected.", type='error', master=self, custom=True)
+                return
 
+            print(f"References Month: {references_month}, Year: {references_year}")
+            print(f"Target Start Year: {target_start_year}, End Year: {target_end_year}")
+            print(f"Output Path: {output_path}, File Path: {file_path}")
 
-        print(f"References Month: {references_month}, Year: {references_year}")
-        print(f"Target Start Year: {target_start_year}, End Year: {target_end_year}")
-        print(f"Output Path: {output_path}, File Path: {file_path}")
-
-        self.call_script(references_month, references_year, target_start_year, target_end_year, output_path, file_path)
-
+            self.call_script(references_month, references_year, target_start_year, target_end_year, output_path,
+                             file_path)
+        else:
+            show_message("Error", "Validation failed. Please correct the errors and try again.", type='error',
+                         master=self, custom=True)
 
     def call_script(self, references_month, references_year, target_start_year, target_end_year, output_path, file_path):
         if getattr(sys, 'frozen', False):
@@ -226,76 +230,107 @@ class AudienceTab(ttk.Frame):
         return False
 
     def validate_references(self):
-        try:
-            if self.df is None:
-                show_message("Error", "Load an Excel file first.", type='error', master=self, custom=True)
-                return
+        if self.file_path:
+            try:
+                df = pd.read_excel(self.file_path)
+                month = int(self.references_month.get())
+                year = int(self.references_year.get())
 
-            month = int(self.references_month.get())
-            year = int(self.references_year.get())
+                current_date = datetime.now()
+                reference_date = datetime(year, month, 1)
 
-            if datetime(year, month, 1) > datetime.now():
-                show_message("Error", "The reference date cannot be in the future.", type='error', master=self,
-                                   custom=True)
-            else:
-                self.validation_references_dates(year, month)
-
-        except ValueError:
-            show_message("Error", "Invalid date. Please enter a valid month and year.", type='error', master=self,
-                               custom=True)
+                # Check if the reference date is in the current month or in the future
+                if reference_date >= datetime(current_date.year, current_date.month, 1):
+                    show_message("Error", "The reference date cannot be in the current month or the future.",
+                                 type='error', master=self,
+                                 custom=True)
+                    return False
+                else:
+                    self.validation_references_dates(df, year, month)
+                    return True
+            except ValueError:
+                show_message("Error", "Invalid date. Please enter a valid month and year.", type='error', master=self,
+                             custom=True)
+                return False
+            except Exception as e:
+                show_message("Error", f"Failed to load file:\n{str(e)}", type='error', master=self, custom=True)
+                return False
+        else:
+            show_message("Error", "Load an Excel file first.", type='error', master=self, custom=True)
+            return False
 
     def validate_target(self):
-        try:
-            if self.df is None:
-                show_message("Error", "A reference file must be set.", type='error', master=self, custom=True)
-                return
+        if self.file_path:
+            try:
+                if not self.output_path.get():
+                    show_message("Error", "Select an output folder first.", type='error', master=self, custom=True)
+                    return False
 
-            if not self.output_path.get():
-                show_message("Error", "Select an output folder first.", type='error', master=self, custom=True)
-                return
+                if not self.references_year.get() or not self.references_month.get():
+                    show_message("Error", "A reference date must be set.", type='error', master=self, custom=True)
+                    return False
 
-            if not self.references_year.get() or not self.references_month.get():
-                show_message("Error", "A reference date must be set.", type='error', master=self, custom=True)
-                return
+                reference_year = int(self.references_year.get())
+                reference_month = int(self.references_month.get())
+                start_year = int(self.target_start_year.get())
+                end_year = int(self.target_end_year.get())
 
-            reference_year = int(self.references_year.get())
-            reference_month = int(self.references_month.get())
-            start_year = int(self.target_start_year.get())
-            end_year = int(self.target_end_year.get())
+                # Load the DataFrame to ensure file is accessible and validate
+                df = pd.read_excel(self.file_path)
 
-            if reference_month != 12:
-                if start_year < reference_year or end_year < reference_year:
-                    show_message("Error",
-                                       "Target years must be after or equal to the reference year when the reference month is not December.",
-                                       type='error', master=self, custom=True)
-            else:
-                if start_year <= reference_year or end_year <= reference_year:
-                    show_message("Error",
-                                       "Target years must be strictly after the reference year when the reference month is December.",
-                                       type='error', master=self, custom=True)
+                current_year = datetime.now().year
 
-            if start_year > reference_year + 1:
-                show_message("Error", "Target start year cannot be more than 1 year after the reference year.",
-                                   type='error', master=self, custom=True)
-            elif abs(start_year - end_year) > 5:
-                show_message("Error", "The difference between start and end year cannot exceed 5 years.",
-                                   type='error', master=self, custom=True)
-            else:
-                show_message("Validation", "Target years are valid.", type='info', master=self, custom=True)
-        except ValueError:
-            show_message("Error", "Invalid year. Please enter a valid year.", type='error', master=self,
-                               custom=True)
+                if start_year == current_year:
+                    show_message("Error", "Target start year cannot be the current year.", type='error', master=self,
+                                 custom=True)
+                    return False
+
+                if reference_month != 12:
+                    if start_year < reference_year or end_year < reference_year:
+                        show_message("Error",
+                                     "Target years must be after or equal to the reference year when the reference month is not December.",
+                                     type='error', master=self, custom=True)
+                        return False
+                else:
+                    if start_year <= reference_year or end_year <= reference_year:
+                        show_message("Error",
+                                     "Target years must be strictly after the reference year when the reference month is December.",
+                                     type='error', master=self, custom=True)
+                        return False
+
+                if start_year > reference_year + 1:
+                    show_message("Error", "Target start year cannot be more than 1 year after the reference year.",
+                                 type='error', master=self, custom=True)
+                    return False
+                elif abs(start_year - end_year) > 10:
+                    show_message("Error", "The difference between start and end year cannot exceed 10 years.",
+                                 type='error', master=self, custom=True)
+                    return False
+                else:
+                    show_message("Validation", "Target years are valid.", type='info', master=self, custom=True)
+                    return True
+            except ValueError:
+                show_message("Error", "Invalid target year. Please enter a valid year.", type='error', master=self,
+                             custom=True)
+                return False
+            except Exception as e:
+                show_message("Error", f"Failed to load file:\n{str(e)}", type='error', master=self, custom=True)
+                return False
+        else:
+            show_message("Error", "Load an Excel file first.", type='error', master=self, custom=True)
+            return False
 
 
-    def validation_references_dates(self, year, month):
+    def validation_references_dates(self, df, year, month):
         """Checks if the date exists in the loaded data and updates the user."""
-        mask = (self.df['PERIOD_YEAR'] == year) & (self.df['PERIOD_MONTH'] == month)
+        mask = (df['PERIOD_YEAR'] == year) & (df['PERIOD_MONTH'] == month)
         if mask.any():
             show_message("Validation", "Date is valid and found in the file.", type='info', master=self, custom=True)
         else:
-            specific_data = self.df[(self.df['PERIOD_YEAR'] == year)]
-            show_message("Validation", f"Date not found in the file. Debug: Year({year}), Month({month})\nSample rows where year matches:\n{specific_data.head()}", type='error', master=self, custom=True)
-
+            specific_data = df[(df['PERIOD_YEAR'] == year)]
+            show_message("Validation",
+                         f"Date not found in the file. Debug: Year({year}), Month({month})\nSample rows where year matches:\n{specific_data.head()}",
+                         type='error', master=self, custom=True)
     def validate_month(self, P):
         """Validate the month entry to ensure it's empty or a valid month number."""
         return P == "" or (P.isdigit() and 1 <= int(P) <= 12)
