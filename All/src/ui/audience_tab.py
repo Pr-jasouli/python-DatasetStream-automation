@@ -9,6 +9,7 @@ from tkinter import filedialog
 from tkinter import ttk
 
 import pandas as pd
+from PIL import ImageTk, Image
 
 from utilities.utils import show_message
 
@@ -16,6 +17,7 @@ from utilities.utils import show_message
 class AudienceTab(ttk.Frame):
     def __init__(self, parent, config_manager, config_ui_callback=None):
         super().__init__(parent)
+        self.tooltip = None
         self.df = None
         self.config_ui_callback = config_ui_callback
         self.config_manager = config_manager
@@ -96,17 +98,92 @@ class AudienceTab(ttk.Frame):
             self.references_year = ttk.Entry(parent, width=5, validate='key',
                                              validatecommand=(self.register(self.validate_year), '%P'))
             self.references_year.pack(side='left', padx=(2, 10))
-            ttk.Button(parent, text="✓", command=self.validate_references, style='AudienceTab.TButton').pack(side='right', padx=10)
+
+            month_names_fr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre",
+                              "Octobre", "Novembre", "Décembre"]
+
+            icon_path = os.path.join(os.path.dirname(__file__), 'question-mark.png')
+            help_icon_image = Image.open(icon_path)
+            help_icon_image = help_icon_image.resize((16, 16), Image.Resampling.LANCZOS)
+            self.help_icon = ImageTk.PhotoImage(help_icon_image)
+
+            # Add the help icon label
+            help_label = ttk.Label(parent, image=self.help_icon, cursor="hand2")
+            help_label.pack(side='left', padx=(2, 10))
+            help_label.bind("<Enter>", self.update_tooltip)
+            help_label.bind("<Leave>", lambda e: self.hide_tooltip())
+
+
+            if self.current_month == 1:
+                self.references_month.insert(0, str(12))
+                self.references_year.insert(0, str(self.current_year - 1))
+            else:
+                self.references_month.insert(0, str(self.current_month - 1))
+                self.references_year.insert(0, str(self.current_year))
+            ttk.Button(parent, text="✓", command=self.validate_references, style='AudienceTab.TButton').pack(
+                side='right', padx=10)
         elif context == 'TARGET':
             ttk.Label(parent, text="From (YYYY):").pack(side='left')
             self.target_start_year = ttk.Entry(parent, width=5, validate='key',
                                                validatecommand=(self.register(self.validate_year), '%P'))
             self.target_start_year.pack(side='left', padx=(0, 2))
+            self.target_start_year.insert(0, str(self.current_year + 1))
             ttk.Label(parent, text="To (YYYY):").pack(side='left')
             self.target_end_year = ttk.Entry(parent, width=5, validate='key',
                                              validatecommand=(self.register(self.validate_year), '%P'))
             self.target_end_year.pack(side='left', padx=(2, 10))
-            ttk.Button(parent, text="✓", command=self.validate_target, style='AudienceTab.TButton').pack(side='right', padx=10)
+            self.target_end_year.insert(0, str(self.current_year + 1))
+            ttk.Button(parent, text="✓", command=self.validate_target, style='AudienceTab.TButton').pack(side='right',
+                                                                                                         padx=10)
+
+    def update_tooltip(self, event):
+        """Dynamically update and show the tooltip based on the current input values."""
+        month_names_fr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre",
+                          "Octobre", "Novembre", "Décembre"]
+        references_month = self.references_month.get()
+        references_year = self.references_year.get()
+        target_start_year = self.target_start_year.get()
+        target_end_year = self.target_end_year.get()
+
+        if not references_month or not references_year or not target_start_year or not target_end_year:
+            help_text = "Remplir toutes les dates pour lire l'aide"
+            self.show_tooltip(event, help_text)
+            return
+
+        try:
+            references_month_int = int(references_month)
+            if 1 <= references_month_int <= 12:
+                month_str = month_names_fr[references_month_int - 1]
+            else:
+                month_str = month_names_fr[self.current_month - 1]
+        except ValueError:
+            month_str = month_names_fr[self.current_month - 1]
+
+        if target_start_year == target_end_year:
+            if references_month_int == 12:
+                help_text = f'En utilisant toute l\'année {references_year}, calculer {target_start_year}'
+            else:
+                help_text = f'Sans aller au delà du mois de {month_str} {references_year}, calculer {target_start_year}'
+        else:
+            if references_month_int == 12:
+                help_text = f'En utilisant toute l\'année {references_year}, calculer de {target_start_year} à {target_end_year}'
+            else:
+                help_text = f'Sans aller au delà du mois de {month_str} {references_year}, calculer de {target_start_year} à {target_end_year}'
+
+        self.show_tooltip(event, help_text)
+
+    def show_tooltip(self, event, text):
+        x, y = self.winfo_pointerxy()  # Only two values returned, x and y
+        self.tooltip = Toplevel(self.master)  # Use self.master as the parent
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry(f"+{x + 10}+{y + 10}")
+        label = ttk.Label(self.tooltip, text=text, background="grey", relief="solid", borderwidth=1, padding=5)
+        label.pack()
+
+    def hide_tooltip(self):
+        if self.tooltip:
+            self.tooltip.destroy()
+            self.tooltip = None
 
     def load_initial_excel(self):
         src_audience_path = self.config_data.get('audience_src')
