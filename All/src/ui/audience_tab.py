@@ -223,13 +223,16 @@ class AudienceTab(ttk.Frame):
         filepath = filedialog.askopenfilename(filetypes=filetypes)
         if filepath:
             self.update_file_details_label(filepath)
+            self.df = pd.read_excel(filepath)
 
 
     def update_file_details_label(self, file_path):
         self.file_path = file_path
         try:
             df = pd.read_excel(file_path)
+            self.config_manager.update_config('audience_src', file_path)
             print("File loaded, checking content...")
+            self.df = pd.read_excel(file_path)
             if df.empty:
                 print("DataFrame is empty after loading.")
             else:
