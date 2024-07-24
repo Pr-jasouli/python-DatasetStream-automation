@@ -122,7 +122,7 @@ class AudienceTab(ttk.Frame):
                 self.references_month.insert(0, str(self.current_month - 1))
                 self.references_year.insert(0, str(self.current_year))
             ttk.Button(parent, text="✓", command=self.validate_references, style='AudienceTab.TButton').pack(
-                side='right', padx=10)
+                side='right', padx=(0, 10), pady=(0, 0))
         elif context == 'TARGET':
             ttk.Label(parent, text="From (YYYY):").pack(side='left')
             self.target_start_year = ttk.Entry(parent, width=5, validate='key',
@@ -134,8 +134,7 @@ class AudienceTab(ttk.Frame):
                                              validatecommand=(self.register(self.validate_year), '%P'))
             self.target_end_year.pack(side='left', padx=(2, 10))
             self.target_end_year.insert(0, str(self.current_year + 1))
-            ttk.Button(parent, text="✓", command=self.validate_target, style='AudienceTab.TButton').pack(side='right',
-                                                                                                         padx=10)
+            ttk.Button(parent, text="✓", command=self.validate_target, style='AudienceTab.TButton').pack(side='right', padx=(0, 10), pady=(0, 0))
 
     def update_tooltip(self, event):
         """Dynamically update and show the tooltip based on the current input values."""
@@ -174,8 +173,8 @@ class AudienceTab(ttk.Frame):
         self.show_tooltip(event, help_text)
 
     def show_tooltip(self, event, text):
-        x, y = self.winfo_pointerxy()  # Only two values returned, x and y
-        self.tooltip = Toplevel(self.master)  # Use self.master as the parent
+        x, y = self.winfo_pointerxy()
+        self.tooltip = Toplevel(self.master)
         self.tooltip.wm_overrideredirect(True)
         self.tooltip.wm_geometry(f"+{x + 10}+{y + 10}")
         label = ttk.Label(self.tooltip, text=text, background="grey", relief="solid", borderwidth=1, padding=5)
@@ -215,7 +214,7 @@ class AudienceTab(ttk.Frame):
     def references_file_details(self, parent):
         """Configure and place the file details label within the given container."""
         self.file_details_label = ttk.Label(parent, text="No file loaded", anchor='w')
-        self.file_details_label.pack(side='top', fill='x', expand=False, padx=10, pady=(5, 10))
+        self.file_details_label.pack(side='top', fill='x', expand=False, padx=10, pady=(10, 5))
 
 
     def prompt_excel_load(self):
@@ -243,9 +242,6 @@ class AudienceTab(ttk.Frame):
             print(f"Exception occurred: {str(e)}")
             print(traceback.format_exc())
             self.file_details_label.config(text="Failed to load file or file is empty")
-
-
-
 
     def setup_show_columns_button(self, parent, context):
         """Sets up a button to show column names from the loaded DataFrame."""
@@ -326,9 +322,8 @@ class AudienceTab(ttk.Frame):
         self.prod_num_listbox.pack(side='top', fill='both', expand=True)
         prod_num_scrollbar = Scrollbar(self.prod_num_listbox, orient="vertical")
         prod_num_scrollbar.config(command=self.prod_num_listbox.yview)
-        prod_num_scrollbar.pack(side="right", fill="y")
+        prod_num_scrollbar.pack(side="right", fill="y", pady=(0, 40))
 
-        # Create and pack BUS_CHANL_NUM Listbox
         bus_chanl_frame = ttk.Frame(self.specifics_frame)
         bus_chanl_frame.pack(side='left', fill='both', expand=True, padx=5, pady=5)
         ttk.Label(bus_chanl_frame, text="BUS_CHANL_NUM:").pack(side='top', padx=5)
@@ -337,9 +332,8 @@ class AudienceTab(ttk.Frame):
         self.bus_chanl_num_listbox.pack(side='top', fill='both', expand=True)
         bus_chanl_scrollbar = Scrollbar(self.bus_chanl_num_listbox, orient="vertical")
         bus_chanl_scrollbar.config(command=self.bus_chanl_num_listbox.yview)
-        bus_chanl_scrollbar.pack(side="right", fill="y")
+        bus_chanl_scrollbar.pack(side="right", fill="y", pady=(0, 40))
 
-        # Initially hide the listboxes
         self.toggle_specifics()
 
     def toggle_specifics(self):
@@ -366,7 +360,6 @@ class AudienceTab(ttk.Frame):
             for value in unique_bus_chanl_num:
                 self.bus_chanl_num_listbox.insert('end', value)
 
-        # Explicitly set the height after populating to ensure it retains the set height
         self.prod_num_listbox.config(height=20)
         self.bus_chanl_num_listbox.config(height=20)
         self.specifics_frame.update_idletasks()
@@ -392,7 +385,6 @@ class AudienceTab(ttk.Frame):
                 current_date = datetime.now()
                 reference_date = datetime(year, month, 1)
 
-                # Check if the reference date is in the current month or in the future
                 if reference_date >= datetime(current_date.year, current_date.month, 1):
                     show_message("Error", "The reference date cannot be in the current month or the future.",
                                  type='error', master=self,
@@ -477,7 +469,6 @@ class AudienceTab(ttk.Frame):
             show_message("Error", "Load an Excel file first.", type='error', master=self, custom=True)
             return False
 
-
     def validation_references_dates(self, df, year, month):
         """Checks if the date exists in the loaded data and updates the user."""
         mask = (df['PERIOD_YEAR'] == year) & (df['PERIOD_MONTH'] == month)
@@ -488,6 +479,7 @@ class AudienceTab(ttk.Frame):
             show_message("Validation",
                          f"Date not found in the file. Debug: Year({year}), Month({month})\nSample rows where year matches:\n{specific_data.head()}",
                          type='error', master=self, custom=True)
+
     def validate_month(self, P):
         """Validate the month entry to ensure it's empty or a valid month number."""
         return P == "" or (P.isdigit() and 1 <= int(P) <= 12)

@@ -31,7 +31,7 @@ class MainApplication(tk.Tk):
 
     def configure_geometry(self):
         """Configure window size and properties."""
-        self.geometry("1066x800")
+        self.geometry("970x730")
         self.minsize(600, 450)
 
     def create_styles(self):
