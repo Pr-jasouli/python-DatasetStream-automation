@@ -2,10 +2,11 @@ import json
 import logging
 import os
 import sys
+import multiprocessing as mp
 
+import numpy as np
 import pandas as pd
 from openpyxl.reader.excel import load_workbook
-from openpyxl.styles import Font, PatternFill, Protection, Alignment, Border
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 from utilities.utils import show_message
@@ -25,13 +26,13 @@ def get_column_names(df):
     return identifiers, viewing_columns
 
 
-def duplicate_data(df, ref_year, ref_month, target_years, identifiers):
+def duplicate_data_chunk(chunk, ref_year, ref_month, target_years, identifiers):
     """Duplicates data for specified target years resetting non-key columns."""
     months = range(1, int(ref_month) + 1)
-    mask = (df['PERIOD_YEAR'] == int(ref_year)) & (df['PERIOD_MONTH'].isin(months))
-    data_to_duplicate = df.loc[mask]
+    mask = (chunk['PERIOD_YEAR'] == int(ref_year)) & (chunk['PERIOD_MONTH'].isin(months))
+    data_to_duplicate = chunk.loc[mask]
 
-    zero_columns = [col for col in df.columns if col not in ['PERIOD_YEAR', 'PERIOD_MONTH'] + identifiers]
+    zero_columns = [col for col in chunk.columns if col not in ['PERIOD_YEAR', 'PERIOD_MONTH'] + identifiers]
     new_rows = []
     for year in target_years:
         for _, row in data_to_duplicate.iterrows():
@@ -42,12 +43,25 @@ def duplicate_data(df, ref_year, ref_month, target_years, identifiers):
 
     if new_rows:
         new_rows_df = pd.DataFrame(new_rows)
-        return pd.concat([df, new_rows_df], ignore_index=True)
+        return pd.concat([chunk, new_rows_df], ignore_index=True)
     else:
-        return df
+        return chunk
 
 
-def adjust_viewing_columns(df, ref_year, identifiers, viewing_columns):
+def duplicate_data(df, ref_year, ref_month, target_years, identifiers):
+    """Duplicates data for specified target years resetting non-key columns."""
+    num_chunks = mp.cpu_count()
+    chunks = np.array_split(df.to_numpy(), num_chunks)
+    chunks = [pd.DataFrame(chunk, columns=df.columns) for chunk in chunks]
+    pool = mp.Pool(num_chunks)
+    results = [pool.apply_async(duplicate_data_chunk, args=(chunk, ref_year, ref_month, target_years, identifiers)) for chunk in chunks]
+    pool.close()
+    pool.join()
+    df = pd.concat([result.get() for result in results], ignore_index=True)
+    return df
+
+
+def adjust_viewing_columns_chunk(chunk, ref_year, identifiers, viewing_columns):
     """
     Définition des colonnes somme : Les variables sum_eop_2024 et sum_eop_2025 représentent les noms des colonnes dans le DataFrame qui contiennent les valeurs à utiliser pour le calcul des ratios.
     """
@@ -55,23 +69,23 @@ def adjust_viewing_columns(df, ref_year, identifiers, viewing_columns):
     sum_eop_2025 = 'sum_eop_vol_2025'
 
     """
-    Itération sur les lignes ciblées : La boucle itère sur toutes les lignes du DataFrame df où l'année (PERIOD_YEAR) est supérieure à l'année de référence (ref_year). Cela permet de cibler uniquement les lignes des années futures par rapport à l'année de référence.
+    Itération sur les lignes ciblées : La boucle itère sur toutes les lignes du DataFrame chunk où l'année (PERIOD_YEAR) est supérieure à l'année de référence (ref_year). Cela permet de cibler uniquement les lignes des années futures par rapport à l'année de référence.
     """
-    for index, row in df[df['PERIOD_YEAR'] > int(ref_year)].iterrows():
+    for index, row in chunk[chunk['PERIOD_YEAR'] > int(ref_year)].iterrows():
         """
         Un masque est créé pour identifier la ligne de référence qui correspond au même mois (PERIOD_MONTH) et aux mêmes identifiants que la ligne actuelle traitée dans la boucle. Le masque est également conditionné à ce que l'année soit l'année de référence (ref_year).
         """
-        ref_mask = (df['PERIOD_YEAR'] == int(ref_year)) & (df['PERIOD_MONTH'] == row['PERIOD_MONTH'])
+        ref_mask = (chunk['PERIOD_YEAR'] == int(ref_year)) & (chunk['PERIOD_MONTH'] == row['PERIOD_MONTH'])
         for id_col in identifiers:
             """
             Ce masque est affiné pour s'assurer qu'il correspond exactement aux identifiants de la ligne actuellement traitée.
             """
-            ref_mask &= (df[id_col] == row[id_col])
+            ref_mask &= (chunk[id_col] == row[id_col])
         """
         Vérification de la présence de la ligne de référence : Avant de procéder à tout calcul, on vérifie si le DataFrame filtré par le masque n'est pas vide. Cela évite des erreurs lors de l'accès à un DataFrame vide.
         """
-        if not df.loc[ref_mask].empty:
-            ref_row = df.loc[ref_mask].iloc[0]
+        if not chunk.loc[ref_mask].empty:
+            ref_row = chunk.loc[ref_mask].iloc[0]
             """
             Si la ligne de référence existe et que la valeur dans sum_eop_2024 est supérieure à zéro, un ratio est calculé comme étant la valeur de sum_eop_2025 divisée par celle de sum_eop_2024.
             """
@@ -81,21 +95,34 @@ def adjust_viewing_columns(df, ref_year, identifiers, viewing_columns):
                 Ce ratio est ensuite utilisé pour ajuster les valeurs des colonnes spécifiées dans viewing_columns. Pour chaque colonne de viewing_columns, la nouvelle valeur est calculée en multipliant la valeur originale de la colonne par le ratio calculé.
                 """
                 for col in viewing_columns:
-                    df.at[index, col] = ref_row[col] * ratio
+                    chunk.at[index, col] = ref_row[col] * ratio
                 """
                 Si la valeur dans sum_eop_2024 est zéro ou si la ligne de référence n'existe pas, les valeurs dans les colonnes de viewing_columns sont mises à zéro pour la ligne courante traitée.
                 """
             else:
-                df.loc[index, viewing_columns] = 0
+                chunk.loc[index, viewing_columns] = 0
         else:
-            df.loc[index, viewing_columns] = 0
+            chunk.loc[index, viewing_columns] = 0
+    return chunk
+
+
+def adjust_viewing_columns(df, ref_year, identifiers, viewing_columns):
+    num_chunks = mp.cpu_count()
+    chunks = np.array_split(df.to_numpy(), num_chunks)
+    chunks = [pd.DataFrame(chunk, columns=df.columns) for chunk in chunks]
+    pool = mp.Pool(num_chunks)
+    results = [pool.apply_async(adjust_viewing_columns_chunk, args=(chunk, ref_year, identifiers, viewing_columns)) for chunk in chunks]
+    pool.close()
+    pool.join()
+    df = pd.concat([result.get() for result in results], ignore_index=True)
+    return df
 
 
 def copy_sheet(source_sheet, target_sheet):
     """Copy the content from the source sheet to the target sheet."""
     for row in source_sheet.iter_rows():
         for cell in row:
-            new_cell = target_sheet.cell(row=cell.row, column=cell.col_idx, value=cell.value)
+            target_sheet.cell(row=cell.row, column=cell.col_idx, value=cell.value)
 
     for row_dim in source_sheet.row_dimensions.values():
         target_sheet.row_dimensions[row_dim.index].height = row_dim.height
@@ -103,9 +130,9 @@ def copy_sheet(source_sheet, target_sheet):
     for col_dim in source_sheet.column_dimensions.values():
         target_sheet.column_dimensions[col_dim.index].width = col_dim.width
 
-    # Copy merged cells
     for merged_cell_range in source_sheet.merged_cells.ranges:
         target_sheet.merge_cells(str(merged_cell_range))
+
 
 def check_file_open(file_path):
     """Check if the file is open by trying to rename it."""
@@ -203,7 +230,7 @@ def main(args):
     logging.info("Duplicating data for target years")
     df = duplicate_data(df, references_year, references_month, target_years, identifiers)
     logging.info("Adjusting viewing columns")
-    adjust_viewing_columns(df, references_year, identifiers, viewing_columns)
+    df = adjust_viewing_columns(df, references_year, identifiers, viewing_columns)
     logging.info("Saving DataFrame with formatting")
     save_dataframe_with_formatting(df, output_path, file_path, references_year)
 
