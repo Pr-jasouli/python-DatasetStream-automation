@@ -91,7 +91,7 @@ class AudienceTab(ttk.Frame):
         subprocess.run(["python", script_path, json.dumps(args)])
 
     def date_fields_setup(self, parent, context):
-        if context == 'REFERENCES':
+        if context == 'REFERENCE':
             ttk.Label(parent, text="Date (MM - YYYY):").pack(side='left')
             self.references_month = ttk.Entry(parent, width=3, validate='key',
                                               validatecommand=(self.register(self.validate_month), '%P'))
@@ -193,7 +193,7 @@ class AudienceTab(ttk.Frame):
 
 
     def button_select_sources(self, parent, context):
-        if context == 'REFERENCES':
+        if context == 'REFERENCE':
             ttk.Button(parent, text="Source File", command=self.prompt_excel_load, style='AudienceTab.TButton').pack(side='left', padx=10)
         if context == 'TARGET':
             ttk.Button(parent, text="Forecast Folder", command=self.set_output_folder, style='AudienceTab.TButton').pack(side='left', padx=10)
@@ -246,7 +246,7 @@ class AudienceTab(ttk.Frame):
 
     def setup_show_columns_button(self, parent, context):
         """Sets up a button to show column names from the loaded DataFrame."""
-        if context == 'REFERENCES':
+        if context == 'REFERENCE':
             self.show_columns_button = ttk.Button(parent, text="☱", command=self.show_columns, style='AudienceTab.TButton')
             self.show_columns_button.pack(side='right', padx=10)
 
@@ -283,9 +283,9 @@ class AudienceTab(ttk.Frame):
     def references_widgets_setup(self):
         container = ttk.Frame(self)
         container.pack(side='top', fill='x', expand=False, padx=20, pady=10)
-        ttk.Label(container, text="REFERENCES", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
+        ttk.Label(container, text="REFERENCE", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
         self.references_file_details(container)
-        self.setup_buttons_and_entries(container, 'REFERENCES')
+        self.setup_buttons_and_entries(container, 'REFERENCE')
 
     def target_widgets_setup(self):
         container = ttk.Frame(self)
