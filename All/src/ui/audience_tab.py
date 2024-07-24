@@ -101,9 +101,7 @@ class AudienceTab(ttk.Frame):
     def load_initial_excel(self):
         src_audience_path = self.config_data.get('audience_src')
         if src_audience_path:
-            # CAUSES DOUBLE EXCEL LOAD AT STARTUP
-            # self.df = self.load_excel(src_audience_path)
-            self.load_excel(src_audience_path)
+            self.update_file_details_label(src_audience_path)
 
 
     def button_select_sources(self, parent, context):
@@ -136,31 +134,23 @@ class AudienceTab(ttk.Frame):
         filetypes = [("Excel files", "*.xlsx *.xls")]
         filepath = filedialog.askopenfilename(filetypes=filetypes)
         if filepath:
-            self.load_excel(filepath)
-
-    def load_excel(self, file_path):
-        try:
-            self.df = pd.read_excel(file_path)
-            print("File loaded, checking content...")
-            if self.df.empty:
-                print("DataFrame is empty after loading.")
-            else:
-                print(f"DataFrame loaded with {self.df.shape[0]} rows and {self.df.shape[1]} columns.")
-            self.update_file_details_label(file_path)
-        except Exception as e:
-            print(f"Exception occurred: {str(e)}")
-            print(traceback.format_exc())
-            self.df = pd.DataFrame()
+            self.update_file_details_label(filepath)
 
 
     def update_file_details_label(self, file_path):
         self.file_path = file_path
-        if self.df is not None and not self.df.empty:
-            rows, cols = self.df.shape
-            relative_path = '/'.join(file_path.split('/')[-3:])
-            self.file_details_label.config(text=f".../{relative_path} | rows: {rows} ~ columns: {cols}")
-            show_message("Success", "Excel file loaded successfully!", type="info", master=self, custom=True)
-        else:
+        try:
+            df = pd.read_excel(file_path)
+            print("File loaded, checking content...")
+            if df.empty:
+                print("DataFrame is empty after loading.")
+            else:
+                rows, cols = df.shape
+                relative_path = '/'.join(file_path.split('/')[-3:])
+                self.file_details_label.config(text=f".../{relative_path} \t rows: {rows} ~ columns: {cols}")
+        except Exception as e:
+            print(f"Exception occurred: {str(e)}")
+            print(traceback.format_exc())
             self.file_details_label.config(text="Failed to load file or file is empty")
 
 
@@ -172,14 +162,18 @@ class AudienceTab(ttk.Frame):
             self.show_columns_button = ttk.Button(parent, text="☱", command=self.show_columns, style='AudienceTab.TButton')
             self.show_columns_button.pack(side='right', padx=10)
 
-
     def show_columns(self):
         """Displays the column names from the loaded DataFrame."""
-        if self.df is not None:
-            columns = '\n'.join(self.df.columns)
-            show_message("Columns", f"Columns in the file:\n{columns}", type='info', master=self, custom=True)
+        if self.file_path:
+            try:
+                df = pd.read_excel(self.file_path)
+                columns = '\n'.join(df.columns)
+                show_message("Columns", f"Columns in the file:\n{columns}", type='info', master=self, custom=True)
+            except Exception as e:
+                show_message("Error", f"Failed to load file:\n{str(e)}", type='error', master=self, custom=True)
         else:
             show_message("Error", "Load an Excel file first.", type='info', master=self, custom=True)
+
     def tab_style(self):
         """Configure styles used within the tab."""
         style = ttk.Style(self)
