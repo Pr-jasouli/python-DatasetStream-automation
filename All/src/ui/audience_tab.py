@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 import traceback
 from datetime import datetime
 from tkinter import filedialog
@@ -20,6 +21,9 @@ class AudienceTab(ttk.Frame):
         self.config_manager = config_manager
         self.config_data = config_manager.get_config()
         self.file_path = None
+        self.current_date = datetime.now()
+        self.current_year = self.current_date.year
+        self.current_month = self.current_date.month
         self.setup_ui()
 
     def process_widgets_setup(self):
@@ -48,8 +52,14 @@ class AudienceTab(ttk.Frame):
             print(f"Target Start Year: {target_start_year}, End Year: {target_end_year}")
             print(f"Output Path: {output_path}, File Path: {file_path}")
 
+            start_time = time.time()
+
             self.call_script(references_month, references_year, target_start_year, target_end_year, output_path,
                              file_path)
+
+            end_time = time.time()
+            duration = end_time - start_time
+            show_message("Info", f"Parsing completed in {duration:.2f} seconds.", type='info', master=self, custom=True)
         else:
             show_message("Error", "Validation failed. Please correct the errors and try again.", type='error',
                          master=self, custom=True)
@@ -220,7 +230,7 @@ class AudienceTab(ttk.Frame):
 
     def validate_year(self, P):
         """Validate the year entry to ensure it meets specified conditions."""
-        if P == "" or (P.isdigit() and P.startswith("2") and len(P) <= 4 and int(P) <= 2044):
+        if P == "" or (P.isdigit() and P.startswith("2") and len(P) <= 4 and int(P) <= 2064):
             return True
         return False
 
@@ -270,7 +280,6 @@ class AudienceTab(ttk.Frame):
                 start_year = int(self.target_start_year.get())
                 end_year = int(self.target_end_year.get())
 
-                # Load the DataFrame to ensure file is accessible and validate
                 df = pd.read_excel(self.file_path)
 
                 current_year = datetime.now().year
@@ -278,6 +287,11 @@ class AudienceTab(ttk.Frame):
                 if start_year == current_year:
                     show_message("Error", "Target start year cannot be the current year.", type='error', master=self,
                                  custom=True)
+                    return False
+
+                if start_year > end_year:
+                    show_message("Error", "Target 'From' year cannot be after the target 'To' year.", type='error',
+                                 master=self, custom=True)
                     return False
 
                 if reference_month != 12:
@@ -320,7 +334,7 @@ class AudienceTab(ttk.Frame):
         """Checks if the date exists in the loaded data and updates the user."""
         mask = (df['PERIOD_YEAR'] == year) & (df['PERIOD_MONTH'] == month)
         if mask.any():
-            show_message("Validation", "Date is valid and found in the file.", type='info', master=self, custom=True)
+            show_message("Validation", "Reference file: Date is valid and found in the file.", type='info', master=self, custom=True)
         else:
             specific_data = df[(df['PERIOD_YEAR'] == year)]
             show_message("Validation",
