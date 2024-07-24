@@ -108,9 +108,9 @@ class AudienceTab(ttk.Frame):
 
     def button_select_sources(self, parent, context):
         if context == 'REFERENCES':
-            ttk.Button(parent, text="⇓", command=self.prompt_excel_load, style='AudienceTab.TButton').pack(side='left', padx=10)
+            ttk.Button(parent, text="Source File", command=self.prompt_excel_load, style='AudienceTab.TButton').pack(side='left', padx=10)
         if context == 'TARGET':
-            ttk.Button(parent, text="◎", command=self.set_output_folder, style='AudienceTab.TButton').pack(side='left', padx=10)
+            ttk.Button(parent, text="Forecast Folder", command=self.set_output_folder, style='AudienceTab.TButton').pack(side='left', padx=10)
 
     def setup_buttons_and_entries(self, parent, context):
         """Setup buttons and entry fields for user interaction."""
@@ -130,6 +130,7 @@ class AudienceTab(ttk.Frame):
         """Configure and place the file details label within the given container."""
         self.file_details_label = ttk.Label(parent, text="No file loaded", anchor='w')
         self.file_details_label.pack(side='top', fill='x', expand=False, padx=10, pady=(5, 10))
+
 
     def prompt_excel_load(self):
         filetypes = [("Excel files", "*.xlsx *.xls")]
