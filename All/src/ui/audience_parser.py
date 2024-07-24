@@ -1,21 +1,29 @@
 import json
 import logging
+import os
 import sys
-import tkinter as tk
 
 import pandas as pd
+from openpyxl.reader.excel import load_workbook
+from openpyxl.styles import Font, PatternFill, Protection, Alignment, Border
+from openpyxl.utils.dataframe import dataframe_to_rows
+
+from utilities.utils import show_message
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 def load_excel_data(filepath):
     """Loads Excel data into a pandas DataFrame."""
     return pd.read_excel(filepath)
+
 
 def get_column_names(df):
     """Dynamically fetches column names based on content criteria."""
     identifiers = ['DATA_TYPE', 'PROD_NUM', 'BUS_CHANL_NUM']
     viewing_columns = [col for col in df.columns if 'VIEWING' in col]
     return identifiers, viewing_columns
+
 
 def duplicate_data(df, ref_year, ref_month, target_years, identifiers):
     """Duplicates data for specified target years resetting non-key columns."""
@@ -83,11 +91,93 @@ def adjust_viewing_columns(df, ref_year, identifiers, viewing_columns):
             df.loc[index, viewing_columns] = 0
 
 
-def save_dataframe(df, output_path):
-    """Saves the modified DataFrame to the specified Excel file."""
+def copy_sheet(source_sheet, target_sheet):
+    """Copy the content from the source sheet to the target sheet."""
+    for row in source_sheet.iter_rows():
+        for cell in row:
+            new_cell = target_sheet.cell(row=cell.row, column=cell.col_idx, value=cell.value)
+
+    for row_dim in source_sheet.row_dimensions.values():
+        target_sheet.row_dimensions[row_dim.index].height = row_dim.height
+
+    for col_dim in source_sheet.column_dimensions.values():
+        target_sheet.column_dimensions[col_dim.index].width = col_dim.width
+
+    # Copy merged cells
+    for merged_cell_range in source_sheet.merged_cells.ranges:
+        target_sheet.merge_cells(str(merged_cell_range))
+
+def check_file_open(file_path):
+    """Check if the file is open by trying to rename it."""
+    if not os.path.isfile(file_path):
+        return False
+    try:
+        os.rename(file_path, file_path)
+    except OSError:
+        return True
+    return False
+
+
+def save_dataframe_with_formatting(df, output_path, original_file, references_year):
+    """Saves the modified DataFrame to a new sheet in the copied Excel file."""
     output_filepath = f"{output_path}\\forecast_audience.xlsx"
-    df.to_excel(output_filepath, index=False)
-    print(f"Data saved to {output_filepath}")
+
+    if check_file_open(output_filepath):
+        show_message("Error", f"The file {output_filepath} is open. Please close the file and try again.", type='error')
+        return
+
+    try:
+        logging.info(f"Loading original workbook from {original_file}")
+        workbook = load_workbook(original_file)
+        reference_sheet = workbook.active
+
+        new_reference_sheet = workbook.create_sheet(title="Reference (Copy)")
+        copy_sheet(reference_sheet, new_reference_sheet)
+
+        forecast_sheet = workbook.create_sheet(title="Forecast")
+
+        future_df = df[df['PERIOD_YEAR'] > int(references_year)]
+
+        logging.info("Writing data to the Forecast sheet")
+        for r_idx, row in enumerate(dataframe_to_rows(future_df, index=False, header=True), 1):
+            for c_idx, value in enumerate(row, 1):
+                forecast_sheet.cell(row=r_idx, column=c_idx, value=value)
+
+        forecast_sheet.freeze_panes = 'A2'
+        new_reference_sheet.freeze_panes = 'A2'
+
+        forecast_sheet.auto_filter.ref = forecast_sheet.dimensions
+        new_reference_sheet.auto_filter.ref = new_reference_sheet.dimensions
+
+        logging.info("Adjusting column widths")
+        for sheet in [forecast_sheet, new_reference_sheet]:
+            for col in sheet.columns:
+                max_length = 0
+                column = col[0].column_letter
+                for cell in col:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = (max_length + 2)
+                sheet.column_dimensions[column].width = adjusted_width
+
+        workbook.remove(reference_sheet)
+        new_reference_sheet.title = "Reference"
+
+        if 'Sheet1' in workbook.sheetnames:
+            std = workbook['Sheet1']
+            workbook.remove(std)
+
+        logging.info(f"Saving workbook to {output_filepath}")
+        workbook.save(output_filepath)
+        logging.info(f"Data saved to {output_filepath}")
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        show_message("Error", f"An error occurred: {e}", type='error')
+        return
 
 
 def main(args):
@@ -98,14 +188,25 @@ def main(args):
     target_end_year = int(params['target_end_year'])
     output_path = params['output_path']
     file_path = params['file_path']
+    output_filepath = f"{output_path}\\forecast_audience.xlsx"
 
+    if check_file_open(output_filepath):
+        show_message("Error", f"The file {output_filepath} is open. Please close the file and try again.", type='error')
+        return
+
+    logging.info("Loading data from input file")
     df = load_excel_data(file_path)
+    logging.info(f"DataFrame loaded with {len(df)} rows and {len(df.columns)} columns")
     identifiers, viewing_columns = get_column_names(df)
     target_years = range(target_start_year, target_end_year + 1)
 
+    logging.info("Duplicating data for target years")
     df = duplicate_data(df, references_year, references_month, target_years, identifiers)
+    logging.info("Adjusting viewing columns")
     adjust_viewing_columns(df, references_year, identifiers, viewing_columns)
-    save_dataframe(df, output_path)
+    logging.info("Saving DataFrame with formatting")
+    save_dataframe_with_formatting(df, output_path, file_path, references_year)
+
 
 if __name__ == "__main__":
     main(sys.argv[1])
