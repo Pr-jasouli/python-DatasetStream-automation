@@ -91,7 +91,7 @@ class MainApplication(tk.Tk):
         #                       config_ui_callback=self.config_ui_callback)
         self.tab_control.add(self.audience_tab, text='Audience')
         # self.tab_control.add(self.pdf_tab, text='PDF')
-        self.tab_control.pack(expand=1, fill='both', padx=15, pady=15)
+        self.tab_control.pack(expand=1, fill='both', padx=15, pady=(5, 0))
 
     def create_bottom_frame(self):
         """Create the bottom frame with configuration button."""
