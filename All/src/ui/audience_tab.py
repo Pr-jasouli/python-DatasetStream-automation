@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import subprocess
 import sys
@@ -35,8 +36,26 @@ class AudienceTab(ttk.Frame):
         container.pack(side='top', fill='x', expand=False, padx=20, pady=10)
         ttk.Label(container, text="PROCESS", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
 
-        self.process_button = ttk.Button(container, text="Start Processing", command=self.start_processing)
-        self.process_button.pack(side='top', fill='x', padx=10, pady=(5, 5))
+        buttons_frame = ttk.Frame(container)
+        buttons_frame.pack(side='top', fill='x', padx=10, pady=(5, 5))
+
+        self.process_button = ttk.Button(buttons_frame, text="Start Processing", command=self.start_processing)
+        self.process_button.pack(side='left', fill='x', expand=True)
+
+        self.view_result_button = ttk.Button(buttons_frame, text="View Result", command=self.view_result)
+        self.view_result_button.pack(side='left', fill='x', expand=True)
+
+    def view_result(self):
+        output_path = self.output_path.get()
+        result_file = os.path.join(output_path, "forecast_audience.xlsx")
+
+        if os.path.isfile(result_file):
+            os.startfile(result_file)
+        else:
+            show_message("Error",
+                         "The result file does not exist. Please make sure the processing is completed successfully.",
+                         type='error', master=self, custom=True)
+
 
     def start_processing(self):
         if self.validate_all():
@@ -163,9 +182,9 @@ class AudienceTab(ttk.Frame):
                 help_text = f'Sans aller au delà du mois de {month_str} {references_year}, calculer {target_start_year}'
         else:
             if references_month_int == 12:
-                help_text = f'En utilisant toute l\'année {references_year}, calculer de {target_start_year} à {target_end_year}'
+                help_text = f'En utilisant toute l\'année {references_year}, calculer {target_start_year} à {target_end_year}'
             else:
-                help_text = f'Sans aller au delà du mois de {month_str} {references_year}, calculer de {target_start_year} à {target_end_year}'
+                help_text = f'Sans aller au delà du mois de {month_str} {references_year}, calculer {target_start_year} à {target_end_year}'
 
         self.show_tooltip(event, help_text)
 
@@ -384,16 +403,12 @@ class AudienceTab(ttk.Frame):
                 reference_date = datetime(year, month, 1)
 
                 if reference_date >= datetime(current_date.year, current_date.month, 1):
-                    show_message("Error", "The reference date cannot be in the current month or the future.",
-                                 type='error', master=self,
-                                 custom=True)
+                    show_message("Error", "The reference date cannot be in the current month or the future.", type='error', master=self, custom=True)
                     return False
                 else:
-                    self.validation_references_dates(df, year, month)
-                    # return True
+                    return self.validation_references_dates(df, year, month)
             except ValueError:
-                show_message("Error", "Invalid date. Please enter a valid month and year.", type='error', master=self,
-                             custom=True)
+                show_message("Error", "Invalid date. Please enter a valid month and year.", type='error', master=self, custom=True)
                 return False
             except Exception as e:
                 show_message("Error", f"Failed to load file:\n{str(e)}", type='error', master=self, custom=True)
