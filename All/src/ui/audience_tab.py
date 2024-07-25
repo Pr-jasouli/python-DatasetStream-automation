@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import subprocess
 import sys
@@ -33,11 +32,11 @@ class AudienceTab(ttk.Frame):
     def process_widgets_setup(self):
         """Sets up the processing button widget."""
         container = ttk.Frame(self)
-        container.pack(side='top', fill='x', expand=False, padx=20, pady=10)
-        ttk.Label(container, text="PROCESS", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
+        container.pack(side='top', fill='x', expand=False, padx=20, pady=3)
+        ttk.Label(container, text="PROCESS", style='Title.TLabel').pack(side='top', padx=10, pady=(8, 0))
 
         buttons_frame = ttk.Frame(container)
-        buttons_frame.pack(side='top', fill='x', padx=10, pady=(5, 5))
+        buttons_frame.pack(side='top', fill='x', padx=10, pady=(5, 0))
 
         self.process_button = ttk.Button(buttons_frame, text="Start Processing", command=self.start_processing)
         self.process_button.pack(side='left', fill='x', expand=True)
@@ -56,28 +55,37 @@ class AudienceTab(ttk.Frame):
                          "The result file does not exist. Please make sure the processing is completed successfully.",
                          type='error', master=self, custom=True)
 
-
     def start_processing(self):
         if self.validate_all():
             references_month = self.references_month.get()
             references_year = self.references_year.get()
             target_start_year = self.target_start_year.get()
             target_end_year = self.target_end_year.get()
-            output_path = self.output_path.get()
             file_path = self.file_path
 
             if self.file_path is None:
                 show_message("Error", "No file selected.", type='error', master=self, custom=True)
                 return
 
+            specifics_enabled = self.specifics_var.get()
+            selected_prod_nums = self.prod_num_listbox.curselection()
+            selected_bus_chanl_nums = self.bus_chanl_num_listbox.curselection()
+
+            selected_prod_nums_values = [self.prod_num_listbox.get(i) for i in selected_prod_nums]
+            selected_bus_chanl_nums_values = [self.bus_chanl_num_listbox.get(i) for i in selected_bus_chanl_nums]
+
             print(f"References Month: {references_month}, Year: {references_year}")
             print(f"Target Start Year: {target_start_year}, End Year: {target_end_year}")
-            print(f"Output Path: {output_path}, File Path: {file_path}")
+            print(f"File Path: {file_path}")
+            print(f"Specifics Enabled: {specifics_enabled}")
+            if specifics_enabled:
+                print(f"Selected PROD_NUMs: {selected_prod_nums_values}")
+                print(f"Selected BUS_CHANL_NUMs: {selected_bus_chanl_nums_values}")
 
             start_time = time.time()
 
-            self.call_script(references_month, references_year, target_start_year, target_end_year, output_path,
-                             file_path)
+            self.call_script(references_month, references_year, target_start_year, target_end_year,
+                             file_path, specifics_enabled, selected_prod_nums_values, selected_bus_chanl_nums_values)
 
             end_time = time.time()
             duration = end_time - start_time
@@ -86,7 +94,8 @@ class AudienceTab(ttk.Frame):
             show_message("Error", "Validation failed. Please correct the errors and try again.", type='error',
                          master=self, custom=True)
 
-    def call_script(self, references_month, references_year, target_start_year, target_end_year, output_path, file_path):
+    def call_script(self, references_month, references_year, target_start_year, target_end_year,
+                    file_path, specifics_enabled, prod_nums, bus_chanl_nums):
         if getattr(sys, 'frozen', False):
             base_dir = sys._MEIPASS
             print(f"Hook: Application is frozen. _MEIPASS directory is {base_dir}")
@@ -94,7 +103,7 @@ class AudienceTab(ttk.Frame):
         else:
             base_dir = os.path.dirname(os.path.abspath(__file__))
 
-        script_path = os.path.join(base_dir, 'audience_parser.py')
+        script_path = os.path.join(base_dir, '../parser/audience_parser.py')
 
         script_path = os.path.abspath(script_path)
         print(f"Script Path: {script_path}")
@@ -103,8 +112,10 @@ class AudienceTab(ttk.Frame):
             "references_year": references_year,
             "target_start_year": target_start_year,
             "target_end_year": target_end_year,
-            "output_path": output_path,
-            "file_path": file_path
+            "file_path": file_path,
+            "specifics_enabled": specifics_enabled,
+            "prod_nums": prod_nums,
+            "bus_chanl_nums": bus_chanl_nums
         }
 
         subprocess.run(["python", script_path, json.dumps(args)])
@@ -179,12 +190,12 @@ class AudienceTab(ttk.Frame):
             if references_month_int == 12:
                 help_text = f'En utilisant toute l\'année {references_year}, calculer {target_start_year}'
             else:
-                help_text = f'Sans aller au delà du mois de {month_str} {references_year}, calculer {target_start_year}'
+                help_text = f'Sans aller au delà de {month_str} {references_year}, calculer {target_start_year}'
         else:
             if references_month_int == 12:
-                help_text = f'En utilisant toute l\'année {references_year}, calculer {target_start_year} à {target_end_year}'
+                help_text = f'En utilisant toute l\'année {references_year}, calculer {target_start_year} à {target_end_year} inclus'
             else:
-                help_text = f'Sans aller au delà du mois de {month_str} {references_year}, calculer {target_start_year} à {target_end_year}'
+                help_text = f'Sans aller au delà de {month_str} {references_year}, calculer {target_start_year} à {target_end_year} inclus'
 
         self.show_tooltip(event, help_text)
 
@@ -240,7 +251,6 @@ class AudienceTab(ttk.Frame):
             self.update_file_details_label(filepath)
             self.df = pd.read_excel(filepath)
 
-
     def update_file_details_label(self, file_path):
         self.file_path = file_path
         try:
@@ -254,10 +264,13 @@ class AudienceTab(ttk.Frame):
                 rows, cols = df.shape
                 relative_path = '/'.join(file_path.split('/')[-3:])
                 self.file_details_label.config(text=f".../{relative_path} \t rows: {rows} ~ columns: {cols}")
+        except PermissionError as e:
+            show_message("Error", f"Exception REFERENCE FILE ALREADY OPEN, CLOSE IT:\n {str(e)}", type='error', master=self, custom=True)
         except Exception as e:
             print(f"Exception occurred: {str(e)}")
             print(traceback.format_exc())
             self.file_details_label.config(text="Failed to load file or file is empty")
+            show_message("Error", f"Exception occurred: {str(e)}", type='error', master=self, custom=True)
 
     def setup_show_columns_button(self, parent, context):
         """Sets up a button to show column names from the loaded DataFrame."""
@@ -315,6 +328,7 @@ class AudienceTab(ttk.Frame):
         if audience_dest:
             self.output_path.insert(0, audience_dest)
 
+
     def specifics_widgets_setup(self):
         """Sets up the specifics selection widget."""
         container = ttk.Frame(self)
@@ -329,7 +343,6 @@ class AudienceTab(ttk.Frame):
         self.specifics_frame = ttk.Frame(container)
         self.specifics_frame.pack(side='top', fill='both', expand=True, padx=10, pady=(5, 5))
 
-        # Create and pack PROD_NUM Listbox
         prod_num_frame = ttk.Frame(self.specifics_frame)
         prod_num_frame.pack(side='left', fill='both', expand=True, padx=5, pady=5)
         ttk.Label(prod_num_frame, text="PROD_NUM:").pack(side='top', padx=5)
@@ -338,7 +351,7 @@ class AudienceTab(ttk.Frame):
         self.prod_num_listbox.pack(side='top', fill='both', expand=True)
         prod_num_scrollbar = Scrollbar(self.prod_num_listbox, orient="vertical")
         prod_num_scrollbar.config(command=self.prod_num_listbox.yview)
-        prod_num_scrollbar.pack(side="right", fill="y", pady=(0, 40))
+        prod_num_scrollbar.pack(side="right", fill="y", pady=10)
 
         bus_chanl_frame = ttk.Frame(self.specifics_frame)
         bus_chanl_frame.pack(side='left', fill='both', expand=True, padx=5, pady=5)
@@ -348,19 +361,46 @@ class AudienceTab(ttk.Frame):
         self.bus_chanl_num_listbox.pack(side='top', fill='both', expand=True)
         bus_chanl_scrollbar = Scrollbar(self.bus_chanl_num_listbox, orient="vertical")
         bus_chanl_scrollbar.config(command=self.bus_chanl_num_listbox.yview)
-        bus_chanl_scrollbar.pack(side="right", fill="y", pady=(0, 40))
+        bus_chanl_scrollbar.pack(side="right", fill="y", pady=10)
+
+        self.reset_row_frame = ttk.Frame(container)
+
+        style = ttk.Style()
+        style.configure("Small.TLabel", font=("Arial", 12))
+
+        self.reset_label = ttk.Label(self.reset_row_frame, text="⟳", style="Small.TLabel", cursor="hand2")
+        self.reset_label.pack(side='left', padx=5, pady=0)
+        self.reset_label.bind("<Button-1>", self.reset_selection)
+
+        self.row_count_label = ttk.Label(self.reset_row_frame, text="Selected Rows: 0", style="Small.TLabel")
+        self.row_count_label.pack(side='left', padx=5, pady=0)
+
+        self.reset_row_frame.pack(side='top', fill='x', expand=False, padx=5, pady=(0, 0))
+        self.reset_row_frame.pack_forget()
+
+        self.prod_num_listbox.bind('<<ListboxSelect>>', self.update_row_count)
+        self.bus_chanl_num_listbox.bind('<<ListboxSelect>>', self.update_row_count)
 
         self.toggle_specifics()
+
+    def reset_selection(self, event=None):
+        """Resets the selections in both listboxes."""
+        self.prod_num_listbox.selection_clear(0, 'end')
+        self.bus_chanl_num_listbox.selection_clear(0, 'end')
+        self.update_row_count()
 
     def toggle_specifics(self):
         """Toggles the visibility and content of the specifics listboxes based on the checkbox state."""
         if self.specifics_var.get():
             self.load_specifics()
+            self.reset_row_frame.pack(side='top', fill='x', expand=False, padx=5, pady=(5, 10))
         else:
             self.prod_num_listbox.delete(0, 'end')
             self.bus_chanl_num_listbox.delete(0, 'end')
             self.prod_num_listbox.config(height=20)
             self.bus_chanl_num_listbox.config(height=20)
+            self.row_count_label.config(text="Selected Rows: 0")
+            self.reset_row_frame.pack_forget()
 
     def load_specifics(self):
         """Loads unique values from the reference file into listboxes for selection."""
@@ -368,17 +408,40 @@ class AudienceTab(ttk.Frame):
             self.prod_num_listbox.delete(0, 'end')
             self.bus_chanl_num_listbox.delete(0, 'end')
 
-            unique_prod_num = sorted(self.df['PROD_NUM'].unique())
+            unique_prod_num = sorted(set(str(item) for item in self.df['PROD_NUM'].unique()))
             for value in unique_prod_num:
                 self.prod_num_listbox.insert('end', value)
 
-            unique_bus_chanl_num = sorted(self.df['BUS_CHANL_NUM'].unique())
+            unique_bus_chanl_num = sorted(set(str(item) for item in self.df['BUS_CHANL_NUM'].unique()))
             for value in unique_bus_chanl_num:
                 self.bus_chanl_num_listbox.insert('end', value)
 
         self.prod_num_listbox.config(height=20)
         self.bus_chanl_num_listbox.config(height=20)
+        self.update_row_count()
         self.specifics_frame.update_idletasks()
+
+    def update_row_count(self, event=None):
+        """Updates the label to show the number of rows selected based on listbox selections."""
+        if self.df is None:
+            self.row_count_label.config(text="Selected Rows: 0")
+            return
+
+        selected_prod_nums = [self.prod_num_listbox.get(i) for i in self.prod_num_listbox.curselection()]
+        selected_bus_chanl_nums = [self.bus_chanl_num_listbox.get(i) for i in
+                                   self.bus_chanl_num_listbox.curselection()]
+
+        if not selected_prod_nums:
+            selected_prod_nums = self.prod_num_listbox.get(0, 'end')
+        if not selected_bus_chanl_nums:
+            selected_bus_chanl_nums = self.bus_chanl_num_listbox.get(0, 'end')
+
+        filtered_df = self.df[
+            (self.df['PROD_NUM'].astype(str).isin(selected_prod_nums)) &
+            (self.df['BUS_CHANL_NUM'].astype(str).isin(selected_bus_chanl_nums))
+            ]
+
+        self.row_count_label.config(text=f"Selected Rows: {len(filtered_df)}")
 
     def validate_all(self):
         valid_references = self.validate_references()
