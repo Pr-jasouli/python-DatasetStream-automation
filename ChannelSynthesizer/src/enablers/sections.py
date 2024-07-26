@@ -1,19 +1,19 @@
 import os
-from utils.sections import extract_text, parse, get_provider_colors, detect_provider_and_year, get_pages_to_process, remove_redundant_sections, save_sections
+from parsers.parse_all_sections import extract_text, parse, get_provider_colors, detect_provider_and_year, get_pages_to_process, remove_redundant_sections, save_sections
 
 """
-Ce script va venir détecter tous les "menus" ou "sections" présents dans les listes de chaines (PDF) de n'importe quel provider.
-Une fois déterminée, cette liste est envoyée au script 'B' qui va nettoyer l'entierete des pdf de cette façon:
+This script detects all "menus" or "sections" present in the channel lists (PDFs) of any provider.
+Once determined, this list is sent to script 'B' which cleans the entire PDF as follows:
                 -> row: section name
                 -> row: channel number
                 -> row: channel text (+additional tags for VOO)
-Quand c'est OK, script 'C' formate le resultat de 'B' en une feuille excel centralisée
-Cette séparation va permettre de localiser à quel moment les problèmes surviennent, chaque résultat intermédiaire ('A' et 'B') étant auditable
-le script utils contient l'implementation précis de chaque step.
+When it's OK, script 'C' formats the result of 'B' into a centralized Excel sheet.
+This separation allows locating when problems occur, with each intermediate result ('A' and 'B') being auditable.
+The utils script contains the precise implementation of each step.
 """
 
-
-def process(folder_path):
+def process(folder_path: str) -> None:
+    """Processes all PDF files in the given folder."""
     for file in os.listdir(folder_path):
         if file.endswith(".pdf"):
             path = os.path.join(folder_path, file)
@@ -28,8 +28,8 @@ def process(folder_path):
                     text, max_size = extract_text(path, colors, provider, page_number)
                     sections = parse(text, provider, max_size)
                     all_sections.extend(sections)
-                all_sections = remove_redundant_sections(all_sections)
 
+                all_sections = remove_redundant_sections(all_sections)
                 save_sections(path, all_sections)
                 print(f"Saved sections for {file} for provider {provider} and year {year}")
 
@@ -37,5 +37,5 @@ def process(folder_path):
                 print(f"Error processing {file}: {e}")
 
 if __name__ == "__main__":
-    folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../ChannelSynthesizer/inputs/pdf'))
+    folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../inputs/pdf'))
     process(folder)
