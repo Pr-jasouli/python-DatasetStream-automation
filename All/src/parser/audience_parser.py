@@ -149,7 +149,7 @@ def style_worksheet(ws):
         adjusted_width = max_length + 2 if max_length > 0 else 8
         ws.column_dimensions[column_letter].width = adjusted_width
 
-def save_dataframe_with_formatting(df, output_path, original_file, references_year, prod_nums, bus_chanl_nums):
+def save_dataframe_with_formatting(forecast_df, reference_df, output_path, original_file, references_year, prod_nums, bus_chanl_nums):
     output_filepath = os.path.join(output_path, "forecast_audience.xlsx")
 
     if check_file_open(output_filepath):
@@ -184,6 +184,11 @@ def save_dataframe_with_formatting(df, output_path, original_file, references_ye
             for c_idx, value in enumerate(row, 1):
                 forecast_sheet.cell(row=r_idx, column=c_idx, value=value)
 
+        logging.info("Writing data to the Reference sheet")
+        for r_idx, row in enumerate(dataframe_to_rows(reference_df, index=False, header=True), 1):
+            for c_idx, value in enumerate(row, 1):
+                new_reference_sheet.cell(row=r_idx, column=c_idx, value=value)
+
         forecast_sheet.freeze_panes = 'A2'
         new_reference_sheet.freeze_panes = 'A2'
 
@@ -215,7 +220,7 @@ def set_forecast_sheet_as_active(workbook):
 
 
 def main(args):
-    file_path = args.get('file_path', 'valid/path/to/your/default_file.xlsx')
+    file_path = args.get('file_path', '../../inputs/data audience creation .xlsx')
     references_month = int(args.get('references_month', 6))
     references_year = int(args.get('references_year', 2024))
     target_start_year = int(args.get('target_start_year', 2025))
@@ -228,9 +233,9 @@ def main(args):
 
     df = load_excel(file_path)
 
-    forecast_df = calculate_forecast(df, references_month, references_year, target_start_year, target_end_year, specifics_enabled, prod_nums, bus_chanl_nums)
-    if forecast_df is not None:
-        save_dataframe_with_formatting(forecast_df, output_path, file_path, references_year, prod_nums, bus_chanl_nums)
+    forecast_df, reference_df = calculate_forecast(df, references_month, references_year, target_start_year, target_end_year, specifics_enabled, prod_nums, bus_chanl_nums)
+    if not forecast_df.empty:
+        save_dataframe_with_formatting(forecast_df, reference_df, output_path, file_path, references_year, prod_nums, bus_chanl_nums)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
