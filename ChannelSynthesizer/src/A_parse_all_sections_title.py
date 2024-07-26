@@ -1,6 +1,5 @@
 import os
-
-from utils.utils import extract_text, parse, write_section_tsv, get_provider_colors, detect_provider_and_year, get_pages_to_process, remove_redundant_sections
+from utils.utils import extract_text, parse, get_provider_colors, detect_provider_and_year, get_pages_to_process, remove_redundant_sections, save_sections
 
 """
 Ce script va venir détecter tous les "menus" ou "sections" présents dans les listes de chaines (PDF) de n'importe quel provider.
@@ -11,11 +10,7 @@ Une fois déterminée, cette liste est envoyée au script 'B' qui va nettoyer l'
 Quand c'est OK, script 'C' formate le resultat de 'B' en une feuille excel centralisée
 Cette séparation va permettre de localiser à quel moment les problèmes surviennent, chaque résultat intermédiaire ('A' et 'B') étant auditable
 le script utils contient l'implementation précis de chaque step.
-
-ctrl + left_click sur un appel de fonction pour inspecter son implémentation
 """
-
-PAGE_SELECTION_FILE = "page_selection.json"
 
 
 def process(folder_path):
@@ -35,14 +30,12 @@ def process(folder_path):
                     all_sections.extend(sections)
                 all_sections = remove_redundant_sections(all_sections)
 
-                tsv_filename = os.path.join(folder_path, os.path.splitext(file)[0] + "a.tsv")
-                write_section_tsv(tsv_filename, all_sections)
-                print(f"Saved {tsv_filename} for provider {provider} and year {year}")
+                save_sections(path, all_sections)
+                print(f"Saved sections for {file} for provider {provider} and year {year}")
 
             except ValueError as e:
                 print(f"Error processing {file}: {e}")
 
-
 if __name__ == "__main__":
-    folder = '.'
+    folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../ChannelSynthesizer/inputs/pdf'))
     process(folder)
