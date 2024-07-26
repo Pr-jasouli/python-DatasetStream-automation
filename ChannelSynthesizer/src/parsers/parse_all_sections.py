@@ -2,17 +2,16 @@ import re
 import fitz
 import os
 import json
+from typing import List, Tuple, Dict, Optional
 
 PAGE_SELECTION_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.config/page_selection.json'))
 TELENET_WHITE_COLOR = 16777215
 TELENET_BLACK_COLOR = 1113103  # (hex 11110f)
 
-
-def is_bold_font(span):
+def is_bold_font(span: Dict) -> bool:
     return "bold" in span["font"].lower()
 
-
-def is_parsable_telenet(text, color, is_bold):
+def is_parsable_telenet(text: str, color: int, is_bold: bool) -> bool:
     if color == TELENET_WHITE_COLOR:
         return True
     if color == TELENET_BLACK_COLOR and text.isupper() and len(text) >= 4 and not any(char.isdigit() for char in text):
@@ -21,8 +20,7 @@ def is_parsable_telenet(text, color, is_bold):
         return True
     return False
 
-
-def extract_text_from_page(page, provider, colors):
+def extract_text_from_page(page, provider: str, colors: List[int]) -> Tuple[List[Tuple], set]:
     extracted_text = []
     sizes = set()
     blocks = page.get_text("dict")["blocks"]
@@ -44,8 +42,7 @@ def extract_text_from_page(page, provider, colors):
 
     return extracted_text, sizes
 
-
-def extract_text(pdf_path, colors, provider, page_number):
+def extract_text(pdf_path: str, colors: List[int], provider: str, page_number: int) -> Tuple[List[Tuple], Optional[int]]:
     document = fitz.open(pdf_path)
     page = document.load_page(page_number - 1)
     extracted_text, sizes = extract_text_from_page(page, provider, colors)
@@ -53,8 +50,7 @@ def extract_text(pdf_path, colors, provider, page_number):
     max_size = max(sizes) if provider == "VOO" else None
     return extracted_text, max_size
 
-
-def parse_telenet_sections(lines):
+def parse_telenet_sections(lines: List[Tuple]) -> List[List[str]]:
     sections = []
     prev_line_info = None
 
@@ -81,8 +77,7 @@ def parse_telenet_sections(lines):
 
     return sections
 
-
-def parse_other_providers_sections(lines, provider, max_size=None):
+def parse_other_providers_sections(lines: List[Tuple], provider: str, max_size: Optional[int] = None) -> List[List[str]]:
     sections = []
     current_section = None
 
@@ -120,15 +115,13 @@ def parse_other_providers_sections(lines, provider, max_size=None):
 
     return sections
 
-
-def parse(text, provider, max_size=None):
+def parse(text: List[Tuple], provider: str, max_size: Optional[int] = None) -> List[List[str]]:
     if provider == "Telenet":
         return parse_telenet_sections(text)
     else:
         return parse_other_providers_sections(text, provider, max_size)
 
-
-def remove_redundant_sections(sections):
+def remove_redundant_sections(sections: List[List[str]]) -> List[List[str]]:
     seen_sections = set()
     unique_sections = []
     for section in sections:
@@ -140,15 +133,8 @@ def remove_redundant_sections(sections):
 
 
 
-
-def write_section_tsv(file, sections):
-    with open(file, 'w', encoding='utf-8') as f:
-        for section in sections:
-            if section[0]:
-                f.write(section[0] + '\n')
-
-def save_sections(filename, sections):
-    output_dir = os.path.join(os.path.dirname(__file__), '../../outputs/sections/')
+def save_sections(filename: str, sections: List[List[str]]) -> None:
+    output_dir = os.path.join(os.path.dirname(__file__), '../../outputs/section/')
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -159,8 +145,13 @@ def save_sections(filename, sections):
 
     write_section_tsv(output_path, sections)
 
+def write_section_tsv(file: str, sections: List[List[str]]) -> None:
+    with open(file, 'w', encoding='utf-8') as f:
+        for section in sections:
+            if section[0]:
+                f.write(section[0] + '\n')
 
-def get_provider_colors(provider):
+def get_provider_colors(provider: str) -> List[int]:
     if provider == "VOO":
         return [16777215, 14092940]
     elif provider == "Telenet":
@@ -170,8 +161,7 @@ def get_provider_colors(provider):
     else:
         raise ValueError("Unknown provider")
 
-
-def detect_provider_and_year(pdf_path):
+def detect_provider_and_year(pdf_path: str) -> Tuple[str, str]:
     filename = os.path.basename(pdf_path).lower()
     if "voo" in filename:
         provider = "VOO"
@@ -190,8 +180,7 @@ def detect_provider_and_year(pdf_path):
 
     return provider, year
 
-
-def load_page_selection():
+def load_page_selection() -> Dict[str, List[int]]:
     config_dir = os.path.dirname(PAGE_SELECTION_FILE)
     if not os.path.exists(config_dir):
         os.makedirs(config_dir)
@@ -204,13 +193,11 @@ def load_page_selection():
             return {}
     return {}
 
-
-def save_page_selection(page_selection):
+def save_page_selection(page_selection: Dict[str, List[int]]) -> None:
     with open(PAGE_SELECTION_FILE, "w") as file:
         json.dump(page_selection, file)
 
-
-def get_pages_to_process(pdf_path):
+def get_pages_to_process(pdf_path: str) -> List[int]:
     page_selection = load_page_selection()
     filename = os.path.basename(pdf_path)
     if filename in page_selection:
