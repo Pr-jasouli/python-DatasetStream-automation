@@ -86,7 +86,10 @@ def parse_other_text(lines, provider, max_size=None):
     for line_info in lines:
         if provider == "VOO":
             line, color, size = line_info
-            if size == max_size:
+            if color == TELENET_WHITE_COLOR and len(line) >= 5:
+                if current_section:
+                    sections.append(current_section)
+                current_section = [line.strip()]
                 continue
         else:
             line, color = line_info
