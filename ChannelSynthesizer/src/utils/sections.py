@@ -66,7 +66,10 @@ def parse_telenet_sections(lines):
             prev_line, prev_color, prev_size, prev_is_bold, prev_bbox = prev_line_info
             prev_parsable = is_parsable_telenet(prev_line, prev_color, prev_is_bold)
             if parsable and prev_parsable and abs(bbox[1] - prev_bbox[3]) < 10:
-                sections[-1] = [line.strip()]
+                if prev_color == TELENET_WHITE_COLOR and color == TELENET_BLACK_COLOR:
+                    sections[-1] = [line.strip()]
+                elif color == TELENET_WHITE_COLOR:
+                    sections[-1] = [line.strip()]
                 prev_line_info = line_info
                 continue
 
@@ -86,6 +89,8 @@ def parse_other_providers_sections(lines, provider, max_size=None):
     for line_info in lines:
         if provider == "VOO":
             line, color, size = line_info
+            if size > 13:
+                continue
             if color == TELENET_WHITE_COLOR and len(line) >= 5:
                 if current_section:
                     sections.append(current_section)
