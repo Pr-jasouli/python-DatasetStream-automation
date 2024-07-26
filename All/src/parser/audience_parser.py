@@ -21,10 +21,15 @@ def load_excel(file_path):
 def calculate_forecast(df, references_month, references_year, target_start_year, target_end_year, specifics_enabled,
                        prod_nums, bus_chanl_nums):
     print("Filtering reference data based on provided month and year...")
-    reference_data = df[
-        (df['PERIOD_YEAR'] <= references_year) &
-        ((df['PERIOD_YEAR'] < references_year) | (df['PERIOD_MONTH'] <= references_month))
+    reference_data_current_year = df[
+        (df['PERIOD_YEAR'] == references_year) &
+        (df['PERIOD_MONTH'] <= references_month)
         ]
+    reference_data_previous_year = df[
+        (df['PERIOD_YEAR'] == (references_year - 1)) &
+        (df['PERIOD_MONTH'] > references_month)
+        ]
+    reference_data = pd.concat([reference_data_previous_year, reference_data_current_year])
     print(f"Reference data after initial filter: {len(reference_data)} rows")
 
     if specifics_enabled:
@@ -49,20 +54,22 @@ def calculate_forecast(df, references_month, references_year, target_start_year,
 
     print("Checking for duplicates...")
     duplicates = reference_data[
-        reference_data.duplicated(subset=['PERIOD_YEAR', 'PERIOD_MONTH', 'PROD_NUM', 'BUS_CHANL_NUM'], keep=False)]
+        reference_data.duplicated(subset=['PERIOD_YEAR', 'PERIOD_MONTH', 'PROD_NUM', 'BUS_CHANL_NUM'], keep=False)
+    ]
     if not duplicates.empty:
         print("Duplicates found, generating error message...")
         duplicate_info = duplicates[['PERIOD_YEAR', 'PERIOD_MONTH', 'PROD_NUM', 'BUS_CHANL_NUM']].drop_duplicates()
         duplicate_details = "\n".join([
-                                          f"Year: {row.PERIOD_YEAR}, Month: {row.PERIOD_MONTH}, Prod Num: {row.PROD_NUM}, Bus Chanl Num: {row.BUS_CHANL_NUM}"
-                                          for idx, row in duplicate_info.iterrows()])
+            f"Year: {row.PERIOD_YEAR}, Month: {row.PERIOD_MONTH}, Prod Num: {row.PROD_NUM}, Bus Chanl Num: {row.BUS_CHANL_NUM}"
+            for idx, row in duplicate_info.iterrows()
+        ])
 
         duplicate_rows = duplicates.index.tolist()
         duplicate_rows_info = "\n".join([f"Row Number: {row_num}" for row_num in duplicate_rows])
 
         error_message = f"Duplicate rows found in the reference file based on 'PERIOD_YEAR', 'PERIOD_MONTH', 'PROD_NUM', 'BUS_CHANL_NUM':\n{duplicate_details}\n\nDuplicate Rows:\n{duplicate_rows_info}"
         show_message("Error", error_message, type='error')
-        return pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame()
 
     print("Calculating reference eop volumes...")
     eop_2024 = reference_data.groupby(['PERIOD_YEAR', 'PERIOD_MONTH', 'PROD_NUM', 'BUS_CHANL_NUM'])[
@@ -74,26 +81,39 @@ def calculate_forecast(df, references_month, references_year, target_start_year,
 
     print("Starting forecast calculation...")
     for year in range(target_start_year, target_end_year + 1):
-        for index, row in reference_data.iterrows():
-            period_year = row['PERIOD_YEAR']
-            period_month = row['PERIOD_MONTH']
-            prod_num = row['PROD_NUM']
-            bus_chanl_num = row['BUS_CHANL_NUM']
+        for month in range(1, 13):
+            if month <= references_month:
+                ref_period_year = references_year
+                ref_period_month = month
+            else:
+                ref_period_year = references_year - 1
+                ref_period_month = month
 
-            eop_2024_val = eop_2024.get((period_year, period_month, prod_num, bus_chanl_num), float('nan'))
-            eop_2025_val = eop_2025.get((period_year, period_month, prod_num, bus_chanl_num), float('nan'))
+            ref_data = reference_data[
+                (reference_data['PERIOD_YEAR'] == ref_period_year) &
+                (reference_data['PERIOD_MONTH'] == ref_period_month)
+                ]
 
-            forecast_row = row.copy()
-            if not pd.isna(eop_2024_val) and eop_2024_val != 0 and not pd.isna(eop_2025_val):
-                for col in ['LIVE_TV_VIEWING_MINUTES', 'PVR_VIEWING_MINUTES', 'CUTV_VIEWING_MINUTES',
-                            'OTT_VIEWING_MINUTES', 'VOD_VIEWING_MINUTES']:
-                    forecasted_viewing = row[col] * eop_2025_val / eop_2024_val
-                    forecast_row[col] = forecasted_viewing
-            forecast_row['PERIOD_YEAR'] = year
-            forecast_data.append(forecast_row)
+            for index, row in ref_data.iterrows():
+                prod_num = row['PROD_NUM']
+                bus_chanl_num = row['BUS_CHANL_NUM']
+
+                eop_2024_val = eop_2024.get((ref_period_year, ref_period_month, prod_num, bus_chanl_num), float('nan'))
+                eop_2025_val = eop_2025.get((ref_period_year, ref_period_month, prod_num, bus_chanl_num), float('nan'))
+
+                forecast_row = row.copy()
+                if not pd.isna(eop_2024_val) and eop_2024_val != 0 and not pd.isna(eop_2025_val):
+                    for col in ['LIVE_TV_VIEWING_MINUTES', 'PVR_VIEWING_MINUTES', 'CUTV_VIEWING_MINUTES',
+                                'OTT_VIEWING_MINUTES', 'VOD_VIEWING_MINUTES']:
+                        forecasted_viewing = row[col] * eop_2025_val / eop_2024_val
+                        forecast_row[col] = forecasted_viewing
+                forecast_row['PERIOD_YEAR'] = year
+                forecast_row['PERIOD_MONTH'] = month
+                forecast_data.append(forecast_row.to_dict())
 
     print(f"Forecast calculation completed. Total forecast rows: {len(forecast_data)}")
-    return pd.DataFrame(forecast_data)
+    return pd.DataFrame(forecast_data), reference_data
+
 
 
 def copy_sheet(source_sheet, target_sheet):
@@ -161,26 +181,11 @@ def save_dataframe_with_formatting(forecast_df, reference_df, output_path, origi
         workbook = load_workbook(original_file)
         reference_sheet = workbook.active
 
-        ref_data = pd.DataFrame(reference_sheet.values)
-        ref_data.columns = ref_data.iloc[0]
-        ref_data = ref_data[1:]
-
-        filtered_ref_data = ref_data[
-            (ref_data['PROD_NUM'].astype(str).isin(prod_nums)) &
-            (ref_data['BUS_CHANL_NUM'].astype(str).isin(bus_chanl_nums))
-        ]
-
-        new_reference_sheet = workbook.create_sheet(title="Reference (Copy)")
-        for r_idx, row in enumerate(dataframe_to_rows(filtered_ref_data, index=False, header=True), 1):
-            for c_idx, value in enumerate(row, 1):
-                new_reference_sheet.cell(row=r_idx, column=c_idx, value=value)
-
         forecast_sheet = workbook.create_sheet(title="Forecast")
-
-        future_df = df[df['PERIOD_YEAR'] > int(references_year)]
+        new_reference_sheet = workbook.create_sheet(title="Reference")
 
         logging.info("Writing data to the Forecast sheet")
-        for r_idx, row in enumerate(dataframe_to_rows(future_df, index=False, header=True), 1):
+        for r_idx, row in enumerate(dataframe_to_rows(forecast_df, index=False, header=True), 1):
             for c_idx, value in enumerate(row, 1):
                 forecast_sheet.cell(row=r_idx, column=c_idx, value=value)
 
