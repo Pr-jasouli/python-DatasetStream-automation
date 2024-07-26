@@ -269,4 +269,93 @@ def parse_telenet_pdf(pdf_path):
     print(f"Parsing Telenet PDF: {pdf_path}")
 
 def parse_orange_pdf(pdf_path):
-    print(f"Parsing Orange PDF: {pdf_path}")
+    text = extract_text(pdf_path)
+    save_as_tsv(text, pdf_path)
+    tsv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/text/', os.path.splitext(os.path.basename(pdf_path))[0] + '_text.tsv'))
+    clean_tsv(tsv_path)
+    parse_tsv(tsv_path)
+
+def extract_text(pdf_path):
+    document = fitz.open(pdf_path)
+    text = []
+
+    for i in range(document.page_count):
+        page = document.load_page(i)
+        blocks = page.get_text("dict")["blocks"]
+
+        for block in blocks:
+            if 'lines' in block:
+                for line in block["lines"]:
+                    for span in line["spans"]:
+                        text.append(span['text'])
+
+    return "\n".join(text)
+
+def save_as_tsv(text, filename: str) -> None:
+    output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/text/'))
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    base_name = os.path.basename(filename)
+    base_name_no_ext = os.path.splitext(base_name)[0]
+    new_filename = base_name_no_ext + '_text.tsv'
+    output_path = os.path.join(output_dir, new_filename)
+
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for line in text.splitlines():
+            f.write(line + '\n')
+
+    print(f"Saved TSV to {output_path}")
+
+def clean_tsv(tsv_path):
+    with open(tsv_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    cleaned_lines = []
+    previous_line_started_with_digits = False
+
+    for line in lines:
+        text = line.strip()
+
+        if len(text) > 35:
+            continue
+
+        text = text.replace('app', '').strip()
+
+        if not text:
+            continue
+
+        if text.split()[0].isdigit() and len(text.split()[0]) <= 3:
+            cleaned_lines.append(text + '\n')
+            previous_line_started_with_digits = True
+        elif previous_line_started_with_digits:
+            cleaned_lines.append(text + '\n')
+            previous_line_started_with_digits = False
+
+    with open(tsv_path, 'w', encoding='utf-8') as f:
+        f.writelines(cleaned_lines)
+
+def parse_tsv(tsv_path):
+    with open(tsv_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    channels = []
+    section_names = []
+    section_names_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/section/', os.path.splitext(os.path.basename(tsv_path))[0] + '_sections.tsv'))
+    section_names_list = read_section_names(section_names_path) if os.path.exists(section_names_path) else []
+
+    for line in lines:
+        text = line.strip()
+
+        if text and text.split()[0].isdigit() and len(text.split()[0]) <= 3:
+            channels.append(text)
+        elif text in section_names_list:
+            section_names.append(text)
+
+    print("Channels:", channels)
+    print("Section Names:", section_names)
+
+def read_section_names(file_path):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        section_names = [line.strip() for line in f.readlines()]
+    return section_names
