@@ -1,7 +1,7 @@
 import os
 import fitz
 
-info_codes = {
+VOO_info_codes = {
     "VS": "VOOsport",
     "w VS": "VOOsport World",
     "Pa": "Bouquet Panorama",
@@ -47,16 +47,15 @@ def modify_row(row, section_names):
     section_indices = is_section_name_in_row(words, section_names)
 
     for i, word in enumerate(words):
-        if word in info_codes:
+        if word in VOO_info_codes:
             last_valid_index = i
             if i + 1 < len(words):
                 next_word = words[i + 1]
-                if next_word not in info_codes and next_word not in info_codes.values():
+                if next_word not in VOO_info_codes and next_word not in VOO_info_codes.values():
                     break
 
     if last_valid_index != -1:
         if section_indices:
-            # Inclure les noms de section et supprimer tout ce qui se trouve entre le dernier code et le premier nom de section
             first_section_index = min(section_indices, key=lambda x: x[0])[0]
             return " ".join(words[:last_valid_index + 1] + words[first_section_index:])
         else:
@@ -80,8 +79,17 @@ def extract_text(pdf_path):
 
     return "\n".join(text)
 
-def save_as_tsv(text, tsv_path):
-    with open(tsv_path, 'w', encoding='utf-8') as f:
+def save_as_tsv(text, filename: str) -> None:
+    output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/text/'))
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    base_name = os.path.basename(filename)
+    base_name_no_ext = os.path.splitext(base_name)[0]
+    new_filename = base_name_no_ext + '_text.tsv'
+    output_path = os.path.join(output_dir, new_filename)
+
+    with open(output_path, 'w', encoding='utf-8') as f:
         for line in text.splitlines():
             f.write(line + '\n')
 
@@ -100,7 +108,6 @@ def clean_tsv(tsv_path):
                 cleaned_lines.append(temp_line.strip())
                 temp_line = ""
             if last_number == stripped_line:
-                # Traiter la deuxième occurrence comme partie de la ligne de texte suivante
                 temp_line += " " + stripped_line
             else:
                 cleaned_lines.append(stripped_line)
@@ -157,23 +164,109 @@ def insert_section_name_rows(tsv_path, section_names):
 
     print(f"Insertion des noms de section terminée pour {tsv_path}")
 
-def process_pdfs(directory):
-    for filename in os.listdir(directory):
-        if filename.endswith(".pdf"):
-            pdf_path = os.path.join(directory, filename)
-            text = extract_text(pdf_path)
-            tsv_path = os.path.join(directory, os.path.splitext(filename)[0] + "b.tsv")
-            save_as_tsv(text, tsv_path)
-            clean_tsv(tsv_path)
-            print(f"Sauvegardé et nettoyé {tsv_path}")
-            # Lire les noms de section à partir du fichier .tsv associé
-            a_tsv_path = os.path.join(directory, os.path.splitext(filename)[0] + "a.tsv")
-            if os.path.exists(a_tsv_path):
-                section_names = read_section_names(a_tsv_path)
-                process_single_tsv(tsv_path, section_names)
-                insert_section_name_rows(tsv_path, section_names)
+def remove_specific_string(tsv_path, target_string):
+    with open(tsv_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    cleaned_lines = []
+    i = 0
+    while i < len(lines):
+        if target_string in lines[i]:
+            if i > 0:
+                cleaned_lines.pop()
+            i += 1
+            if i < len(lines):
+                i += 0
+        else:
+            cleaned_lines.append(lines[i])
+        i += 1
+
+    with open(tsv_path, 'w', encoding='utf-8') as f:
+        f.writelines(cleaned_lines)
+
+def parse_voo_pdf(pdf_path):
+    text = extract_text(pdf_path)
+    save_as_tsv(text, pdf_path)
+    tsv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/text/', os.path.splitext(os.path.basename(pdf_path))[0] + '_text.tsv'))
+    clean_tsv(tsv_path)
+    print(f"Sauvegardé et nettoyé {tsv_path}")
+
+    section_tsv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/section/', os.path.splitext(os.path.basename(pdf_path))[0] + '_sections.tsv'))
+    if os.path.exists(section_tsv_path):
+        section_names = read_section_names(section_tsv_path)
+        process_single_tsv(tsv_path, section_names)
+        insert_section_name_rows(tsv_path, section_names)
+
+    remove_specific_string(tsv_path, "Retrouvez votre chaîne locale ici")
+
+    parse_long_lines(tsv_path)
+
+def parse_long_lines(tsv_path):
+    with open(tsv_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    processed_lines = []
+    for line in lines:
+        if len(line.strip()) > 15:
+            processed_lines.extend(split_long_line(line))
+        else:
+            processed_lines.append(line)
+
+    with open(tsv_path, 'w', encoding='utf-8') as f:
+        f.writelines(processed_lines)
+def parse_long_lines(tsv_path):
+    with open(tsv_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    processed_lines = []
+    skip_next_line = False
+
+    for i, line in enumerate(lines):
+        if skip_next_line:
+            skip_next_line = False
+            continue
+
+        if len(line.strip()) > 15:
+            split_lines = split_long_line(line.strip())
+            processed_lines.append(split_lines[0])
+            if i + 1 < len(lines):
+                processed_lines.append(lines[i + 1])
+                skip_next_line = True
+            processed_lines.extend(split_lines[1:])
+        else:
+            processed_lines.append(line)
+
+    processed_lines = remove_following_lines(processed_lines, "Retrouvez les chaînes")
+
+    with open(tsv_path, 'w', encoding='utf-8') as f:
+        f.writelines(processed_lines)
+
+def split_long_line(line):
+    words = line.split()
+    new_lines = []
+    current_line = []
+
+    for i, word in enumerate(words):
+        current_line.append(word)
+        if word in VOO_info_codes and (i + 1 < len(words) and words[i + 1] not in VOO_info_codes):
+            new_lines.append(" ".join(current_line) + "\n")
+            current_line = []
+
+    if current_line:
+        new_lines.append(" ".join(current_line) + "\n")
+
+    return new_lines
+
+def remove_following_lines(lines, start_string):
+    for i, line in enumerate(lines):
+        if line.startswith(start_string):
+            return lines[:i]
+    return lines
 
 
-if __name__ == "__main__":
-    current_directory = '.'
-    process_pdfs(current_directory)
+
+def parse_telenet_pdf(pdf_path):
+    print(f"Parsing Telenet PDF: {pdf_path}")
+
+def parse_orange_pdf(pdf_path):
+    print(f"Parsing Orange PDF: {pdf_path}")
