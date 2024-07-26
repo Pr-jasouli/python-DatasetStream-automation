@@ -3,7 +3,7 @@ import fitz
 import os
 import json
 
-PAGE_SELECTION_FILE = "page_selection.json"
+PAGE_SELECTION_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.config/page_selection.json'))
 TELENET_WHITE_COLOR = 16777215
 TELENET_BLACK_COLOR = 1113103  # (hex 11110f)
 
@@ -54,7 +54,7 @@ def extract_text(pdf_path, colors, provider, page_number):
     return extracted_text, max_size
 
 
-def parse_telenet_text(lines):
+def parse_telenet_sections(lines):
     sections = []
     prev_line_info = None
 
@@ -79,7 +79,7 @@ def parse_telenet_text(lines):
     return sections
 
 
-def parse_other_text(lines, provider, max_size=None):
+def parse_other_providers_sections(lines, provider, max_size=None):
     sections = []
     current_section = None
 
@@ -118,9 +118,9 @@ def parse_other_text(lines, provider, max_size=None):
 
 def parse(text, provider, max_size=None):
     if provider == "Telenet":
-        return parse_telenet_text(text)
+        return parse_telenet_sections(text)
     else:
-        return parse_other_text(text, provider, max_size)
+        return parse_other_providers_sections(text, provider, max_size)
 
 
 def remove_redundant_sections(sections):
@@ -134,11 +134,25 @@ def remove_redundant_sections(sections):
     return unique_sections
 
 
+
+
 def write_section_tsv(file, sections):
     with open(file, 'w', encoding='utf-8') as f:
         for section in sections:
             if section[0]:
                 f.write(section[0] + '\n')
+
+def save_sections(filename, sections):
+    output_dir = os.path.join(os.path.dirname(__file__), '../../outputs/sections/')
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    base_name = os.path.basename(filename)
+    base_name_no_ext = os.path.splitext(base_name)[0]
+    new_filename = base_name_no_ext + '_sections.tsv'
+    output_path = os.path.join(output_dir, new_filename)
+
+    write_section_tsv(output_path, sections)
 
 
 def get_provider_colors(provider):
@@ -173,9 +187,16 @@ def detect_provider_and_year(pdf_path):
 
 
 def load_page_selection():
+    config_dir = os.path.dirname(PAGE_SELECTION_FILE)
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
     if os.path.exists(PAGE_SELECTION_FILE):
-        with open(PAGE_SELECTION_FILE, "r") as file:
-            return json.load(file)
+        try:
+            with open(PAGE_SELECTION_FILE, "r") as file:
+                return json.load(file)
+        except (json.JSONDecodeError, ValueError):
+            print(f"Warning: {PAGE_SELECTION_FILE} is corrupted. Recreating the file.")
+            return {}
     return {}
 
 
@@ -199,12 +220,24 @@ def get_pages_to_process(pdf_path):
 
     while True:
         pages_input = input(
-            f"The document '{filename}' has {page_count} pages. Which pages would you like to process (e.g., 1,3,5)? ")
-        pages = [int(p.strip()) for p in pages_input.split(",") if
-                 p.strip().isdigit() and 1 <= int(p.strip()) <= page_count]
-        if pages:
-            page_selection[filename] = pages
-            save_page_selection(page_selection)
-            return pages
-        else:
+            f"The document '{filename}' has {page_count} pages. Which pages would you like to process (e.g., 1,3,5 or 1-4)? ")
+        if not pages_input.strip():
+            return list(range(1, page_count + 1))
+        try:
+            pages = []
+            parts = pages_input.split(',')
+            for part in parts:
+                if '-' in part:
+                    start, end = map(int, part.split('-'))
+                    pages.extend(range(start, end + 1))
+                else:
+                    pages.append(int(part.strip()))
+            pages = sorted(set([p for p in pages if 1 <= p <= page_count]))
+            if pages:
+                page_selection[filename] = pages
+                save_page_selection(page_selection)
+                return pages
+            else:
+                print(f"Invalid input. Please enter page numbers between 1 and {page_count}.")
+        except ValueError:
             print(f"Invalid input. Please enter page numbers between 1 and {page_count}.")
