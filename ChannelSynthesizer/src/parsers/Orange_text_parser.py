@@ -2,6 +2,16 @@ import os
 import fitz
 
 def extract_text(pdf_path, min_font_size=8.0):
+    """
+    Extrait le texte d'un fichier PDF en filtrant les textes selon une taille de police minimale.
+
+    Arguments:
+    pdf_path -- le chemin du fichier PDF
+    min_font_size -- la taille de police minimale à inclure (par défaut 8.0)
+
+    Retourne:
+    Le texte extrait du PDF sous forme de chaîne.
+    """
     document = fitz.open(pdf_path)
     text = []
 
@@ -19,6 +29,16 @@ def extract_text(pdf_path, min_font_size=8.0):
     return "\n".join(text)
 
 def clean_text(text):
+    """
+    Nettoie le texte extrait en supprimant les lignes vides, les lignes contenant uniquement 'app',
+    les lignes de plus de 35 caractères, et les lignes commençant par 'Optie' ou '(1)'.
+
+    Arguments:
+    text -- le texte extrait du PDF
+
+    Retourne:
+    Le texte nettoyé sous forme de chaîne.
+    """
     cleaned_lines = []
     for line in text.splitlines():
         line = line.strip()
@@ -34,6 +54,13 @@ def clean_text(text):
     return "\n".join(cleaned_lines)
 
 def save_as_tsv(text, filename: str) -> None:
+    """
+    Enregistre le texte nettoyé dans un fichier TSV.
+
+    Arguments:
+    text -- le texte nettoyé à enregistrer
+    filename -- le nom du fichier PDF original pour générer le nom du fichier TSV
+    """
     output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/text/'))
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -50,6 +77,13 @@ def save_as_tsv(text, filename: str) -> None:
     print(f"Saved TSV to {output_path}")
 
 def parse_orange_pdf(pdf_path, min_font_size=8.0):
+    """
+    Extrait le texte d'un PDF, nettoie le texte et l'enregistre dans un fichier TSV.
+
+    Arguments:
+    pdf_path -- le chemin du fichier PDF
+    min_font_size -- la taille de police minimale à inclure (par défaut 8.0)
+    """
     print(f"Extracting text from {pdf_path} with minimum font size {min_font_size}")
     text = extract_text(pdf_path, min_font_size)
     cleaned_text = clean_text(text)
