@@ -194,24 +194,6 @@ def remove_everything_after_word(tsv_path, target_word):
     with open(tsv_path, 'w', encoding='utf-8') as f:
         f.writelines(cleaned_lines)
 
-def parse_voo_pdf(pdf_path):
-    text = extract_text(pdf_path)
-    save_as_tsv(text, pdf_path)
-    tsv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/text/', os.path.splitext(os.path.basename(pdf_path))[0] + '_text.tsv'))
-    clean_tsv(tsv_path)
-    print(f"Sauvegardé et nettoyé {tsv_path}")
-
-    section_tsv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/section/', os.path.splitext(os.path.basename(pdf_path))[0] + '_sections.tsv'))
-    if os.path.exists(section_tsv_path):
-        section_names = read_section_names(section_tsv_path)
-        process_single_tsv(tsv_path, section_names)
-        insert_section_name_rows(tsv_path, section_names)
-
-    remove_specific_string(tsv_path, "Retrouvez votre chaîne locale ici")
-    remove_everything_after_word(tsv_path, "Retrouvez")
-
-    parse_long_lines(tsv_path)
-
 def parse_long_lines(tsv_path):
     with open(tsv_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -247,3 +229,38 @@ def remove_following_lines(lines, start_string):
         if line.startswith(start_string):
             return lines[:i]
     return lines
+
+def insert_catalogue_on_demand(tsv_path):
+    with open(tsv_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    for i, line in enumerate(lines):
+        if 'JOE FM B' in line:
+            if i < len(lines) - 1 and lines[i + 1].strip():
+                lines.insert(i + 1, 'Catalogue à la demande\n')
+            break
+
+    with open(tsv_path, 'w', encoding='utf-8') as f:
+        f.writelines(lines)
+
+    print(f"Insertion de 'Catalogue à la demande' terminée pour {tsv_path}")
+
+def parse_voo_pdf(pdf_path):
+    text = extract_text(pdf_path)
+    save_as_tsv(text, pdf_path)
+    tsv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/text/', os.path.splitext(os.path.basename(pdf_path))[0] + '_text.tsv'))
+    clean_tsv(tsv_path)
+    print(f"Sauvegardé et nettoyé {tsv_path}")
+
+    section_tsv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/section/', os.path.splitext(os.path.basename(pdf_path))[0] + '_sections.tsv'))
+    if os.path.exists(section_tsv_path):
+        section_names = read_section_names(section_tsv_path)
+        process_single_tsv(tsv_path, section_names)
+        insert_section_name_rows(tsv_path, section_names)
+
+    remove_specific_string(tsv_path, "Retrouvez votre chaîne locale ici")
+    remove_everything_after_word(tsv_path, "Retrouvez")
+
+    parse_long_lines(tsv_path)
+
+    insert_catalogue_on_demand(tsv_path)
