@@ -1,5 +1,7 @@
 import os
-from parsers.all_sections_parser import extract_text, parse, get_provider_colors, detect_provider_and_year, get_pages_to_process, remove_redundant_sections, save_sections
+
+from parsers.all_sections_parser import extract_text, parse, get_provider_colors, detect_provider_and_year, \
+    get_pages_to_process, remove_redundant_sections, save_sections
 
 """
 This script detects all "menus" or "sections" present in the channel lists (PDFs) of any provider.
