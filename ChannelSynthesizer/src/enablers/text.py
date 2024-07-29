@@ -11,7 +11,6 @@ CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.co
 def load_page_selection() -> dict:
     """
     Charge la configuration de sélection de pages à partir d'un fichier JSON.
-
     Retourne:
     Un dictionnaire de la sélection de pages.
     """
@@ -23,11 +22,9 @@ def load_page_selection() -> dict:
 def get_pages_to_process(pdf_path: str, total_pages: int) -> list:
     """
     Obtient les pages à traiter selon la configuration.
-
     Arguments:
     pdf_path -- le chemin du fichier PDF
     total_pages -- le nombre total de pages dans le PDF
-
     Retourne:
     Une liste de numéros de pages à traiter.
     """
@@ -36,6 +33,11 @@ def get_pages_to_process(pdf_path: str, total_pages: int) -> list:
     return page_selection.get(filename, list(range(1, total_pages + 1)))
 
 def process_pdfs(directory):
+    """
+    Traite tous les fichiers PDF dans le répertoire donné.
+    Arguments:
+    directory -- le répertoire contenant les fichiers PDF
+    """
     for filename in os.listdir(directory):
         if filename.endswith(".pdf"):
             pdf_path = os.path.join(directory, filename)
