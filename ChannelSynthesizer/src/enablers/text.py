@@ -1,6 +1,7 @@
 import os
-from parsers.parse_all_text import parse_voo_pdf, parse_telenet_pdf, parse_orange_pdf
-from parsers.parse_all_sections import detect_provider_and_year
+from parsers.Orange_text_parser import parse_orange_pdf
+from parsers.VOO_text_parser import parse_voo_pdf
+from parsers.all_sections_parser import detect_provider_and_year
 
 
 def process_pdfs(directory):
@@ -12,8 +13,8 @@ def process_pdfs(directory):
 
                 if provider == "VOO":
                     parse_voo_pdf(pdf_path)
-                elif provider == "Telenet":
-                    parse_telenet_pdf(pdf_path)
+                # elif provider == "Telenet":
+                #     parse_telenet_pdf(pdf_path)
                 elif provider == "Orange":
                     parse_orange_pdf(pdf_path)
                 else:

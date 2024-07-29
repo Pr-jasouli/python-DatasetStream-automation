@@ -245,6 +245,30 @@ def insert_catalogue_on_demand(tsv_path):
 
     print(f"Insertion de 'Catalogue à la demande' terminée pour {tsv_path}")
 
+def handle_w_vs_rows(tsv_path):
+    with open(tsv_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    new_lines = []
+    skip_next = False
+
+    for i in range(len(lines)):
+        if skip_next:
+            skip_next = False
+            continue
+
+        if lines[i].strip().startswith('w VS'):
+            if i > 0:
+                new_lines[-1] = new_lines[-1].strip() + ' ' + lines[i].strip() + '\n'
+            skip_next = False
+        else:
+            new_lines.append(lines[i])
+
+    with open(tsv_path, 'w', encoding='utf-8') as f:
+        f.writelines(new_lines)
+
+    print(f"Gestion des lignes commençant par 'w VS' terminée pour {tsv_path}")
+
 def parse_voo_pdf(pdf_path):
     text = extract_text(pdf_path)
     save_as_tsv(text, pdf_path)
@@ -259,8 +283,9 @@ def parse_voo_pdf(pdf_path):
         insert_section_name_rows(tsv_path, section_names)
 
     remove_specific_string(tsv_path, "Retrouvez votre chaîne locale ici")
-    remove_everything_after_word(tsv_path, "Retrouvez")
+    remove_everything_after_word(tsv_path, "Retrouvez les")
 
     parse_long_lines(tsv_path)
 
-    insert_catalogue_on_demand(tsv_path)
+    insert_catalogue_on_demand(tsv_path)  # Call the function here to insert 'Catalogue à la demande' after 'JOE FM B'
+    handle_w_vs_rows(tsv_path)
