@@ -1,10 +1,10 @@
 import os
 import json
 import fitz
-from parsers.Orange_text_parser import parse_orange_pdf
-from parsers.VOO_text_parser import parse_voo_pdf
-from parsers.Telenet_text_parser import parse_telenet_pdf
-from parsers.all_sections_parser import detect_provider_and_year
+from ChannelSynthesizer.src.parsers.Orange_text_parser import parse_orange_pdf
+from ChannelSynthesizer.src.parsers.VOO_text_parser import parse_voo_pdf
+from ChannelSynthesizer.src.parsers.Telenet_text_parser import parse_telenet_pdf
+from ChannelSynthesizer.src.parsers.all_sections_parser import detect_provider_and_year
 
 CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.config/page_selection.json'))
 
