@@ -1,7 +1,4 @@
-# excel.py
-
 from pathlib import Path
-import pandas as pd
 from ChannelSynthesizer.src.parsers.excel_generator import process_providers
 
 def generate_excel_report(output_directory):
