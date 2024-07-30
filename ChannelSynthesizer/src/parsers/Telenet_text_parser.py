@@ -47,18 +47,6 @@ def read_section_names(section_tsv_path):
     return section_names
 
 def clean_text(text, section_names):
-    """
-    Nettoie le texte extrait en supprimant les lignes vides, le contenu après 'L’offre de chaînes',
-    les lignes de plus de 35 caractères sauf les noms de sections, en divisant les lignes commençant
-    par un nombre à 3 chiffres et en supprimant les lignes contenant des chaînes spécifiques.
-
-    Arguments:
-    text -- le texte extrait à nettoyer
-    section_names -- la liste des noms de sections
-
-    Retourne:
-    Le texte nettoyé.
-    """
     remove_strings = [
         'telenetv.be ou l’appli Telenet TV',
         'Disponibles via le guide TV:',
@@ -108,9 +96,6 @@ def clean_text(text, section_names):
         '•	 Een heleboel themazenders',
         'met non-stop films.',
         '5',
-        'DOCU',
-        'Passion XL',
-        'LIFESTYLE',
         '€',
         '19,95',
         '24,95',
@@ -129,7 +114,6 @@ def clean_text(text, section_names):
     for line in text.splitlines():
         if line.strip() and not any(remove_string in line for remove_string in remove_strings):
             if 'L’offre de chaînes' in line:
-
                 line = line.split('L’offre de chaînes')[0].rstrip()
             cleaned_lines.append(line)
 
@@ -237,7 +221,7 @@ def save_as_tsv(text, filename: str) -> str:
 
     with open(output_path, 'w', encoding='utf-8') as f:
         for line in text.splitlines():
-            f.write(line + '\n')
+            f.write(line.strip() + '\n')
 
     print(f"Saved TSV to {output_path}")
     return output_path
