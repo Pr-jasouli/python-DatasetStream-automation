@@ -322,15 +322,36 @@ def create_consolidated_excel(all_data, output_path):
         else:
             final_df = pd.DataFrame(columns=combined_columns + columns)
 
+        final_df = final_df.fillna(0)
+
         final_df.to_excel(writer, sheet_name='Consolidated', index=False, startrow=0)
 
         workbook = writer.book
         worksheet = writer.sheets['Consolidated']
 
-        bold_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'font_size': 14})
+
         header_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter'})
+        cell_format = workbook.add_format({'align': 'center'})
+        left_align_format = workbook.add_format({'align': 'left'})
+        right_align_format = workbook.add_format({'align': 'right'})
+
+        for col_num, value in enumerate(final_df.columns.values):
+            if value == 'Channel':
+                worksheet.write(0, col_num, value, header_format)
+                worksheet.set_column(col_num, col_num, None, right_align_format)
+            elif value == 'Provider_Period':
+                worksheet.write(0, col_num, value, header_format)
+                worksheet.set_column(col_num, col_num, None, left_align_format)
+            else:
+                worksheet.write(0, col_num, value, header_format)
+                worksheet.set_column(col_num, col_num, None, cell_format)
+
+        for i, col in enumerate(final_df.columns, 0):
+            max_length = max((final_df[col].astype(str).map(len).max(), len(col))) + 2
+            worksheet.set_column(i, i, max_length, cell_format if col not in ['Channel', 'Provider_Period'] else None)
 
         worksheet.autofilter(0, 0, 0, len(final_df.columns) - 1)
+        worksheet.freeze_panes(1, 0)
 
     print(f"Consolidated Excel created at: {output_path}")
 
