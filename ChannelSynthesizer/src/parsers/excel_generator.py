@@ -20,6 +20,9 @@ def merge_telenet_columns(df):
     radio_columns_to_merge = ['CHAÎNES DE RADIO', 'RADIOZENDERS / CHAÎNES DE RADIO']
     radio_merged_column_name = 'Offre radio'
 
+    musique_columns_to_merge = ['CHAÎNES DE MUSIQUE']
+    musique_merged_columns_name = 'Chaînes musique'
+
     # Fusion des colonnes de base
     existing_base_columns = [col for col in base_columns_to_merge if col in df.columns]
     if existing_base_columns:
@@ -33,6 +36,14 @@ def merge_telenet_columns(df):
         df[radio_merged_column_name] = df[existing_radio_columns].sum(axis=1)
         df[radio_merged_column_name] = df[radio_merged_column_name].apply(lambda x: 1 if x > 0 else 0)
         df.drop(columns=existing_radio_columns, inplace=True)
+
+    # Fusion des colonnes musique
+    existing_musique_columns = [col for col in musique_columns_to_merge if col in df.columns]
+    if existing_musique_columns:
+        df[musique_merged_columns_name] = df[existing_musique_columns].sum(axis=1)
+        df[musique_merged_columns_name] = df[musique_merged_columns_name].apply(lambda x: 1 if x > 0 else 0)
+        df.drop(columns=existing_musique_columns, inplace=True)
+
 
     # Fusion 'MUZIEKZENDERS/CHAÎNES DE MUSIQUE' et 'MUSIC' en 'Chaînes Musique'
     music_columns_to_merge = ['MUZIEKZENDERS/CHAÎNES DE MUSIQUE', 'MUSIC']
@@ -48,9 +59,9 @@ def merge_telenet_columns(df):
     if 'DOCU' in df.columns:
         df.rename(columns={'DOCU': 'Chaînes Documentaires'}, inplace=True)
 
-    # Renommer 'PASSION XL' en '+18'
-    if 'PASSION XL' in df.columns:
-        df.rename(columns={'PASSION XL': '+18'}, inplace=True)
+    # Renommer 'ADULT' en 'Chaînes Charme'
+    if 'ADULT' in df.columns:
+        df.rename(columns={'ADULT': 'Chaînes Charme'}, inplace=True)
 
     # Régler les colonnes pour 'OPTION FR'
     if 'OPTION FR' in df.columns:
@@ -61,6 +72,17 @@ def merge_telenet_columns(df):
         df['Region Wallonia'] += df['OPTION FR']
         df['Region Wallonia'] = df['Region Wallonia'].apply(lambda x: 1 if x > 0 else 0)
         df.drop(columns=['OPTION FR'], inplace=True)
+
+    # Renommer 'KIDS' en 'Chaînes Enfants'
+    if 'KIDS' in df.columns:
+        df.rename(columns={'KIDS': 'Chaînes Enfants'}, inplace=True)
+
+    if 'PASSION XL' in df.columns:
+        df.loc[df['PASSION XL'] == 1, ['Chaînes Charme']] = [1]
+
+    if 'STINGRAY MUSIC' in df.columns:
+        df.loc[df['STINGRAY MUSIC'] == 1, ['Chaînes Musique']] = [1]
+
 
     return df
 
@@ -112,10 +134,6 @@ def merge_voo_columns(df):
     # Renommer 'Chaînes Radios' en 'Offre radio'
     if 'Chaînes Radios' in df.columns:
         df.rename(columns={'Chaînes Radios': 'Offre radio'}, inplace=True)
-
-    # Renommer 'Classé X' en '+18'
-    if 'Classé X' in df.columns:
-        df.rename(columns={'Classé X': '+18'}, inplace=True)
 
     return df
 
@@ -171,6 +189,14 @@ def merge_orange_columns(df):
     # Renommer 'Muziek' en 'Chaînes Musique'
     if 'Muziek' in df.columns:
         df.rename(columns={'Muziek': 'Chaînes Musique'}, inplace=True)
+
+    # Renommer '+18' en 'Chaînes Charme'
+    if '+18' in df.columns:
+        df.rename(columns={'+18': 'Chaînes Charme'}, inplace=True)
+
+    # Renommer 'Kids' en 'Chaînes Enfants'
+    if 'Kids' in df.columns:
+        df.rename(columns={'Kids': 'Chaînes Enfants'}, inplace=True)
 
     return df
 
