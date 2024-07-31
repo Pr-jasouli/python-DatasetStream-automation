@@ -106,7 +106,9 @@ def clean_text(text, section_names):
         'Via je',
         'TV-box',
         'heb je toegang tot',
-        ',...'
+        ',...',
+        'Deze zenders vind je via je',
+        'TV - gids:',
     ]
 
     cleaned_lines = []
