@@ -108,8 +108,7 @@ class AudienceTab(ttk.Frame):
         else:
             base_dir = os.path.dirname(os.path.abspath(__file__))
 
-        script_path = os.path.join(base_dir, '../parser/audience_parser.py')
-
+        script_path = os.path.join(base_dir, 'audience_parser.py')
         script_path = os.path.abspath(script_path)
         print(f"Script Path: {script_path}")
 
