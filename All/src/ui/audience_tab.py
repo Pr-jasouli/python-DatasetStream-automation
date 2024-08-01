@@ -139,13 +139,16 @@ class AudienceTab(ttk.Frame):
                                              validatecommand=(self.register(self.validate_year), '%P'))
             self.references_year.pack(side='left', padx=(2, 10))
 
-
-            icon_path = os.path.join(os.path.dirname(__file__), 'question-mark.png')
-            help_icon_image = Image.open(icon_path)
-            help_icon_image = help_icon_image.resize((16, 16), Image.Resampling.LANCZOS)
-            self.help_icon = ImageTk.PhotoImage(help_icon_image)
-
-            help_label = ttk.Label(parent, image=self.help_icon, cursor="hand2")
+            # icon_path = resource_path('ui/question-mark.png')
+            # help_icon_image = Image.open(icon_path)
+            # help_icon_image = help_icon_image.resize((16, 16), Image.Resampling.LANCZOS)
+            # self.help_icon = ImageTk.PhotoImage(help_icon_image)
+            #
+            # help_label = ttk.Label(parent, image=self.help_icon, cursor="hand2")
+            # help_label.pack(side='left', padx=(2, 10))
+            # help_label.bind("<Enter>", self.update_tooltip)
+            # help_label.bind("<Leave>", lambda e: self.hide_tooltip())
+            help_label = ttk.Label(parent, text="?", cursor="hand2", font=("Helvetica", 16))
             help_label.pack(side='left', padx=(2, 10))
             help_label.bind("<Enter>", self.update_tooltip)
             help_label.bind("<Leave>", lambda e: self.hide_tooltip())
