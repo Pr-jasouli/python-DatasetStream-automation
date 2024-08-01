@@ -10,7 +10,7 @@ from openpyxl.styles import PatternFill, Font, Side, Border
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-from utilities.utils import show_message
+# from utils import show_message
 
 logging.basicConfig(level=logging.INFO)
 
@@ -68,7 +68,7 @@ def calculate_forecast(df, references_month, references_year, target_start_year,
         duplicate_rows_info = "\n".join([f"Row Number: {row_num}" for row_num in duplicate_rows])
 
         error_message = f"Duplicate rows found in the reference file based on 'PERIOD_YEAR', 'PERIOD_MONTH', 'PROD_NUM', 'BUS_CHANL_NUM':\n{duplicate_details}\n\nDuplicate Rows:\n{duplicate_rows_info}"
-        show_message("Error", error_message, type='error')
+        # show_message("Error", error_message, type='error')
         return pd.DataFrame(), pd.DataFrame()
 
     print("Calculating reference eop volumes...")
@@ -219,8 +219,8 @@ def save_dataframe_with_formatting(forecast_df, reference_df, output_path, origi
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-        show_message("Error", f"An error occurred: {e}", type='error')
-        return
+        # show_message("Error", f"An error occurred: {e}", type='error')
+
 
 def set_forecast_sheet_as_active(workbook):
     if "Forecast" in workbook.sheetnames:
