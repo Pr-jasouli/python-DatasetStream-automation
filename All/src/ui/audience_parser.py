@@ -170,10 +170,13 @@ def style_worksheet(ws):
         ws.column_dimensions[column_letter].width = adjusted_width
 
 def save_dataframe_with_formatting(forecast_df, reference_df, output_path, original_file, references_year, prod_nums, bus_chanl_nums):
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
     output_filepath = os.path.join(output_path, "forecast_audience.xlsx")
 
     if check_file_open(output_filepath):
-        show_message("Error", f"The file {output_filepath} is open. Please close the file and try again.", type='error')
+        logging.error(f"The file {output_filepath} is open. Please close the file and try again.")
         return
 
     try:
@@ -233,14 +236,12 @@ def main(args):
     specifics_enabled = args.get('specifics_enabled', False)
     prod_nums = args.get('prod_nums', [])
     bus_chanl_nums = args.get('bus_chanl_nums', [])
-
-    output_path = os.path.join(os.path.dirname(__file__), '../../outputs')
-
+    output_dir = args.get('output_dir', '../../outputs')
     df = load_excel(file_path)
 
     forecast_df, reference_df = calculate_forecast(df, references_month, references_year, target_start_year, target_end_year, specifics_enabled, prod_nums, bus_chanl_nums)
     if not forecast_df.empty:
-        save_dataframe_with_formatting(forecast_df, reference_df, output_path, file_path, references_year, prod_nums, bus_chanl_nums)
+        save_dataframe_with_formatting(forecast_df, reference_df, output_dir, file_path, references_year, prod_nums, bus_chanl_nums)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

@@ -18,6 +18,7 @@ from utilities.utils import show_message
 class AudienceTab(ttk.Frame):
     def __init__(self, parent, config_manager, config_ui_callback=None):
         super().__init__(parent)
+        self.output_dir = None
         self.tooltip = None
         self.df = None
         self.config_ui_callback = config_ui_callback
@@ -82,6 +83,10 @@ class AudienceTab(ttk.Frame):
                 print(f"Selected PROD_NUMs: {selected_prod_nums_values}")
                 print(f"Selected BUS_CHANL_NUMs: {selected_bus_chanl_nums_values}")
 
+            if self.output_dir is None:
+                show_message("Error", "No output directory selected.", type='error', master=self, custom=True)
+                return
+
             start_time = time.time()
 
             self.call_script(references_month, references_year, target_start_year, target_end_year,
@@ -107,12 +112,16 @@ class AudienceTab(ttk.Frame):
 
         script_path = os.path.abspath(script_path)
         print(f"Script Path: {script_path}")
+
+        output_dir = self.output_dir
+
         args = {
             "references_month": references_month,
             "references_year": references_year,
             "target_start_year": target_start_year,
             "target_end_year": target_end_year,
             "file_path": file_path,
+            "output_dir": output_dir,
             "specifics_enabled": specifics_enabled,
             "prod_nums": prod_nums,
             "bus_chanl_nums": bus_chanl_nums
@@ -235,6 +244,7 @@ class AudienceTab(ttk.Frame):
         if folder_selected:
             self.output_path.delete(0, 'end')
             self.output_path.insert(0, folder_selected)
+            self.output_dir = folder_selected
             self.config_manager.update_config('audience_dest', folder_selected)
 
 
