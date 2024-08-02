@@ -41,6 +41,7 @@ class ConfigManager:
         return {
             'audience_src': '',
             'audience_dest': '',
+            'cost_src': '',
             # OTHERS HERE
         }
 
