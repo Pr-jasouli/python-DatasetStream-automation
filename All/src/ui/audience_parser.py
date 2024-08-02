@@ -184,10 +184,10 @@ def save_dataframe_with_formatting(forecast_df, reference_df, output_path, origi
         workbook = load_workbook(original_file)
         reference_sheet = workbook.active
 
-        forecast_sheet = workbook.create_sheet(title="Forecast")
+        forecast_sheet = workbook.create_sheet(title="Working")
         new_reference_sheet = workbook.create_sheet(title="Reference")
 
-        logging.info("Writing data to the Forecast sheet")
+        logging.info("Writing data to the Working sheet")
         for r_idx, row in enumerate(dataframe_to_rows(forecast_df, index=False, header=True), 1):
             for c_idx, value in enumerate(row, 1):
                 forecast_sheet.cell(row=r_idx, column=c_idx, value=value)
@@ -223,8 +223,8 @@ def save_dataframe_with_formatting(forecast_df, reference_df, output_path, origi
 
 
 def set_forecast_sheet_as_active(workbook):
-    if "Forecast" in workbook.sheetnames:
-        workbook.active = workbook.sheetnames.index("Forecast")
+    if "Working" in workbook.sheetnames:
+        workbook.active = workbook.sheetnames.index("Working")
 
 
 def main(args):
