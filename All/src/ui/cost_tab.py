@@ -1,11 +1,8 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import pandas as pd
 
 from utilities.config_manager import ConfigManager
-
-
-
 
 
 class CostTab(ttk.Frame):
@@ -21,7 +18,8 @@ class CostTab(ttk.Frame):
         self.prod_en_name_var = tk.StringVar()
 
         self.init_ui()
-        self.load_cost_reference_file()
+        if self.file_path:
+            self.load_cost_reference_file(self.file_path)
 
     def init_ui(self):
         """Initialize the UI components."""
@@ -43,19 +41,21 @@ class CostTab(ttk.Frame):
         self.prod_en_name_dropdown = ttk.Combobox(container, textvariable=self.prod_en_name_var, state="readonly", font=('Helvetica', 10))
         self.prod_en_name_dropdown.grid(row=0, column=5, pady=5, padx=5)
 
-        self.get_contracts_button = ttk.Button(container, text="Get Contracts", command=self.get_contracts, width=20, style="Custom.TButton")
-        self.get_contracts_button.grid(row=1, column=0, columnspan=6, pady=10, padx=5)
+        self.load_cost_button = ttk.Button(container, text="Load Cost File", command=self.load_cost_data, width=20, style="Custom.TButton")
+        self.load_cost_button.grid(row=1, column=3, columnspan=3, pady=10, padx=5)
+
+        self.get_contracts_button = ttk.Button(container, text="Get Contracts (TODO)", command=self.get_contracts, width=20, style="Custom.TButton")
+        self.get_contracts_button.grid(row=1, column=0, columnspan=3, pady=10, padx=5)
 
         self.year_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
         self.network_name_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
         self.prod_en_name_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
 
-    def load_cost_reference_file(self):
+    def load_cost_reference_file(self, file_path):
         """Load the cost reference file and initialize dropdown menus."""
-        if self.file_path:
-            self.data = self.find_relevant_sheet(self.file_path)
-            if self.data is not None:
-                self.populate_dropdowns()
+        self.data = self.find_relevant_sheet(file_path)
+        if self.data is not None:
+            self.populate_dropdowns()
 
     def find_relevant_sheet(self, file_path):
         """Find the sheet with the required columns and return the data."""
@@ -86,7 +86,7 @@ class CostTab(ttk.Frame):
         network_name_selected = self.network_name_var.get()
         prod_en_name_selected = self.prod_en_name_var.get()
 
-        #filter current selections
+        # Filter current selections
         filtered_data = self.data.copy()
         if year_selected:
             filtered_data = filtered_data[filtered_data['CT_BOOK_YEAR'] == year_selected]
@@ -95,19 +95,19 @@ class CostTab(ttk.Frame):
         if prod_en_name_selected:
             filtered_data = filtered_data[filtered_data['CNT_NAME_GRP'] == prod_en_name_selected]
 
-        # update  dropdown
+        # Update year dropdown
         years = [''] + sorted(filtered_data['CT_BOOK_YEAR'].dropna().unique())
         current_year = self.year_var.get()
         self.year_dropdown['values'] = years
         self.year_var.set(current_year if current_year in years else '')
 
-        # Update dropdown
+        # Update network name dropdown
         network_names = [''] + sorted(filtered_data['NETWORK_NAME'].dropna().unique())
         current_network_name = self.network_name_var.get()
         self.network_name_dropdown['values'] = network_names
         self.network_name_var.set(current_network_name if current_network_name in network_names else '')
 
-        # Update dropdown
+        # Update product name dropdown
         prod_en_names = [''] + sorted(filtered_data['CNT_NAME_GRP'].dropna().unique())
         current_prod_en_name = self.prod_en_name_var.get()
         self.prod_en_name_dropdown['values'] = prod_en_names
@@ -126,6 +126,16 @@ class CostTab(ttk.Frame):
                 filtered_data = filtered_data[filtered_data['CT_BOOK_YEAR'] == year_selected]
             self.prod_en_name_dropdown['values'] = [''] + sorted(filtered_data['CNT_NAME_GRP'].dropna().unique())
 
+    def load_cost_data(self):
+        """Handle the Load Cost button click."""
+        file_path = filedialog.askopenfilename(
+            title="Select Cost File",
+            filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
+        )
+        if file_path:
+            self.file_path = file_path
+            self.load_cost_reference_file(file_path)
+
     def get_contracts(self):
         """Handle the Get Contracts button click."""
         year_selected = self.year_var.get()
@@ -134,6 +144,7 @@ class CostTab(ttk.Frame):
         print(f"Selected Year: {year_selected}")
         print(f"Selected Network Name: {network_name_selected}")
         print(f"Selected Product Name: {prod_en_name_selected}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
