@@ -21,7 +21,6 @@ class ConfigUI(tk.Toplevel):
         self.resizable(False, False)
         self.create_menus()
         self.create_frames()
-        self.create_frames()
         self.transient(self.master)
         self.grab_set()
         self.wait_window(self)
@@ -44,6 +43,10 @@ class ConfigUI(tk.Toplevel):
         self.config_frame.grid(row=0, column=0, sticky="nsew")
         self.config_frame.grid_remove()
 
+        self.sources_destinations_frame.columnconfigure(0, weight=1)
+        self.sources_destinations_frame.columnconfigure(1, weight=1)
+        self.sources_destinations_frame.columnconfigure(2, weight=1)
+
     def build_sources_frame(self):
         """Creates user interface for source file settings."""
         for idx, tab_name in enumerate(self.tabs):
@@ -52,24 +55,42 @@ class ConfigUI(tk.Toplevel):
 
     def create_source_widgets(self, tab_name, row):
         """Helper function to create label, entry, and button for a source file."""
-        ttk.Label(self.sources_destinations_frame, text=f"{tab_name} Reference file:").grid(row=row, column=0, padx=10, pady=5, sticky="ew")
-        entry = ttk.Entry(self.sources_destinations_frame)
-        entry.grid(row=row, column=1, padx=10, pady=5, sticky="ew")
-        ttk.Button(self.sources_destinations_frame, text="Browse", command=lambda e=entry: self.select_file(e)).grid(row=row, column=2, padx=10, pady=5, sticky="ew")
-        self.entries[f"{tab_name.lower()}_src"] = entry
+        if tab_name.lower() == "cost":
+            key = "cost_src"
+            label_text = "Cost Reference file:"
+        else:
+            key = f"{tab_name.lower()}_src"
+            label_text = f"{tab_name} Reference file:"
+
+        ttk.Label(self.sources_destinations_frame, text=label_text).grid(row=row * 2, column=0, columnspan=3, padx=10, pady=(10, 5), sticky="w")
+
+        container_frame = ttk.Frame(self.sources_destinations_frame)
+        container_frame.grid(row=row * 2 + 1, column=0, columnspan=3, padx=10, pady=5, sticky="ew")
+
+        entry = ttk.Entry(container_frame)
+        entry.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
+        ttk.Button(container_frame, text="Browse", command=lambda e=entry: self.select_file(e)).grid(row=1, column=0, padx=5, pady=5, sticky="ew")
+
+        container_frame.columnconfigure(0, weight=1)
+        container_frame.rowconfigure(0, weight=1)
+        container_frame.rowconfigure(1, weight=1)
+
+        self.entries[key] = entry
 
     def set_initial_path(self, tab_name):
         """Sets the initial path in the entry field from .config."""
         key = f"{tab_name.lower()}_src"
+        if tab_name.lower() == "cost":
+            key = "cost_src"
         if key in self.config_manager.config_data:
             self.entries[key].delete(0, tk.END)
             self.entries[key].insert(0, self.config_manager.config_data[key])
 
     def build_config_frame(self):
         """Creates user interface for configuration management."""
-        create_styled_button(self.config_frame, "Load Configuration", command=self.load_configuration).pack(pady=10, expand=True, fill="x")
-        create_styled_button(self.config_frame, "View Configuration", command=self.view_configuration).pack(pady=10, expand=True, fill="x")
-        create_styled_button(self.config_frame, "Save Configuration", command=self.save_configuration).pack(pady=10, expand=True, fill="x")
+        create_styled_button(self.config_frame, "Load Configuration", command=self.load_configuration, width=20).pack(pady=10, expand=True, fill="x")
+        create_styled_button(self.config_frame, "View Configuration", command=self.view_configuration, width=20).pack(pady=10, expand=True, fill="x")
+        create_styled_button(self.config_frame, "Save Configuration", command=self.save_configuration, width=20).pack(pady=10, expand=True, fill="x")
 
     def toggle_frame(self, frame_name):
         """Toggles between different frames in the UI based on the user's choice."""
