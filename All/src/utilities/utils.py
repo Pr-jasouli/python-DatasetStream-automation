@@ -16,8 +16,7 @@ def center_window(window, master, width=420, height=650):
     y = master.winfo_y() + (master.winfo_height() - height) // 2
     window.geometry(f"{width}x{height}+{x}+{y}")
 
-
-def create_styled_button(parent, text, command=None):
+def create_styled_button(parent, text, command=None, width=10):
     """
     Creates a styled button with a specific text and command.
 
@@ -25,11 +24,12 @@ def create_styled_button(parent, text, command=None):
         parent (tk.Widget): The parent widget for the button.
         text (str): The text to display on the button.
         command (callable, optional): The function to call when the button is clicked.
+        width (int, optional): The width of the button.
 
     Returns:
         ttk.Button: The created styled button.
     """
-    return ttk.Button(parent, text=text, command=command, style='TButton')
+    return ttk.Button(parent, text=text, command=command, style='TButton', width=width)
 
 
 def create_menu(window, menu_items):
