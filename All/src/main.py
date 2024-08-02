@@ -3,6 +3,7 @@ from tkinter import ttk
 
 from ui.config_ui import ConfigUI
 from ui.audience_tab import AudienceTab
+from ui.cost_tab import CostTab
 from utilities import config_manager
 from utilities.utils import show_message, create_styled_button
 from utilities.config_manager import ConfigManager
@@ -87,10 +88,9 @@ class MainApplication(tk.Tk):
         self.tab_control = ttk.Notebook(self, padding=10)
         self.audience_tab = AudienceTab(parent=self.tab_control, config_manager=self.config_manager,
                                         config_ui_callback=self.config_ui_callback)
-        # self.pdf_tab = PDFTab(self.tab_control, config_manager=self.config_manager,
-        #                       config_ui_callback=self.config_ui_callback)
+        self.cost_tab = CostTab(self.tab_control, config_manager=self.config_manager, config_ui_callback=self.config_ui_callback)
         self.tab_control.add(self.audience_tab, text='Audience')
-        # self.tab_control.add(self.pdf_tab, text='PDF')
+        self.tab_control.add(self.cost_tab, text='  Cost  ')
         self.tab_control.pack(expand=1, fill='both', padx=15, pady=(5, 0))
 
     def create_bottom_frame(self):
