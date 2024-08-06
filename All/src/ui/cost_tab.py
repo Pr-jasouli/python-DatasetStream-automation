@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, filedialog
 import pandas as pd
+import tkinter.font as tkFont
 
 from utilities.config_manager import ConfigManager
 
@@ -39,38 +40,50 @@ class CostTab(ttk.Frame):
             self.load_cost_reference_file(self.file_path)
 
     def init_ui(self):
-        """Initialize the UI components."""
         style = ttk.Style()
         style.configure("Custom.TButton", font=('Helvetica', 10))
 
-        container = ttk.Frame(self)
-        container.grid(row=0, column=0, pady=10, padx=10)
+        top_frame = ttk.Frame(self)
+        top_frame.grid(row=0, column=0, pady=10, padx=10, sticky="ew")
 
-        ttk.Label(container, text="CT_BOOK_YEAR:", font=('Helvetica', 10)).grid(row=0, column=0, pady=5, padx=5, sticky="e")
-        self.year_dropdown = ttk.Combobox(container, textvariable=self.year_var, state="readonly", font=('Helvetica', 10), width=10)
-        self.year_dropdown.grid(row=0, column=1, pady=5, padx=5)
+        tree_container = ttk.Frame(self)
+        tree_container.grid(row=1, column=0, pady=10, padx=10, sticky="nsew")
 
-        ttk.Label(container, text="NETWORK_NAME:", font=('Helvetica', 10)).grid(row=0, column=2, pady=5, padx=5, sticky="e")
-        self.network_name_dropdown = ttk.Combobox(container, textvariable=self.network_name_var, state="readonly", font=('Helvetica', 10))
-        self.network_name_dropdown.grid(row=0, column=3, pady=5, padx=5)
+        ttk.Label(top_frame, text="Network", font=('Helvetica', 10)).grid(row=0, column=0, pady=5, padx=5, sticky="e")
+        self.network_name_dropdown = ttk.Combobox(top_frame, textvariable=self.network_name_var, state="readonly", font=('Helvetica', 10))
+        self.network_name_dropdown.grid(row=0, column=1, pady=5, padx=5)
 
-        ttk.Label(container, text="CNT_NAME_GRP:", font=('Helvetica', 10)).grid(row=0, column=4, pady=5, padx=5, sticky="e")
-        self.prod_en_name_dropdown = ttk.Combobox(container, textvariable=self.prod_en_name_var, state="readonly", font=('Helvetica', 10))
-        self.prod_en_name_dropdown.grid(row=0, column=5, pady=5, padx=5)
+        ttk.Label(top_frame, text="Contract:", font=('Helvetica', 10)).grid(row=0, column=2, pady=5, padx=5, sticky="e")
+        self.cnt_name_grp_dropdown = ttk.Combobox(top_frame, textvariable=self.cnt_name_grp_var, state="readonly", font=('Helvetica', 10))
+        self.cnt_name_grp_dropdown.grid(row=0, column=3, pady=5, padx=5)
 
-        self.load_cost_button = ttk.Button(container, text="Load Cost File", command=self.load_cost_data, width=20, style="Custom.TButton")
-        self.load_cost_button.grid(row=1, column=3, columnspan=3, pady=10, padx=5)
+        ttk.Label(top_frame, text="Model:", font=('Helvetica', 10)).grid(row=0, column=4, pady=5, padx=5, sticky="e")
+        self.business_model_dropdown = ttk.Combobox(top_frame, textvariable=self.business_model_var, state="readonly", font=('Helvetica', 10))
+        self.business_model_dropdown.grid(row=0, column=5, pady=5, padx=5)
 
-        self.get_contracts_button = ttk.Button(container, text="Get Contracts (TODO)", command=self.get_contracts, width=20, style="Custom.TButton")
-        self.get_contracts_button.grid(row=1, column=0, columnspan=3, pady=10, padx=5)
+        self.load_cost_button = ttk.Button(top_frame, text="Load Cost File", command=self.load_cost_data, width=20, style="Custom.TButton")
+        self.load_cost_button.grid(row=1, column=2, columnspan=3, pady=10, padx=5)
 
-        self.year_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
+        self.tree = ttk.Treeview(tree_container, columns=(), show="headings")
+        self.tree.grid(row=0, column=0, sticky="nsew")
+
+        tree_xscroll = ttk.Scrollbar(tree_container, orient="horizontal", command=self.tree.xview)
+        tree_xscroll.grid(row=1, column=0, sticky="ew")
+        self.tree.configure(xscrollcommand=tree_xscroll.set)
+
+        tree_container.columnconfigure(0, weight=1)
+        tree_container.rowconfigure(0, weight=1)
+
         self.network_name_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
-        self.prod_en_name_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
+        self.cnt_name_grp_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
+        self.business_model_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
+
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
 
     def load_cost_reference_file(self, file_path):
-        """Load the cost reference file and initialize dropdown menus."""
         self.data = self.find_relevant_sheet(file_path)
+        self.metadata = pd.read_excel(file_path, sheet_name="BUSINESS CONTRACT METADATA")
         if self.data is not None:
             self.populate_dropdowns()
 
