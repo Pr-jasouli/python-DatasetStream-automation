@@ -88,76 +88,92 @@ class CostTab(ttk.Frame):
             self.populate_dropdowns()
 
     def find_relevant_sheet(self, file_path):
-        """Find the sheet with the required columns and return the data."""
         xls = pd.ExcelFile(file_path)
         for sheet_name in xls.sheet_names:
             df = pd.read_excel(xls, sheet_name=sheet_name)
-            if {'CT_BOOK_YEAR', 'NETWORK_NAME', 'CNT_NAME_GRP'}.issubset(df.columns):
+            if {'NETWORK_NAME', 'CNT_NAME_GRP', 'Business model'}.issubset(df.columns):
                 return df
         return None
 
     def populate_dropdowns(self):
-        """Populate the initial values in the dropdown menus."""
-        self.data['CT_BOOK_YEAR'] = self.data['CT_BOOK_YEAR'].astype(str)
         self.data['NETWORK_NAME'] = self.data['NETWORK_NAME'].astype(str)
         self.data['CNT_NAME_GRP'] = self.data['CNT_NAME_GRP'].astype(str)
+        self.data['Business model'] = self.data['Business model'].astype(str)
 
-        years = [''] + sorted(self.data['CT_BOOK_YEAR'].dropna().unique())
         network_names = [''] + sorted(self.data['NETWORK_NAME'].dropna().unique())
-        prod_en_names = [''] + sorted(self.data['CNT_NAME_GRP'].dropna().unique())
+        cnt_name_grps = [''] + sorted(self.data['CNT_NAME_GRP'].dropna().unique())
+        business_models = [''] + sorted(self.data['Business model'].dropna().unique())
 
-        self.year_dropdown['values'] = years
         self.network_name_dropdown['values'] = network_names
-        self.prod_en_name_dropdown['values'] = prod_en_names
+        self.cnt_name_grp_dropdown['values'] = cnt_name_grps
+        self.business_model_dropdown['values'] = business_models
 
     def update_dropdowns(self, event=None):
-        """Update the dropdown values based on selections."""
-        year_selected = self.year_var.get()
         network_name_selected = self.network_name_var.get()
-        prod_en_name_selected = self.prod_en_name_var.get()
+        cnt_name_grp_selected = self.cnt_name_grp_var.get()
+        business_model_selected = self.business_model_var.get()
 
-        # Filter current selections
         filtered_data = self.data.copy()
-        if year_selected:
-            filtered_data = filtered_data[filtered_data['CT_BOOK_YEAR'] == year_selected]
         if network_name_selected:
             filtered_data = filtered_data[filtered_data['NETWORK_NAME'] == network_name_selected]
-        if prod_en_name_selected:
-            filtered_data = filtered_data[filtered_data['CNT_NAME_GRP'] == prod_en_name_selected]
+        if cnt_name_grp_selected:
+            filtered_data = filtered_data[filtered_data['CNT_NAME_GRP'] == cnt_name_grp_selected]
+        if business_model_selected:
+            filtered_data = filtered_data[filtered_data['Business model'] == business_model_selected]
 
-        # Update year dropdown
-        years = [''] + sorted(filtered_data['CT_BOOK_YEAR'].dropna().unique())
-        current_year = self.year_var.get()
-        self.year_dropdown['values'] = years
-        self.year_var.set(current_year if current_year in years else '')
-
-        # Update network name dropdown
         network_names = [''] + sorted(filtered_data['NETWORK_NAME'].dropna().unique())
         current_network_name = self.network_name_var.get()
         self.network_name_dropdown['values'] = network_names
         self.network_name_var.set(current_network_name if current_network_name in network_names else '')
 
-        # Update product name dropdown
-        prod_en_names = [''] + sorted(filtered_data['CNT_NAME_GRP'].dropna().unique())
-        current_prod_en_name = self.prod_en_name_var.get()
-        self.prod_en_name_dropdown['values'] = prod_en_names
-        self.prod_en_name_var.set(current_prod_en_name if current_prod_en_name in prod_en_names else '')
+        cnt_name_grps = [''] + sorted(filtered_data['CNT_NAME_GRP'].dropna().unique())
+        current_cnt_name_grp = self.cnt_name_grp_var.get()
+        self.cnt_name_grp_dropdown['values'] = cnt_name_grps
+        self.cnt_name_grp_var.set(current_cnt_name_grp if current_cnt_name_grp in cnt_name_grps else '')
 
-        if not year_selected:
-            self.network_name_var.set('')
-            self.prod_en_name_var.set('')
-            self.network_name_dropdown['values'] = [''] + sorted(self.data['NETWORK_NAME'].dropna().unique())
-            self.prod_en_name_dropdown['values'] = [''] + sorted(self.data['CNT_NAME_GRP'].dropna().unique())
+        business_models = [''] + sorted(filtered_data['Business model'].dropna().unique())
+        current_business_model = self.business_model_var.get()
+        self.business_model_dropdown['values'] = business_models
+        self.business_model_var.set(current_business_model if current_business_model in business_models else '')
 
-        if not network_name_selected:
-            self.prod_en_name_var.set('')
-            filtered_data = self.data.copy()
-            if year_selected:
-                filtered_data = filtered_data[filtered_data['CT_BOOK_YEAR'] == year_selected]
-            self.prod_en_name_dropdown['values'] = [''] + sorted(filtered_data['CNT_NAME_GRP'].dropna().unique())
+        if business_model_selected:
+            self.display_metadata(network_name_selected, cnt_name_grp_selected, business_model_selected)
+
+    def display_metadata(self, network_name, cnt_name_grp, business_model):
+        for column in self.tree.get_children():
+            self.tree.delete(column)
+
+        model_metadata = self.metadata[self.metadata.iloc[:, 0] == business_model]
+        if not model_metadata.empty:
+            columns_with_x = model_metadata.columns[model_metadata.iloc[0] == 'X'].tolist()
+            mapped_columns = []
+            for column in columns_with_x:
+                mapped_column = self.column_mapping.get(column)
+                if mapped_column:
+                    if isinstance(mapped_column, list):
+                        mapped_columns.extend([col for col in mapped_column if col in self.data.columns])
+                    else:
+                        if mapped_column in self.data.columns:
+                            mapped_columns.append(mapped_column)
+
+            self.tree["columns"] = mapped_columns
+            for col in mapped_columns:
+                self.tree.heading(col, text=col)
+                self.tree.column(col, width=tkFont.Font().measure(col) + 20)
+
+            filtered_rows = self.data[(self.data['NETWORK_NAME'] == network_name) &
+                                      (self.data['CNT_NAME_GRP'] == cnt_name_grp) &
+                                      (self.data['Business model'] == business_model)]
+
+            for _, row in filtered_rows.iterrows():
+                values = [row[col] for col in mapped_columns]
+                self.tree.insert("", tk.END, values=values)
+
+            for col in mapped_columns:
+                max_width = max(tkFont.Font().measure(str(self.tree.set(item, col))) for item in self.tree.get_children())
+                self.tree.column(col, width=max_width + 20)
 
     def load_cost_data(self):
-        """Handle the Load Cost button click."""
         file_path = filedialog.askopenfilename(
             title="Select Cost File",
             filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
@@ -165,15 +181,6 @@ class CostTab(ttk.Frame):
         if file_path:
             self.file_path = file_path
             self.load_cost_reference_file(file_path)
-
-    def get_contracts(self):
-        """Handle the Get Contracts button click."""
-        year_selected = self.year_var.get()
-        network_name_selected = self.network_name_var.get()
-        prod_en_name_selected = self.prod_en_name_var.get()
-        print(f"Selected Year: {year_selected}")
-        print(f"Selected Network Name: {network_name_selected}")
-        print(f"Selected Product Name: {prod_en_name_selected}")
 
 
 if __name__ == "__main__":
