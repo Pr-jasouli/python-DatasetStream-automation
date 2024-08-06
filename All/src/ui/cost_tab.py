@@ -12,10 +12,27 @@ class CostTab(ttk.Frame):
         self.config_ui_callback = config_ui_callback
         self.file_path = self.config_manager.config_data.get("cost_src", "")
         self.data = None
+        self.metadata = None
 
-        self.year_var = tk.StringVar()
+        self.column_mapping = {
+            'Business provider': 'NETWORK_NAME',
+            'contract name': 'CNT_NAME_GRP',
+            'contract start date': 'CT_STARTDATE',
+            'contract_end_date': 'CT_ENDDATE',
+            'contract effective date': 'CT_EFFECTIVE_DATE',
+            'contract duration': 'CT_DURATION',
+            'contract type': 'CT_TYPE',
+            'contract book year': 'CT_BOOK_YEAR',
+            'contract auto reniew': 'CT_AUTORENEW',
+            'contract notice period': 'CT_NOTICE_PER',
+            'ollo': ['CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
+            'Fix_fee- Fee': 'CT_FIXFEE',
+            'Fix_fee_new- New Fee': 'CT_FIXFEE_NEW'
+        }
+
         self.network_name_var = tk.StringVar()
-        self.prod_en_name_var = tk.StringVar()
+        self.cnt_name_grp_var = tk.StringVar()
+        self.business_model_var = tk.StringVar()
 
         self.init_ui()
         if self.file_path:
