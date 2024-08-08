@@ -10,7 +10,7 @@ class ConfigManager:
                 base_dir = os.path.dirname(sys.executable)
             else:
                 base_dir = os.path.dirname(os.path.abspath(__file__))
-            self.config_file = os.path.join(base_dir, '..', '.config', 'config.json')
+            self.config_file = os.path.join(base_dir, '..', '..', '.config', 'config.json')
         else:
             self.config_file = config_file
         self.config_data = {}
