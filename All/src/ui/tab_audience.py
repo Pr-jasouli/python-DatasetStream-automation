@@ -39,8 +39,6 @@ class AudienceTab(ttk.Frame):
         self.section_references_setup()
         self.section_target_setup()
         self.section_specifics_setup()
-        self.section_process_setup()
-        self.load_initial_excel()
 
     def section_specifics_setup(self):
         """Sets up the specifics selection widget."""
@@ -571,8 +569,8 @@ class AudienceTab(ttk.Frame):
     def tab_style(self):
         """Configure styles used within the tab."""
         style = ttk.Style(self)
-        style.configure('TFrame', background='white')
-        style.configure('Title.TLabel', font=('Arial', 12, 'underline'), background='white')
+        style.configure('TFrame')
+        style.configure('Title.TLabel', font=('Arial', 12, 'underline'))
         style.configure('AudienceTab.TButton', padding=[5, 2], font=('Arial', 10))
 
     def section_references_setup(self):
