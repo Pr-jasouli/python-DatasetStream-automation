@@ -1,13 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 
-import pandas as pd
 
 from ui.tab_audience import AudienceTab
 from ui.tab_cost import CostTab
 from ui.ui_config import ConfigUI
-from utilities.utils import show_message, create_styled_button, center_window
-from utilities.config_manager import ConfigManager
+from utilities.utils import show_message, create_styled_button
+from utilities.config_manager import ConfigManager, ConfigLoaderPopup
 import os
 
 
@@ -127,7 +126,6 @@ class MainApplication(tk.Tk):
                 self.audience_tab.load_file(path)
             elif key == "cost_src":
                 self.cost_tab.load_file(path)
-            show_message("File Loaded", f"Successfully loaded {key} from {path}", master=self, custom=True)
         except Exception as e:
             show_message("Error", f"Failed to load {key}: {e}", type='error', master=self, custom=True)
 
@@ -148,6 +146,18 @@ class MainApplication(tk.Tk):
         view_result_button = create_styled_button(audience_frame, "View", self.audience_tab.view_result,
                                                   width=12)
         view_result_button.pack(side='left', padx=5, pady=5)
+
+        cost_frame = ttk.Labelframe(bottom_frame, text="Cost", padding=5)
+        cost_frame.pack(side='left', padx=10, pady=(0, 15))
+
+        process_button = create_styled_button(cost_frame, "New Deal", self.cost_tab.open_new_deal_popup,
+                                              width=12)
+        process_button.pack(side='left', padx=5, pady=5)
+
+        # view_result_button = create_styled_button(audience_frame, "View", self.audience_tab.view_result,
+        #                                           width=12)
+        # view_result_button.pack(side='left', padx=5, pady=5)
+
 
     def open_config(self):
         """Open the configuration UI."""
