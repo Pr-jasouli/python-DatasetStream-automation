@@ -132,8 +132,6 @@ class AudienceTab(ttk.Frame):
                     self.bus_chanl_num_listbox.insert('end', value)
                 self.bus_chanl_num_map = {str(value): str(value) for value in unique_bus_chanl_num}
 
-        self.prod_num_listbox.config(height=20)
-        self.bus_chanl_num_listbox.config(height=20)
         self.section_specifics_counters_update()
         self.specifics_frame.update_idletasks()
 
@@ -595,22 +593,6 @@ class AudienceTab(ttk.Frame):
 
 
 
-
-
-    def section_process_setup(self):
-        """Sets up the processing button widget."""
-        container = ttk.Frame(self)
-        container.pack(side='top', fill='x', expand=False, padx=15, pady=0)
-        ttk.Label(container, text="PROCESS", style='Title.TLabel').pack(side='top', padx=10, pady=(0, 4))
-
-        buttons_frame = ttk.Frame(container)
-        buttons_frame.pack(side='top', fill='x', padx=5, pady=(2, 0))
-
-        self.process_button = ttk.Button(buttons_frame, text="Start Processing", command=self.start_processing)
-        self.process_button.pack(side='left', fill='x', expand=True)
-
-        self.view_result_button = ttk.Button(buttons_frame, text="View Result", command=self.view_result)
-        self.view_result_button.pack(side='left', fill='x', expand=True)
 
     def view_result(self):
         output_path = self.output_path.get()
