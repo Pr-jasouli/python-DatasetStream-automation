@@ -519,7 +519,7 @@ class AudienceTab(ttk.Frame):
 
     def references_file_details(self, parent):
         """Configure and place the file details label within the given container."""
-        self.file_details_label = ttk.Label(parent, text="No file loaded", anchor='w')
+        self.file_details_label = ttk.Label(parent, text="Il faut charger le fichier d'audience de référence, Source File.", anchor='w')
         self.file_details_label.pack(side='top', fill='x', expand=False, padx=10, pady=(10, 5))
 
     def prompt_excel_load(self):
