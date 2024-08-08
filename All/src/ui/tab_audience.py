@@ -427,12 +427,12 @@ class AudienceTab(ttk.Frame):
             ttk.Button(parent, text="✓", command=self.validate_references, style='AudienceTab.TButton').pack(
                 side='right', padx=(0, 10), pady=(0, 0))
         elif context == 'TARGET':
-            ttk.Label(parent, text="From (YYYY):").pack(side='left')
+            ttk.Label(parent, text="From:").pack(side='left')
             self.target_start_year = ttk.Entry(parent, width=5, validate='key',
                                                validatecommand=(self.register(self.validate_year), '%P'))
             self.target_start_year.pack(side='left', padx=(0, 2))
             self.target_start_year.insert(0, str(self.current_year + 1))
-            ttk.Label(parent, text="To (YYYY):").pack(side='left')
+            ttk.Label(parent, text="To:").pack(side='left')
             self.target_end_year = ttk.Entry(parent, width=5, validate='key',
                                              validatecommand=(self.register(self.validate_year), '%P'))
             self.target_end_year.pack(side='left', padx=(2, 10))
