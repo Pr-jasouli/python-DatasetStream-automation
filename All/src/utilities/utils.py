@@ -2,19 +2,27 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
 
-def center_window(window, master, width=420, height=650):
+def center_window(window, master=None, width=420, height=650):
     """
-    Centers the window on the screen based on the master window's size.
+    Centers the window on the screen based on the master's size.
 
     Args:
-        window (tk.Toplevel): The window to be centered.
-        master (tk.Tk): The master window.
+        window (tk.Toplevel or tk.Tk): The window to be centered.
+        master (tk.Tk, optional): The master window.
         width (int): The width of the window to be centered.
         height (int): The height of the window to be centered.
     """
-    x = master.winfo_x() + (master.winfo_width() - width) // 2
-    y = master.winfo_y() + (master.winfo_height() - height) // 2
-    window.geometry(f"{width}x{height}+{x}+{y}")
+    if master is None:
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
+    else:
+        screen_width = master.winfo_screenwidth()
+        screen_height = master.winfo_screenheight()
+
+    position_top = int(screen_height / 2 - height / 2)
+    position_right = int(screen_width / 2 - width / 2)
+    window.geometry(f"{width}x{height}+{position_right}+{position_top}")
+
 
 def create_styled_button(parent, text, command=None, width=10):
     """
@@ -29,7 +37,7 @@ def create_styled_button(parent, text, command=None, width=10):
     Returns:
         ttk.Button: The created styled button.
     """
-    return ttk.Button(parent, text=text, command=command, style='TButton', width=width)
+    return ttk.Button(parent, text=text, command=command, style='AudienceTab.TButton', width=width)
 
 
 def create_menu(window, menu_items):
