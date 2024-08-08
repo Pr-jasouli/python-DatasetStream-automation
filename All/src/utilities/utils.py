@@ -73,6 +73,7 @@ def select_file(callback, filetypes):
     if file_selected:
         callback(file_selected)
 
+popup_windows = []
 
 def show_message(title, message, type='info', master=None, custom=False):
     """
@@ -103,6 +104,8 @@ def show_custom_message(master, title, message, type='info'):
         message (str): The message to display.
         type (str): The type of message box ('info' or 'error').
     """
+    global popup_windows
+
     top = tk.Toplevel(master)
     top.title(title)
 
@@ -137,10 +140,19 @@ def show_custom_message(master, title, message, type='info'):
         if event.widget is not text_widget:
             top.destroy()
 
-    top.bind("<FocusOut>", lambda event: top.destroy())
-    top.bind("<Button-1>", on_click)
-    top.focus_set()
+    def on_close(event=None):
+        top.destroy()
+        if top in popup_windows:
+            popup_windows.remove(top)
+        if popup_windows:
+            popup_windows[-1].focus_force()
 
+    top.bind("<FocusOut>", on_close)
+    top.bind("<Button-1>", on_click)
+    top.protocol("WM_DELETE_WINDOW", on_close)
+    top.focus_force()
+
+    popup_windows.append(top)
 def select_directory(entry_field):
     """
     Opens a directory dialog to select a folder and updates the entry field.
