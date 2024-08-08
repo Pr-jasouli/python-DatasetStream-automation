@@ -492,10 +492,10 @@ class AudienceTab(ttk.Frame):
             self.tooltip.destroy()
             self.tooltip = None
 
-    def load_initial_excel(self):
+    def load_file(self, path):
         src_audience_path = self.config_data.get('audience_src')
-        if src_audience_path:
-            self.section_reference_details_update(src_audience_path)
+        if path:
+            self.section_reference_details_update(path)
 
     def button_select_sources(self, parent, context):
         if context == 'REFERENCE':
