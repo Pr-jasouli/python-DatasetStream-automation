@@ -3,7 +3,6 @@ import tkinter.font as tkFont
 from tkinter import ttk, filedialog
 
 import pandas as pd
-from openpyxl.reader.excel import load_workbook
 
 from utilities.config_manager import ConfigManager
 from utilities.utils import show_message
@@ -28,11 +27,6 @@ class CostTab(ttk.Frame):
                           'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
         }
 
-        self.network_name_var = tk.StringVar()
-        self.cnt_name_grp_var = tk.StringVar()
-        self.business_model_var = tk.StringVar()
-
-        self.init_ui()
         if self.file_path:
             self.load_cost_reference_file(self.file_path)
 
@@ -40,12 +34,9 @@ class CostTab(ttk.Frame):
         self.file_path = path
         self.load_cost_reference_file(path)
 
-
     def load_cost_reference_file(self, file_path):
-        self.data = self.find_relevant_sheet(file_path)
-        if self.data is not None:
-            self.populate_dropdowns()
-
+        self.data = pd.read_excel(file_path, sheet_name='all contract cost file')
+        self.populate_dropdowns()
 
     def init_ui(self):
         style = ttk.Style()
@@ -280,7 +271,9 @@ class CostTab(ttk.Frame):
 
     def update_deal_row(self, index, new_values):
         item_id = self.items_to_update[index]
-        self.data.loc[self.tree.index(item_id)] = new_values
+        item_idx = self.tree.index(item_id)
+        for col, val in new_values.items():
+            self.data.at[item_idx, col] = val
         self.save_updated_data()
         self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(), self.business_model_var.get())
 
@@ -290,16 +283,8 @@ class CostTab(ttk.Frame):
         self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(), self.business_model_var.get())
 
     def save_updated_data(self):
-        book = load_workbook(self.file_path)
-        writer = pd.ExcelWriter(self.file_path, engine='openpyxl')
-        writer.book = book
-
-        self.data.to_excel(writer, sheet_name='all contract cost file', index=False)
-
-        writer.save()
-        writer.close()
-
-
+        with pd.ExcelWriter(self.file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+            self.data.to_excel(writer, sheet_name='all contract cost file', index=False)
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -307,18 +292,3 @@ if __name__ == "__main__":
     tab = CostTab(root, config_manager=config_manager)
     tab.pack(expand=1, fill='both')
     root.mainloop()
-
-
-# Exception in Tkinter callback
-# Traceback (most recent call last):
-#   File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\tkinter\__init__.py", line 1967, in __call__
-#     return self.func(*args)
-#            ^^^^^^^^^^^^^^^^
-#   File "C:\Users\dbotton\OneDrive - Orange Business (ex-B&D)\Desktop\python-DatasetStream-automation\All\src\ui\cost_tab.py", line 212, in submit_deal
-#     self.add_new_deal_row(pd.Series(new_row))
-#   File "C:\Users\dbotton\OneDrive - Orange Business (ex-B&D)\Desktop\python-DatasetStream-automation\All\src\ui\cost_tab.py", line 226, in add_new_deal_row
-#     self.save_updated_data()
-#   File "C:\Users\dbotton\OneDrive - Orange Business (ex-B&D)\Desktop\python-DatasetStream-automation\All\src\ui\cost_tab.py", line 233, in save_updated_data
-#     writer.book = book
-#     ^^^^^^^^^^^
-# AttributeError: property 'book' of 'OpenpyxlWriter' object has no setter
