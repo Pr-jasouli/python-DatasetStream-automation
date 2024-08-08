@@ -7,10 +7,8 @@ import traceback
 from datetime import datetime
 from tkinter import filedialog, Listbox, MULTIPLE, BooleanVar, Toplevel
 from tkinter import ttk
-from tkinter.ttk import Scrollbar
 
 import pandas as pd
-from PIL import ImageTk, Image
 
 from utilities.utils import show_message
 
@@ -78,21 +76,23 @@ class AudienceTab(ttk.Frame):
         self.bus_chanl_label = ttk.Label(bus_chanl_frame, text="BUS_CHANL_NUM")
         self.bus_chanl_label.pack(side='top', padx=5)
 
-        self.bus_chanl_num_listbox = Listbox(bus_chanl_frame, selectmode=MULTIPLE, exportselection=False, height=25)
-        self.bus_chanl_num_listbox.pack(side='top', fill='both', expand=True)
-        bus_chanl_scrollbar = ttk.Scrollbar(self.bus_chanl_num_listbox, orient="vertical")
+        self.bus_chanl_num_listbox = Listbox(bus_chanl_frame, selectmode=MULTIPLE, exportselection=False)
+        self.bus_chanl_num_listbox.pack(side='left', fill='both', expand=True)
+        bus_chanl_scrollbar = ttk.Scrollbar(bus_chanl_frame, orient="vertical")
         bus_chanl_scrollbar.config(command=self.bus_chanl_num_listbox.yview)
-        bus_chanl_scrollbar.pack(side="right", fill="y", pady=0)
+        self.bus_chanl_num_listbox.config(yscrollcommand=bus_chanl_scrollbar.set)
+        bus_chanl_scrollbar.pack(side="right", fill="y")
 
         prod_num_frame = ttk.Frame(self.specifics_frame)
         prod_num_frame.pack(side='left', fill='both', expand=True, padx=0, pady=0)
         ttk.Label(prod_num_frame, text="PROD_NUM:").pack(side='top', padx=0)
 
-        self.prod_num_listbox = Listbox(prod_num_frame, selectmode=MULTIPLE, exportselection=False, height=25)
-        self.prod_num_listbox.pack(side='top', fill='both', expand=True)
-        prod_num_scrollbar = ttk.Scrollbar(self.prod_num_listbox, orient="vertical")
+        self.prod_num_listbox = Listbox(prod_num_frame, selectmode=MULTIPLE, exportselection=False)
+        self.prod_num_listbox.pack(side='left', fill='both', expand=True)
+        prod_num_scrollbar = ttk.Scrollbar(prod_num_frame, orient="vertical")
         prod_num_scrollbar.config(command=self.prod_num_listbox.yview)
-        prod_num_scrollbar.pack(side="right", fill="y", pady=0)
+        self.prod_num_listbox.config(yscrollcommand=prod_num_scrollbar.set)
+        prod_num_scrollbar.pack(side="right", fill="y")
 
         self.reset_row_frame = ttk.Frame(container)
 
@@ -301,14 +301,11 @@ class AudienceTab(ttk.Frame):
         self.bus_chanl_num_listbox.selection_clear(0, 'end')
         self.section_specifics_counters_update()
 
-
-
-
     def section_specifics_checkbox_enable(self):
         """Toggles the visibility and content of the specifics listboxes based on the checkbox state."""
         if self.specifics_var.get():
             self.section_specifics_listboxes_values()
-            self.reset_row_frame.pack(side='top', fill='x', expand=False, padx=5, pady=(5, 10))
+            self.reset_row_frame.pack(side='top', fill='x', expand=False, padx=5, pady=(0, 0))
         else:
             self.prod_num_listbox.delete(0, 'end')
             self.bus_chanl_num_listbox.delete(0, 'end')
