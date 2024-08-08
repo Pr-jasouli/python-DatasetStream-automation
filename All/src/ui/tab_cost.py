@@ -23,25 +23,9 @@ class CostTab(ttk.Frame):
 
         self.init_ui()
         self.model_columns = {
-            'Fixed fee': ['CT_BOOK_YEAR', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_NOTICE_DATE',
-                           'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW'],
-
-            # TO DO LATER, DO NOT ERASE!
-            # 'Free': ['NETWORK_NAME', 'CNT_NAME_GRP', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_TYPE', 'CT_BOOK_YEAR', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'], #'CT_EFFECTIVE_DATE', !
-            #
-            # 'fixed fee + index': ['NETWORK_NAME', 'CNT_NAME_GRP', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_EFFECTIVE_DATE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_TYPE', 'CT_BOOK_YEAR', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'CT_INDEX'],
-            #
-            # 'fixed fee cogs': ['NETWORK_NAME', 'CNT_NAME_GRP', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_EFFECTIVE_DATE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_TYPE', 'CT_BOOK_YEAR', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_FIXFEE', 'CT_FIXFEE_NEW'],
-            #
-            # 'Classic CPS': ['NETWORK_NAME', 'CNT_NAME_GRP', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_EFFECTIVE_DATE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_TYPE', 'CT_BOOK_YEAR', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_VARFEE', 'CT_VARFEE_NEW'],
-            #
-            # 'CPS on 10% BXL ; 100% FL': ['NETWORK_NAME', 'CNT_NAME_GRP', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_EFFECTIVE_DATE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_TYPE', 'CT_BOOK_YEAR', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_VARFEE', 'CT_VARFEE_NEW', 'CT_CNT_AVAIL_BRU', 'CT_CNT_AVAIL_FL'],
-            #
-            # 'CPS on product Park': ['NETWORK_NAME', 'CNT_NAME_GRP', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_EFFECTIVE_DATE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_TYPE', 'CT_BOOK_YEAR', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_VARFEE', 'CT_VARFEE_NEW'],
-            #
-            # 'CPS Over MG Subs': ['NETWORK_NAME', 'CNT_NAME_GRP', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_EFFECTIVE_DATE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_TYPE', 'CT_BOOK_YEAR', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_VARFEE', 'CT_VARFEE_NEW'],
-            #
-            # 'CPS Over MG Subs + index': ['NETWORK_NAME', 'CNT_NAME_GRP', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_EFFECTIVE_DATE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_TYPE', 'CT_BOOK_YEAR', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_VARFEE', 'CT_VARFEE_NEW', 'CT_INDEX']
+            'Fixed fee': ['CT_BOOK_YEAR', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
+                          'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
+                          'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
         }
 
         self.network_name_var = tk.StringVar()
@@ -111,8 +95,6 @@ class CostTab(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
-
-
     def find_relevant_sheet(self, file_path):
         xls = pd.ExcelFile(file_path)
         for sheet_name in xls.sheet_names:
@@ -176,9 +158,11 @@ class CostTab(ttk.Frame):
             self.tree.heading(col, text=col)
             self.tree.column(col, width=tkFont.Font().measure(col) + 20)
 
-        filtered_rows = self.data[(self.data['NETWORK_NAME'] == network_name) &
-                                  (self.data['CNT_NAME_GRP'] == cnt_name_grp) &
-                                  (self.data['Business model'] == business_model)]
+        filtered_rows = self.data[
+            (self.data['NETWORK_NAME'] == network_name) &
+            (self.data['CNT_NAME_GRP'] == cnt_name_grp) &
+            (self.data['Business model'] == business_model)
+        ]
 
         for _, row in filtered_rows.iterrows():
             values = [row[col] for col in columns]
@@ -215,15 +199,21 @@ class CostTab(ttk.Frame):
         entry_vars = {col: tk.StringVar() for col in columns}
 
         for i, col in enumerate(columns):
-            tk.Label(new_deal_popup, text=col).grid(row=i, column=0, padx=10, pady=5, sticky='e')
-            entry = tk.Entry(new_deal_popup, textvariable=entry_vars[col])
-            entry.grid(row=i, column=1, padx=10, pady=5, sticky='w')
-            if col in ['NETWORK_NAME', 'CNT_NAME_GRP']:
-                entry.insert(0, network_name if col == 'NETWORK_NAME' else cnt_name_grp)
-                entry.config(state='readonly')
+            #colonnes hidden
+            if col not in ['Business model', 'variable/fix']:
+                tk.Label(new_deal_popup, text=col).grid(row=i, column=0, padx=10, pady=5, sticky='e')
+                entry = tk.Entry(new_deal_popup, textvariable=entry_vars[col])
+                entry.grid(row=i, column=1, padx=10, pady=5, sticky='w')
+                if col in ['NETWORK_NAME', 'CNT_NAME_GRP']:
+                    entry.insert(0, network_name if col == 'NETWORK_NAME' else cnt_name_grp)
+                    entry.config(state='readonly')
 
         def submit_deal():
             new_row = {col: entry_vars[col].get() for col in columns}
+            # colonnes cachées
+            if business_model == 'Fixed fee':
+                new_row['Business model'] = 'Fixed fee'
+                new_row['variable/fix'] = 'fixed'
             self.add_new_deal_row(pd.Series(new_row))
             new_deal_popup.destroy()
 
