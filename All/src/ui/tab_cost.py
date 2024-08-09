@@ -51,24 +51,15 @@ class CostTab(ttk.Frame):
 
         ttk.Label(top_frame, text="Network", font=('Helvetica', 10)).grid(row=0, column=0, pady=5, padx=5, sticky="e")
         self.network_name_dropdown = ttk.Combobox(top_frame, textvariable=self.network_name_var, state="readonly", font=('Helvetica', 10))
-        self.network_name_dropdown.grid(row=0, column=1, pady=5, padx=5)
+        self.network_name_dropdown.grid(row=0, column=5, pady=5, padx=4)
 
-        ttk.Label(top_frame, text="Contract:", font=('Helvetica', 10)).grid(row=0, column=2, pady=5, padx=5, sticky="e")
+        ttk.Label(top_frame, text="Contract:", font=('Helvetica', 10)).grid(row=0, column=6, pady=5, padx=4, sticky="e")
         self.cnt_name_grp_dropdown = ttk.Combobox(top_frame, textvariable=self.cnt_name_grp_var, state="readonly", font=('Helvetica', 10))
-        self.cnt_name_grp_dropdown.grid(row=0, column=3, pady=5, padx=5)
+        self.cnt_name_grp_dropdown.grid(row=0, column=7, pady=5, padx=4)
 
-        ttk.Label(top_frame, text="Model:", font=('Helvetica', 10)).grid(row=0, column=4, pady=5, padx=5, sticky="e")
+        ttk.Label(top_frame, text="Model:", font=('Helvetica', 10)).grid(row=0, column=8, pady=5, padx=4, sticky="e")
         self.business_model_dropdown = ttk.Combobox(top_frame, textvariable=self.business_model_var, state="readonly", font=('Helvetica', 10))
-        self.business_model_dropdown.grid(row=0, column=5, pady=5, padx=5)
-
-        self.load_cost_button = ttk.Button(top_frame, text="Load Cost", command=self.load_cost_data, width=10, style='Custom.TButton')
-        self.load_cost_button.grid(row=1, column=1, columnspan=3, pady=10, padx=5)
-
-        self.new_deal_button = ttk.Button(top_frame, text="New Deal", command=self.open_new_deal_popup, width=10, style='Custom.TButton')
-        self.new_deal_button.grid(row=1, column=4, columnspan=2, pady=10, padx=5)
-
-        self.update_deal_button = ttk.Button(top_frame, text="Update Deal", command=self.open_update_deal_popup, width=10, style='Custom.TButton')
-        self.update_deal_button.grid(row=1, column=6, columnspan=2, pady=10, padx=5)
+        self.business_model_dropdown.grid(row=0, column=9, pady=5, padx=4)
 
         self.tree = ttk.Treeview(tree_container, columns=(), show="headings")
         self.tree.grid(row=0, column=0, sticky="nsew")

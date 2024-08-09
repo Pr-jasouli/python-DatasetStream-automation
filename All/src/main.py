@@ -154,9 +154,9 @@ class MainApplication(tk.Tk):
                                               width=12)
         process_button.pack(side='left', padx=5, pady=5)
 
-        # view_result_button = create_styled_button(audience_frame, "View", self.audience_tab.view_result,
-        #                                           width=12)
-        # view_result_button.pack(side='left', padx=5, pady=5)
+        update_deal_button = create_styled_button(cost_frame, "Update Deal", self.cost_tab.open_update_deal_popup, width=12)
+        update_deal_button.pack(side='left', padx=5, pady=5)
+
 
 
     def open_config(self):
