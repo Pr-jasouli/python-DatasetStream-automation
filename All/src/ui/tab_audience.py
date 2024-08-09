@@ -17,6 +17,7 @@ from utilities.utils import show_message
 class AudienceTab(ttk.Frame):
     def __init__(self, parent, config_manager, config_ui_callback=None):
         super().__init__(parent)
+        self.lookup_key_to_prod_num = None
         self.prod_num_label = None
         self.bus_chanl_num_map = None
         self.prod_num_map = None
@@ -49,32 +50,54 @@ class AudienceTab(ttk.Frame):
 
     def section_specifics_setup(self):
         """Sets up the specifics selection widget."""
+        # Main container
         container = ttk.Frame(self)
         container.pack(side='top', fill='x', expand=False, padx=20, pady=10)
-        ttk.Label(container, text="SPECIFICS", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
 
+        # Sub-container for label and checkbox, centered
+        label_checkbox_container = ttk.Frame(container)
+        label_checkbox_container.pack(side='top', pady=(10, 5), anchor='center')
+
+        # Title label
+        specifics_label = ttk.Label(label_checkbox_container, text="SPECIFICS", style='Title.TLabel')
+        specifics_label.pack(side='left', padx=(0, 5))
+
+        # Enable checkbox
         self.specifics_var = BooleanVar()
-        self.specifics_checkbox = ttk.Checkbutton(container, text="enable",
+        self.specifics_checkbox = ttk.Checkbutton(label_checkbox_container, text="enable",
                                                   variable=self.specifics_var,
                                                   command=self.section_specifics_checkbox_enable)
-        self.specifics_checkbox.pack(side='top', padx=10, pady=(2, 0))
+        self.specifics_checkbox.pack(side='left')
 
-        self.channel_grouping_button = ttk.Button(container, text="Channels", command=self.grouping_channel_load,
+        # Sub-container for buttons
+        button_container = ttk.Frame(container)
+        button_container.pack(side='top', expand=False, pady=(5, 5), anchor='center')
+
+        # Channels button
+        self.channel_grouping_button = ttk.Button(button_container, text="Channels", command=self.grouping_channel_load,
                                                   width=10, style='AudienceTab.TButton')
-        self.channel_grouping_button.pack(side='left', padx=(1, 2), pady=(0, 0))
+        self.channel_grouping_button.pack(side='left', padx=(1, 5), pady=(0, 0))
         self.tooltip = None
-        self.channel_grouping_button.bind("<Enter>", lambda e: self.show_tooltip(e,"Channel Grouping\nsheet: Content_Channel_Grouping\ncolumn: CHANNEL_NAME"))
+        self.channel_grouping_button.bind("<Enter>", lambda e: self.show_tooltip(e,
+                                                                                 "Channel Grouping\nsheet: Content_Channel_Grouping\ncolumn: CHANNEL_NAME"))
         self.channel_grouping_button.bind("<Leave>", lambda e: self.hide_tooltip())
 
-        self.product_grouping_button = ttk.Button(container, text="Products", command=self.load_product_grouping,
+        # Products button
+        self.product_grouping_button = ttk.Button(button_container, text="Products", command=self.load_product_grouping,
                                                   width=10, style='AudienceTab.TButton')
-        self.product_grouping_button.pack(side='right', padx=(1, 2), pady=(0, 0))
-        self.product_grouping_button.bind("<Enter>", lambda e: self.show_tooltip(e,"Products Grouping\nsheet: Content_Product_Grouping WS 241\ncolumn: PROD_NUM"))
+        self.product_grouping_button.pack(side='left', padx=(5, 1), pady=(0, 0))
+
+        # Center the button container within its parent
+        button_container.pack(anchor='center')
+        self.product_grouping_button.bind("<Enter>", lambda e: self.show_tooltip(e,
+                                                                                 "Products Grouping\nsheet: Content_Product_Grouping WS 241\ncolumn: PROD_NUM"))
         self.product_grouping_button.bind("<Leave>", lambda e: self.hide_tooltip())
 
+        # Specifics frame containing listboxes
         self.specifics_frame = ttk.Frame(container)
         self.specifics_frame.pack(side='top', fill='both', expand=True, padx=10, pady=(5, 15))
 
+        # Channel listbox setup
         bus_chanl_frame = ttk.Frame(self.specifics_frame)
         bus_chanl_frame.pack(side='left', fill='both', expand=True, padx=0, pady=0)
         self.bus_chanl_label = ttk.Label(bus_chanl_frame, text="BUS_CHANL_NUM")
@@ -87,6 +110,7 @@ class AudienceTab(ttk.Frame):
         self.bus_chanl_num_listbox.config(yscrollcommand=bus_chanl_scrollbar.set)
         bus_chanl_scrollbar.pack(side="right", fill="y")
 
+        # Product listbox setup
         prod_num_frame = ttk.Frame(self.specifics_frame)
         prod_num_frame.pack(side='left', fill='both', expand=True, padx=0, pady=0)
         ttk.Label(prod_num_frame, text="PROD_NUM:").pack(side='top', padx=0)
@@ -98,6 +122,7 @@ class AudienceTab(ttk.Frame):
         self.prod_num_listbox.config(yscrollcommand=prod_num_scrollbar.set)
         prod_num_scrollbar.pack(side="right", fill="y")
 
+        # Reset row frame
         self.reset_row_frame = ttk.Frame(container)
 
         style = ttk.Style()
@@ -142,7 +167,7 @@ class AudienceTab(ttk.Frame):
         self.specifics_frame.update_idletasks()
 
     def grouping_channel_load(self):
-        """Loads the channel grouping file and updates the BUS_CHANL_NUM listbox."""
+        """Loads the channel grouping file and updates the BUS_CHANL_NUM listbox in alphabetical order."""
         self.specifics_var.set(True)
         self.section_specifics_checkbox_enable()
 
@@ -167,13 +192,21 @@ class AudienceTab(ttk.Frame):
                 except ValueError:
                     updated_bus_chanl_nums.append((bus_chanl_num, bus_chanl_num))
 
+            # Sort the list alphabetically by display_value
+            updated_bus_chanl_nums.sort(key=lambda x: str(x[1]).lower() if isinstance(x[1], str) else str(x[1]))
+
+            # Update the BUS_CHANL_NUM listbox and map without affecting the product listbox or map
             self.bus_chanl_num_listbox.delete(0, 'end')
             if not hasattr(self, 'bus_chanl_num_map') or self.bus_chanl_num_map is None:
                 self.bus_chanl_num_map = {}
+
+            # Retain the existing mappings and just update with new data
+            new_bus_chanl_map = {}
             for bus_chanl_num, display_value in updated_bus_chanl_nums:
                 self.bus_chanl_num_listbox.insert('end', display_value)
-                self.bus_chanl_num_map[display_value] = bus_chanl_num
+                new_bus_chanl_map[display_value] = bus_chanl_num
 
+            self.bus_chanl_num_map.update(new_bus_chanl_map)
             self.bus_chanl_label.config(text="CHANNEL_NAME")
 
         except PermissionError:
@@ -185,7 +218,7 @@ class AudienceTab(ttk.Frame):
             show_message("Error", f"An unexpected error occurred: {e}", type="error", master=self)
 
     def load_product_grouping(self):
-        """Loads the product grouping file and updates the PROD_NUM listbox."""
+        """Loads the product grouping file and updates the PROD_NUM listbox in alphabetical order."""
         self.specifics_var.set(True)
         self.section_specifics_checkbox_enable()
 
@@ -209,15 +242,26 @@ class AudienceTab(ttk.Frame):
                 except ValueError:
                     updated_prod_nums.append((prod_num, prod_num))
 
+            # Sort the list alphabetically by display_value (product name)
+            updated_prod_nums.sort(key=lambda x: str(x[1]).lower() if isinstance(x[1], str) else str(x[1]))
+
+            # Update only the PROD_NUM listbox without resetting the bus_chanl_num_map
             self.prod_num_listbox.delete(0, 'end')
+
+            # Ensure the product maps are dictionaries before clearing them
             if not hasattr(self, 'prod_num_map') or self.prod_num_map is None:
                 self.prod_num_map = {}
             if not hasattr(self, 'lookup_key_to_prod_num') or self.lookup_key_to_prod_num is None:
                 self.lookup_key_to_prod_num = {}
+
+            self.prod_num_map.clear()
+            self.lookup_key_to_prod_num.clear()
+
             for prod_num, display_value in updated_prod_nums:
                 self.prod_num_listbox.insert('end', display_value)
                 self.prod_num_map[display_value] = prod_num
                 self.lookup_key_to_prod_num[display_value] = prod_num
+
         except PermissionError:
             show_message("Error", "Permission denied: unable to open the file.", type="error", master=self)
         except ValueError:
@@ -282,14 +326,19 @@ class AudienceTab(ttk.Frame):
         self.section_specifics_listbox_highlight_top(self.prod_num_listbox)
 
     def section_specifics_listbox_highlight_top(self, listbox):
-        """Move selected items to the top of the listbox."""
+        """Move selected items to the top of the listbox without resetting the scroll position."""
         selected_indices = listbox.curselection()
         if not selected_indices:
             return
 
+        # Save the current scroll position
+        first_visible_index = listbox.nearest(0)
+
+        # Extract selected and remaining items
         selected_items = [listbox.get(i) for i in selected_indices]
         remaining_items = [listbox.get(i) for i in range(listbox.size()) if i not in selected_indices]
 
+        # Update the listbox with selected items at the top
         listbox.delete(0, 'end')
         for item in selected_items:
             listbox.insert('end', item)
@@ -297,6 +346,8 @@ class AudienceTab(ttk.Frame):
         for item in remaining_items:
             listbox.insert('end', item)
 
+        # Restore the scroll position
+        listbox.yview_scroll(first_visible_index - listbox.nearest(0), 'units')
     def section_specifics_listbox_reset(self, event=None):
         """Resets the selections in both listboxes."""
         self.prod_num_listbox.selection_clear(0, 'end')
@@ -306,20 +357,33 @@ class AudienceTab(ttk.Frame):
     def section_specifics_checkbox_enable(self):
         """Toggles the visibility and content of the specifics listboxes based on the checkbox state."""
         if self.specifics_var.get():
+            # Check if a file is loaded
+            if not self.file_path or not os.path.isfile(self.file_path):
+                # If no file is loaded, prompt the user to load a file
+                self.prompt_excel_load()
+                # Check if a file was successfully loaded after prompting
+                if self.file_path and os.path.isfile(self.file_path):
+                    self.specifics_var.set(True)  # Set the checkbox to checked
+                else:
+                    self.specifics_var.set(False)  # Uncheck the checkbox if no file was loaded
+                    return  # Exit the function if no file is loaded
+
+            # Instead of clearing maps, just load the values into the listboxes
             self.section_specifics_listboxes_values()
             self.reset_row_frame.pack(side='top', fill='x', expand=False, padx=5, pady=(0, 0))
+
+            # Disable the checkbox to prevent further modification
+            self.specifics_checkbox.config(state='disabled')
         else:
+            # Clear the listboxes and reset labels
             self.prod_num_listbox.delete(0, 'end')
             self.bus_chanl_num_listbox.delete(0, 'end')
-
-            # self.prod_num_label.config(text="PROD_NUM")
             self.bus_chanl_label.config(text="BUS_CHANL_NUM")
-
             self.row_count_label.config(text="Selected Rows: 0")
             self.prod_count_label.config(text="Selected Products: 0")
             self.reset_row_frame.pack_forget()
 
-
+            # No need to reset the maps here either; just clear the UI elements
 
     def start_processing(self):
         if self.validate_all():
@@ -573,9 +637,6 @@ class AudienceTab(ttk.Frame):
         audience_dest = self.config_data.get('audience_dest')
         if audience_dest:
             self.output_path.insert(0, audience_dest)
-
-
-
 
     def view_result(self):
         output_path = self.output_path.get()

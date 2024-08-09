@@ -23,7 +23,7 @@ class MainApplication(tk.Tk):
 
     def center_window(self):
         window_width = 970
-        window_height = 800
+        window_height = 780
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         position_top = int(screen_height / 2 - window_height / 2)
@@ -48,7 +48,6 @@ class MainApplication(tk.Tk):
 
     def configure_geometry(self):
         """Configure window size and properties."""
-        # self.geometry("970x900")
         self.minsize(600, 450)
 
     def create_styles(self):
