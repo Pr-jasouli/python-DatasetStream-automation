@@ -1,3 +1,6 @@
+import ctypes
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
@@ -230,3 +233,14 @@ def tooltip_hide(tooltip):
         tooltip.destroy()
 
     current_tooltip = None
+
+def prevent_multiple_instances(mutex_name="my_unique_application_mutex"):
+    """Prevents multiple instances of the application by using a named mutex."""
+    mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+    last_error = ctypes.windll.kernel32.GetLastError()
+
+    if last_error == 183:  # ERROR_ALREADY_EXISTS
+        print("Another instance of this application is already running.")
+        sys.exit()
+
+

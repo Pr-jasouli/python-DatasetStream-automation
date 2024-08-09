@@ -5,7 +5,7 @@ from tkinter import ttk
 from ui.tab_audience import AudienceTab
 from ui.tab_cost import CostTab
 from ui.ui_config import ConfigUI
-from utilities.utils import show_message, create_styled_button
+from utilities.utils import show_message, create_styled_button, prevent_multiple_instances, get_base_dir, center_window
 from utilities.config_manager import ConfigManager, ConfigLoaderPopup
 import os
 
@@ -194,5 +194,8 @@ class MainApplication(tk.Tk):
 
 
 if __name__ == "__main__":
-    app = MainApplication()
+    base_dir = get_base_dir(__file__)
+    prevent_multiple_instances()
+
+    app = MainApplication(base_dir=base_dir)
     app.mainloop()
