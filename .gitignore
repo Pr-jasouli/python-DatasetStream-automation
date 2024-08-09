@@ -87,3 +87,4 @@ config/
 
 # PDF
 *.pdf
+/.config/config.json
