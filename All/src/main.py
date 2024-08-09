@@ -39,7 +39,12 @@ class MainApplication(tk.Tk):
 
     def initialize_ui(self):
         """Initialize the main UI components."""
-        self.title("Telecom Application")
+        self.title("Proximus Automation")
+        icon_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'favicon.ico')
+        if os.path.exists(icon_path):
+            self.iconbitmap(icon_path)
+        else:
+            print("Icon file not found:", icon_path)
         self.create_styles()
         self.configure_geometry()
         self.create_menus()

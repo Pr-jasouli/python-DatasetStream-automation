@@ -75,7 +75,12 @@ class ConfigLoaderPopup(Toplevel):
         master.wait_window(self)
 
     def init_ui(self):
-        self.title("Load Files")
+        self.title("Recent files Loader")
+        icon_path = os.path.join(os.path.dirname(__file__),'..', '..', 'static', 'favicon.ico')
+        if os.path.exists(icon_path):
+            self.iconbitmap(icon_path)
+        else:
+            print("Icon file not found:", icon_path)
         self.configure(bg='#f0f0f0')
 
         files_to_load = {k: v for k, v in self.config_data.items() if os.path.isfile(v)}
