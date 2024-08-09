@@ -24,6 +24,9 @@ class CostTab(ttk.Frame):
         self.init_ui()
         self.model_columns = {
 
+            'Fixed fee': ['CT_BOOK_YEAR', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
+                          'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
+                          'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
             'fixed fee': ['CT_BOOK_YEAR', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
                           'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
                           'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
@@ -195,7 +198,7 @@ class CostTab(ttk.Frame):
         def submit_deal():
             new_row = {col: entry_vars[col].get() for col in columns}
             # colonnes cachées
-            if business_model == 'fixed fee':
+            if business_model == 'fixed fee' or business_model == 'Fixed fee':
                 new_row['Business model'] = 'Fixed fee'
                 new_row['variable/fix'] = 'fixed'
             self.add_new_deal_row(pd.Series(new_row))
