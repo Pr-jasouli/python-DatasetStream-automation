@@ -177,3 +177,30 @@ def clean_file_path(file_path):
     """
     return file_path.strip().strip('"')
 
+
+current_tooltip = None  # Global variable to keep track of the current tooltip
+
+def tooltip_show(event, text, master):
+    global current_tooltip
+
+    # If a tooltip is already being shown, destroy it before showing a new one
+    if current_tooltip:
+        tooltip_hide(current_tooltip)
+
+    x, y = master.winfo_pointerxy()
+    tooltip = tk.Toplevel(master)
+    tooltip.wm_overrideredirect(True)
+    tooltip.wm_geometry(f"+{x + 10}+{y + 10}")
+    label = ttk.Label(tooltip, text=text, background="grey", relief="solid", borderwidth=1, padding=5)
+    label.pack()
+
+    current_tooltip = tooltip  # Store the current tooltip reference
+    return tooltip
+
+def tooltip_hide(tooltip):
+    global current_tooltip
+
+    if tooltip and tooltip.winfo_exists():
+        tooltip.destroy()
+
+    current_tooltip = None

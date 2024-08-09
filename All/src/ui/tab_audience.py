@@ -10,6 +10,7 @@ from tkinter import ttk
 
 import pandas as pd
 
+from utilities import utils
 from utilities.utils import show_message
 
 
@@ -40,6 +41,12 @@ class AudienceTab(ttk.Frame):
         self.section_target_setup()
         self.section_specifics_setup()
 
+    def show_tooltip(self, event, text):
+        self.tooltip = utils.tooltip_show(event, text, self)
+
+    def hide_tooltip(self):
+        utils.tooltip_hide(self.tooltip)
+
     def section_specifics_setup(self):
         """Sets up the specifics selection widget."""
         container = ttk.Frame(self)
@@ -55,16 +62,15 @@ class AudienceTab(ttk.Frame):
         self.channel_grouping_button = ttk.Button(container, text="Channels", command=self.grouping_channel_load,
                                                   width=10, style='AudienceTab.TButton')
         self.channel_grouping_button.pack(side='left', padx=(1, 2), pady=(0, 0))
-        self.channel_grouping_button.bind("<Enter>", lambda e: self.tooltip_show(e,
-                                                                                 "Channel Grouping\nsheet: Content_Channel_Grouping\ncolumn: CHANNEL_NAME"))
-        self.channel_grouping_button.bind("<Leave>", lambda e: self.tooltip_hide())
+        self.tooltip = None
+        self.channel_grouping_button.bind("<Enter>", lambda e: self.show_tooltip(e,"Channel Grouping\nsheet: Content_Channel_Grouping\ncolumn: CHANNEL_NAME"))
+        self.channel_grouping_button.bind("<Leave>", lambda e: self.hide_tooltip())
 
         self.product_grouping_button = ttk.Button(container, text="Products", command=self.load_product_grouping,
                                                   width=10, style='AudienceTab.TButton')
         self.product_grouping_button.pack(side='right', padx=(1, 2), pady=(0, 0))
-        self.product_grouping_button.bind("<Enter>", lambda e: self.tooltip_show(e,
-                                                                                 "Products Grouping\nsheet: Content_Product_Grouping WS 241\ncolumn: PROD_NUM"))
-        self.product_grouping_button.bind("<Leave>", lambda e: self.tooltip_hide())
+        self.product_grouping_button.bind("<Enter>", lambda e: self.show_tooltip(e,"Products Grouping\nsheet: Content_Product_Grouping WS 241\ncolumn: PROD_NUM"))
+        self.product_grouping_button.bind("<Leave>", lambda e: self.hide_tooltip())
 
         self.specifics_frame = ttk.Frame(container)
         self.specifics_frame.pack(side='top', fill='both', expand=True, padx=10, pady=(5, 15))
@@ -415,7 +421,7 @@ class AudienceTab(ttk.Frame):
             help_label = ttk.Label(parent, text="?", cursor="hand2", font=("Helvetica", 11))
             help_label.pack(side='left', padx=(2, 10))
             help_label.bind("<Enter>", self.tooltip_reference_update)
-            help_label.bind("<Leave>", lambda e: self.tooltip_hide())
+            help_label.bind("<Leave>", lambda e: self.hide_tooltip())
 
 
             if self.current_month == 1:
@@ -450,7 +456,7 @@ class AudienceTab(ttk.Frame):
 
         if not references_month or not references_year or not target_start_year or not target_end_year:
             help_text = "Remplir toutes les dates pour obtenir de l'aide"
-            self.tooltip_show(event, help_text)
+            self.show_tooltip(event, help_text)
             return
 
         try:
@@ -473,20 +479,7 @@ class AudienceTab(ttk.Frame):
             else:
                 help_text = f'Sans aller au delà de {month_str} {references_year}, calculer {target_start_year} à {target_end_year} inclus'
 
-        self.tooltip_show(event, help_text)
-
-    def tooltip_show(self, event, text):
-        x, y = self.winfo_pointerxy()
-        self.tooltip = Toplevel(self.master)
-        self.tooltip.wm_overrideredirect(True)
-        self.tooltip.wm_geometry(f"+{x + 10}+{y + 10}")
-        label = ttk.Label(self.tooltip, text=text, background="grey", relief="solid", borderwidth=1, padding=5)
-        label.pack()
-
-    def tooltip_hide(self):
-        if self.tooltip:
-            self.tooltip.destroy()
-            self.tooltip = None
+        self.show_tooltip(event, help_text)
 
     def load_file(self, path):
         src_audience_path = self.config_data.get('audience_src')

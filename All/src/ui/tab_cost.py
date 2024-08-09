@@ -4,6 +4,7 @@ from tkinter import ttk, filedialog
 
 import pandas as pd
 
+from utilities import utils
 from utilities.config_manager import ConfigManager
 from utilities.utils import show_message
 
