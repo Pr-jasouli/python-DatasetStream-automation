@@ -1,6 +1,32 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
+import pandas as pd
+
+
+def open_file_and_update_config(config_manager, config_key, title="Select a file", filetypes=None):
+    """
+    Opens a file dialog to select a file and updates the configuration with the selected file path.
+
+    Args:
+        config_manager (ConfigManager): The configuration manager to update.
+        config_key (str): The key in the configuration to update with the selected file path.
+        title (str): The title of the file dialog window.
+        filetypes (list): A list of tuples specifying the file types (e.g., [("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]).
+
+    Returns:
+        str: The selected file path, or None if no file was selected.
+    """
+    filetypes = [("Excel files", "*.xlsx *.xls")]
+    filepath = filedialog.askopenfilename(title=title, filetypes=filetypes)
+    if filepath:
+        config_manager.update_config(config_key, filepath)
+        try:
+            df = pd.read_excel(filepath)
+            return df
+        except Exception as e:
+            show_message("Error", f"Failed to load Excel file: {e}", type="error")
+    return None
 
 def center_window(window, master=None, width=420, height=650):
     """

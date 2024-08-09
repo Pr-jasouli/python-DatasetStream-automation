@@ -6,7 +6,7 @@ import pandas as pd
 
 from utilities import utils
 from utilities.config_manager import ConfigManager
-from utilities.utils import show_message
+from utilities.utils import show_message, open_file_and_update_config
 
 
 class CostTab(ttk.Frame):
@@ -15,7 +15,7 @@ class CostTab(ttk.Frame):
         self.config_manager = config_manager
         self.config_ui_callback = config_ui_callback
         self.config_data = config_manager.get_config()
-        self.file_path = None
+        self.file_path = self.config_data.get('cost_src', None)
         self.data = None
         self.network_name_var = tk.StringVar()
         self.cnt_name_grp_var = tk.StringVar()
@@ -32,16 +32,30 @@ class CostTab(ttk.Frame):
                           'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
         }
 
-        if self.file_path:
-            self.load_cost_reference_file(self.file_path)
+        # if self.file_path:
+        #     self.load_file(self.file_path)
 
     def load_file(self, path):
         self.file_path = path
+        # self.config_manager.update_config('cost_src', path)
         self.load_cost_reference_file(path)
 
     def load_cost_reference_file(self, file_path):
-        self.data = pd.read_excel(file_path, sheet_name='all contract cost file')
-        self.populate_dropdowns()
+        try:
+            self.data = pd.read_excel(file_path, sheet_name='all contract cost file')
+            self.populate_dropdowns()
+        except Exception as e:
+            show_message("Error", f"Failed to load cost file: {e}", type='error', master=self, custom=True)
+
+    def load_cost_data(self):
+        file_path = open_file_and_update_config(
+            config_manager=self.config_manager,
+            config_key='cost_src',
+            title="Select Cost File",
+            filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
+        )
+        if file_path:
+            self.load_file(file_path)
 
     def init_ui(self):
         style = ttk.Style()
@@ -165,14 +179,7 @@ class CostTab(ttk.Frame):
             max_width = max((tkFont.Font().measure(str(self.tree.set(item, col))) for item in self.tree.get_children()), default=100)
             self.tree.column(col, width=max_width + 20)
 
-    def load_cost_data(self):
-        file_path = filedialog.askopenfilename(
-            title="Select Cost File",
-            filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
-        )
-        if file_path:
-            self.file_path = file_path
-            self.load_cost_reference_file(file_path)
+
 
     def open_new_deal_popup(self):
         network_name = self.network_name_var.get()

@@ -33,6 +33,7 @@ class MainApplication(tk.Tk):
     def show_file_loader_popup_if_files_exist(self):
         files_to_load = {k: v for k, v in self.config_data.items() if os.path.isfile(v)}
         if files_to_load:
+            print("Files found, showing loader popup.")
             ConfigLoaderPopup(self, self.config_manager, self.load_tab_content)
 
 

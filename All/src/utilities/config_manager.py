@@ -80,10 +80,10 @@ class ConfigLoaderPopup(Toplevel):
 
         files_to_load = {k: v for k, v in self.config_data.items() if os.path.isfile(v)}
 
-        unique_files = {}
-        for key, path in files_to_load.items():
-            if path not in unique_files:
-                unique_files[path] = key
+        # unique_files = {}
+        # for key, path in files_to_load.items():
+        #     if path not in unique_files:
+        #         unique_files[path] = key
 
         data = []
         for key, path in files_to_load.items():
