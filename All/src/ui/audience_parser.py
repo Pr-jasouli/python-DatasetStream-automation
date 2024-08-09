@@ -228,7 +228,11 @@ def set_forecast_sheet_as_active(workbook):
 
 
 def main(args):
-    file_path = args.get('file_path', '../../inputs/data audience creation .xlsx')
+    file_path = args.get('file_path')
+    if not file_path or not os.path.exists(file_path):
+        logging.error(f"The specified file does not exist: {file_path}")
+        return
+
     references_month = int(args.get('references_month', 6))
     references_year = int(args.get('references_year', 2024))
     target_start_year = int(args.get('target_start_year', 2025))
@@ -236,7 +240,11 @@ def main(args):
     specifics_enabled = args.get('specifics_enabled', False)
     prod_nums = args.get('prod_nums', [])
     bus_chanl_nums = args.get('bus_chanl_nums', [])
-    output_dir = args.get('output_dir', '../../outputs')
+    output_dir = args.get('output_dir')
+    if not output_dir or not os.path.exists(output_dir):
+        logging.error(f"The specified output directory does not exist: {output_dir}")
+        return
+
     df = load_excel(file_path)
 
     forecast_df, reference_df = calculate_forecast(df, references_month, references_year, target_start_year, target_end_year, specifics_enabled, prod_nums, bus_chanl_nums)
