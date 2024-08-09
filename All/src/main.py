@@ -21,17 +21,8 @@ class MainApplication(tk.Tk):
         self.config_ui_callback = self.update_config_data
 
         self.initialize_ui()
-        self.center_window()
+        center_window(self, self.master, 970, 805)
         self.show_file_loader_popup_if_files_exist()
-
-    def center_window(self):
-        window_width = 970
-        window_height = 780
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        position_top = int(screen_height / 2 - window_height / 2)
-        position_right = int(screen_width / 2 - window_width / 2)
-        self.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
 
     def show_file_loader_popup_if_files_exist(self):
         files_to_load = {k: v for k, v in self.config_data.items() if os.path.isfile(v)}
