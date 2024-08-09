@@ -53,7 +53,13 @@ class CostTab(ttk.Frame):
         tree_container = ttk.Frame(self)
         tree_container.grid(row=1, column=0, pady=10, padx=10, sticky="nsew")
 
-        ttk.Label(top_frame, text="Network", font=('Helvetica', 10)).grid(row=0, column=0, pady=5, padx=5, sticky="e")
+        self.load_cost_button = ttk.Button(top_frame, text="Cost File", command=self.load_cost_data, width=9, style='AudienceTab.TButton')
+        self.load_cost_button.grid(row=0, column=1, columnspan=3, pady=10, padx=4)
+        self.load_cost_button.bind("<Enter>", lambda e: self.show_tooltip(e,"Business model\nsheet: all contract cost file\ncolumns: 'NETWORK_NAME', 'CNT_NAME_GRP', 'Business model'"))
+        self.load_cost_button.bind("<Leave>", lambda e: self.hide_tooltip())
+
+
+        ttk.Label(top_frame, text="Network:", font=('Helvetica', 10)).grid(row=0, column=4, pady=5, padx=4, sticky="e")
         self.network_name_dropdown = ttk.Combobox(top_frame, textvariable=self.network_name_var, state="readonly", font=('Helvetica', 10))
         self.network_name_dropdown.grid(row=0, column=5, pady=5, padx=4)
 
@@ -283,6 +289,12 @@ class CostTab(ttk.Frame):
     def save_updated_data(self):
         with pd.ExcelWriter(self.file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             self.data.to_excel(writer, sheet_name='all contract cost file', index=False)
+
+    def show_tooltip(self, event, text):
+        self.tooltip = utils.tooltip_show(event, text, self)
+
+    def hide_tooltip(self):
+        utils.tooltip_hide(self.tooltip)
 
 if __name__ == "__main__":
     root = tk.Tk()
