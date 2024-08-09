@@ -7,6 +7,17 @@ from tkinter import ttk, filedialog, messagebox
 import pandas as pd
 
 
+def get_base_dir(main_file_path):
+    """Determine the base directory for the application."""
+    if getattr(sys, 'frozen', False):
+        base_dir = sys._MEIPASS
+        print(f"Application is frozen. _MEIPASS directory is {base_dir}")
+    else:
+        base_dir = os.path.dirname(os.path.abspath(main_file_path))
+        print(f"Application is not frozen. Base directory is {base_dir}")
+
+    return base_dir
+
 def open_file_and_update_config(config_manager, config_key, title="Select a file", filetypes=None):
     """
     Opens a file dialog to select a file and updates the configuration with the selected file path.

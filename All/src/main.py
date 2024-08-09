@@ -11,8 +11,11 @@ import os
 
 
 class MainApplication(tk.Tk):
-    def __init__(self):
+    def __init__(self, base_dir):
         super().__init__()
+        self.cost_tab = None
+        self.audience_tab = None
+        self.base_dir = base_dir
         self.config_manager = ConfigManager()
         self.config_data = self.config_manager.load_config()
         self.config_ui_callback = self.update_config_data
@@ -114,9 +117,9 @@ class MainApplication(tk.Tk):
         self.tab_control = ttk.Notebook(self, padding=10)
 
         # Create tabs without loading files
-        self.audience_tab = AudienceTab(parent=self.tab_control, config_manager=self.config_manager,
+        self.audience_tab = AudienceTab(parent=self.tab_control,  base_dir=self.base_dir, config_manager=self.config_manager,
                                         config_ui_callback=self.config_ui_callback)
-        self.cost_tab = CostTab(self.tab_control, config_manager=self.config_manager,
+        self.cost_tab = CostTab(parent=self.tab_control,  base_dir=self.base_dir, config_manager=self.config_manager,
                                 config_ui_callback=self.config_ui_callback)
 
         self.tab_control.add(self.audience_tab, text='Audience')

@@ -15,7 +15,7 @@ from utilities.utils import show_message
 
 
 class AudienceTab(ttk.Frame):
-    def __init__(self, parent, config_manager, config_ui_callback=None):
+    def __init__(self, parent, config_manager, base_dir, config_ui_callback=None):
         super().__init__(parent)
         self.lookup_key_to_prod_num = None
         self.prod_num_label = None
@@ -28,6 +28,7 @@ class AudienceTab(ttk.Frame):
         self.config_ui_callback = config_ui_callback
         self.config_manager = config_manager
         self.config_data = config_manager.get_config()
+        self.base_dir = base_dir
         self.file_path = None
         self.current_date = datetime.now()
         self.current_year = self.current_date.year
@@ -41,6 +42,30 @@ class AudienceTab(ttk.Frame):
         self.section_references_setup()
         self.section_target_setup()
         self.section_specifics_setup()
+        self.load_output_directory()
+
+
+    def section_target_output_location(self):
+        """Prompt the user to select an output directory and update the configuration."""
+        folder_selected = filedialog.askdirectory()
+        if folder_selected:
+            self.output_path.delete(0, 'end')
+            normalized_path = os.path.normpath(folder_selected)
+            self.output_path.insert(0, normalized_path)
+            self.output_dir = normalized_path
+            self.config_manager.update_config('audience_dest', normalized_path)
+
+    def load_output_directory(self):
+        """Load the output directory from the configuration."""
+        stored_output_dir = self.config_data.get('audience_dest')
+        if stored_output_dir:
+            normalized_path = os.path.normpath(stored_output_dir)
+            self.output_path.delete(0, 'end')
+            self.output_path.insert(0, normalized_path)
+            self.output_dir = normalized_path
+        else:
+            print("No output directory set in configuration.")
+
 
     def show_tooltip(self, event, text):
         self.tooltip = utils.tooltip_show(event, text, self)
@@ -435,14 +460,10 @@ class AudienceTab(ttk.Frame):
 
     def call_script(self, references_month, references_year, target_start_year, target_end_year,
                     file_path, specifics_enabled, prod_nums, bus_chanl_nums):
-        if getattr(sys, 'frozen', False):
-            base_dir = sys._MEIPASS
-            print(f"Hook: Application is frozen. _MEIPASS directory is {base_dir}")
-            print(f"Hook: Contents of _MEIPASS directory: {os.listdir(base_dir)}")
-        else:
-            base_dir = os.path.dirname(os.path.abspath(__file__))
 
-        script_path = os.path.join(base_dir, 'audience_parser.py')
+        if not self.base_dir:
+            raise ValueError("Base directory is not set.")
+        script_path = os.path.join(self.base_dir, 'parser', 'audience_parser.py')
         script_path = os.path.abspath(script_path)
         print(f"Script Path: {script_path}")
 
@@ -552,13 +573,7 @@ class AudienceTab(ttk.Frame):
         self.sections_reference_target_datefields(parent, context)
         self.setup_show_columns_button(parent, context)
 
-    def section_target_output_location(self):
-        folder_selected = filedialog.askdirectory()
-        if folder_selected:
-            self.output_path.delete(0, 'end')
-            self.output_path.insert(0, folder_selected)
-            self.output_dir = folder_selected
-            self.config_manager.update_config('audience_dest', folder_selected)
+
 
     def references_file_details(self, parent):
         """Configure and place the file details label within the given container."""
@@ -640,8 +655,10 @@ class AudienceTab(ttk.Frame):
 
     def view_result(self):
         output_path = self.output_path.get()
+        print(f"Output path: {output_path}")
         result_file = os.path.join(output_path, "forecast_audience.xlsx")
 
+        print(f"Result file path: {result_file}")
         if os.path.isfile(result_file):
             os.startfile(result_file)
         else:

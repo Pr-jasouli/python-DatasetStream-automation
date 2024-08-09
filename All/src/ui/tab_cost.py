@@ -10,7 +10,7 @@ from utilities.utils import show_message, open_file_and_update_config
 
 
 class CostTab(ttk.Frame):
-    def __init__(self, parent, config_manager=None, config_ui_callback=None):
+    def __init__(self, parent, base_dir, config_manager=None, config_ui_callback=None):
         super().__init__(parent)
         self.config_manager = config_manager
         self.config_ui_callback = config_ui_callback
@@ -20,6 +20,7 @@ class CostTab(ttk.Frame):
         self.network_name_var = tk.StringVar()
         self.cnt_name_grp_var = tk.StringVar()
         self.business_model_var = tk.StringVar()
+        self.base_dir = base_dir
 
         self.init_ui()
         self.model_columns = {
@@ -54,8 +55,10 @@ class CostTab(ttk.Frame):
             title="Select Cost File",
             filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
         )
-        if file_path:
+        if isinstance(file_path, str) and file_path:
             self.load_file(file_path)
+        else:
+            print("Invalid file path:", file_path)
 
     def init_ui(self):
         style = ttk.Style()
