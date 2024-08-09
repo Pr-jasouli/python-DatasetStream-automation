@@ -138,21 +138,17 @@ class ConfigLoaderPopup(Toplevel):
                     self.loaded_files.add(path)
                     files_to_load.append((key, path))
 
-        if not files_to_load:
-            show_message("Info", "No new files selected to load.", master=self.master, custom=True)
-            return
-
-        for key, path in files_to_load:
-            try:
-                if os.path.exists(path):
-                    self.callback(key, path)
-                    show_message("File Loaded", f"Successfully loaded {key} from {path}", master=self.master,
-                                 custom=True)
-                else:
-                    show_message("Error", f"File not found: {path}", type='error', master=self.master, custom=True)
-            except Exception as e:
-                show_message("Error", f"Failed to load {key}: {e}", type='error', master=self.master, custom=True)
+        if files_to_load:
+            for key, path in files_to_load:
+                try:
+                    if os.path.exists(path):
+                        self.callback(key, path)
+                        show_message("File Loaded", f"Successfully loaded {key} from {path}", master=self.master,
+                                     custom=True)
+                    else:
+                        show_message("Error", f"File not found: {path}", type='error', master=self.master, custom=True)
+                except Exception as e:
+                    show_message("Error", f"Failed to load {key}: {e}", type='error', master=self.master, custom=True)
 
         self.selected_files.clear()
-
         self.destroy()
