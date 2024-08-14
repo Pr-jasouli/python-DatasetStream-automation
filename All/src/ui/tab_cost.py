@@ -12,6 +12,7 @@ from utilities.utils import show_message, open_file_and_update_config
 class CostTab(ttk.Frame):
     def __init__(self, parent, base_dir, config_manager=None, config_ui_callback=None):
         super().__init__(parent)
+        self.model_columns = self.get_model_columns()
         self.config_manager = config_manager
         self.config_ui_callback = config_ui_callback
         self.config_data = config_manager.get_config()
@@ -20,6 +21,8 @@ class CostTab(ttk.Frame):
         self.network_name_var = tk.StringVar()
         self.cnt_name_grp_var = tk.StringVar()
         self.business_model_var = tk.StringVar()
+        self.allocation_var = tk.StringVar()
+
         self.base_dir = base_dir
 
         self.init_ui()
@@ -28,9 +31,49 @@ class CostTab(ttk.Frame):
             'Fixed fee': ['CT_BOOK_YEAR', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
                           'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
                           'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
-            'fixed fee': ['CT_BOOK_YEAR', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
-                          'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
+
+            'fixed fee': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
+                          'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                          'CT_AVAIL_IN_SCARLET_FR',
                           'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
+
+            'Free': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
+                     'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                     'CT_AVAIL_IN_SCARLET_FR',
+                     'CT_AVAIL_IN_SCARLET_NL', 'Business model', 'variable/fix'],
+            'free': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
+                     'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                     'CT_AVAIL_IN_SCARLET_FR',
+                     'CT_AVAIL_IN_SCARLET_NL', 'Business model', 'variable/fix'],
+
+            'fixed fee + index': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE',
+                                  'CT_ENDDATE',
+                                  'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                                  'CT_AVAIL_IN_SCARLET_FR',
+                                  'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model',
+                                  'variable/fix', 'CT_INDEX'],
+
+            'Fixed fee cogs': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
+                               'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                               'CT_AVAIL_IN_SCARLET_FR',
+                               'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model',
+                               'variable/fix'],
+            'fixed fee cogs': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
+                               'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                               'CT_AVAIL_IN_SCARLET_FR',
+                               'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model',
+                               'variable/fix'],
+            #### END OK
+
+
+            # QUID % PAR REGION ET #SUBSCRIBER ???
+            'CPS Over MG Subs + index': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE',
+                                         'CT_ENDDATE',
+                                         'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                                         'CT_AVAIL_IN_SCARLET_FR',
+                                         'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model',
+                                         'variable/fix', 'CT_INDEX', 'CT_VARFEE', 'CT_VARFEE_NEW', ],
+
         }
 
         # if self.file_path:
@@ -50,6 +93,7 @@ class CostTab(ttk.Frame):
             self.network_name_dropdown.config(state='normal')
             self.cnt_name_grp_dropdown.config(state='normal')
             self.business_model_dropdown.config(state='normal')
+            self.allocation_dropdown.config(state='normal')
         except Exception as e:
             show_message("Error", f"Failed to load cost file: {e}", type='error', master=self, custom=True)
 
@@ -106,7 +150,17 @@ class CostTab(ttk.Frame):
         self.business_model_dropdown = ttk.Combobox(
             top_frame, textvariable=self.business_model_var, state="disabled", font=('Helvetica', 10)
         )
-        self.business_model_dropdown.grid(row=0, column=6, pady=5, padx=4)
+        self.business_model_dropdown.grid(row=0, column=2, pady=5, padx=4)
+
+        ttk.Label(top_frame, text="Allocation:", font=('Helvetica', 10)).grid(
+            row=1, column=1, pady=5, padx=4, sticky="e"
+        )
+        self.allocation_var = tk.StringVar()
+        self.allocation_dropdown = ttk.Combobox(
+            top_frame, textvariable=self.allocation_var, state="disabled", font=('Helvetica', 10)
+        )
+        self.allocation_dropdown.grid(row=1, column=2, pady=5, padx=4)
+
 
         self.tree = ttk.Treeview(tree_container, columns=(), show="headings")
         self.tree.grid(row=0, column=0, sticky="nsew")
@@ -121,6 +175,7 @@ class CostTab(ttk.Frame):
         self.network_name_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
         self.cnt_name_grp_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
         self.business_model_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
+        self.allocation_dropdown.bind("<<ComboboxSelected>>", self.update_dropdowns)
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
@@ -158,6 +213,8 @@ class CostTab(ttk.Frame):
             filtered_data = filtered_data[filtered_data['CNT_NAME_GRP'] == cnt_name_grp_selected]
         if business_model_selected:
             filtered_data = filtered_data[filtered_data['Business model'] == business_model_selected]
+        if allocation_selected:
+            filtered_data = filtered_data[filtered_data['allocation'] == allocation_selected]
 
         network_names = [''] + sorted(filtered_data['NETWORK_NAME'].dropna().unique())
         current_network_name = self.network_name_var.get()
@@ -174,8 +231,10 @@ class CostTab(ttk.Frame):
         self.business_model_dropdown['values'] = business_models
         self.business_model_var.set(current_business_model if current_business_model in business_models else '')
 
-        if business_model_selected:
-            self.display_metadata(network_name_selected, cnt_name_grp_selected, business_model_selected)
+        allocations = [''] + sorted(filtered_data['allocation'].dropna().unique())
+        current_allocation = self.allocation_var.get()
+        self.allocation_dropdown['values'] = allocations
+        self.allocation_var.set(current_allocation if current_allocation in allocations else '')
 
     def display_metadata(self, network_name, cnt_name_grp, business_model):
         for column in self.tree.get_children():
@@ -202,12 +261,11 @@ class CostTab(ttk.Frame):
             max_width = max((tkFont.Font().measure(str(self.tree.set(item, col))) for item in self.tree.get_children()), default=100)
             self.tree.column(col, width=max_width + 20)
 
-
-
     def open_new_deal_popup(self):
         network_name = self.network_name_var.get()
         cnt_name_grp = self.cnt_name_grp_var.get()
-        business_model = self.business_model_var.get().lower()
+        business_model = self.business_model_var.get()
+        allocation = self.allocation_var.get()
 
         if not business_model:
             show_message("Warning", "Please select a business model", master=self, custom=True)
