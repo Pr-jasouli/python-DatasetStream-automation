@@ -145,11 +145,15 @@ class ConfigManager:
                 content = file.read()
                 if content.strip():
                     self.config_data = json.loads(content)
+                    print(f"Debug: Loaded config from {file_path}.")
                 else:
                     raise ValueError("Empty configuration file")
         except (json.JSONDecodeError, ValueError, FileNotFoundError) as e:
-            self.config_data = self.default_config()
+            print(f"Debug: Failed to load config from {file_path}. Using default config.")
+            self.config_data = default_config()
             self.save_config()
+
+        print(f"Debug: Current 'cost_dest' in config: {self.config_data.get('cost_dest', '')}")
         return self.config_data
 
     def save_config(self):
@@ -157,14 +161,7 @@ class ConfigManager:
         os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
         with open(self.config_file, 'w') as file:
             json.dump(self.config_data, file, indent=4)
-
-    def default_config(self):
-        return {
-            'audience_src': '',
-            'audience_dest': '',
-            'cost_src': '',
-            # OTHERS HERE
-        }
+        print(f"Debug: Configuration saved to {self.config_file}")
 
     def update_config(self, key, value):
         if isinstance(value, str) and '\\' in value:

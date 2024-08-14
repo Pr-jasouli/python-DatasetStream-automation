@@ -18,6 +18,7 @@ class MainApplication(tk.Tk):
         self.base_dir = base_dir
         self.config_manager = ConfigManager()
         self.config_data = self.config_manager.load_config()
+        print(f"Debug: 'cost_dest' after loading config: {self.config_data.get('cost_dest', '')}")
         self.config_ui_callback = self.update_config_data
 
         self.initialize_ui()
