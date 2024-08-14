@@ -244,9 +244,13 @@ class CostTab(ttk.Frame):
             self.allocation_dropdown['values'] = allocations
 
     def update_dropdowns(self, event=None):
+        if self.data.empty:
+            return
+
         network_name_selected = self.network_name_var.get()
         cnt_name_grp_selected = self.cnt_name_grp_var.get()
         business_model_selected = self.business_model_var.get()
+        allocation_selected = self.allocation_var.get()
 
         filtered_data = self.data.copy()
         if network_name_selected:
