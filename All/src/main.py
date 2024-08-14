@@ -6,7 +6,7 @@ from ui.tab_audience import AudienceTab
 from ui.tab_cost import CostTab
 from ui.ui_config import ConfigUI
 from utilities.utils import show_message, create_styled_button, prevent_multiple_instances, get_base_dir, center_window
-from utilities.config_manager import ConfigManager, ConfigLoaderPopup
+from utilities.config_manager import ConfigManager, ConfigLoaderPopup, ContractLoaderPopup
 import os
 
 
@@ -127,6 +127,9 @@ class MainApplication(tk.Tk):
                 self.cost_tab.load_file(path)
         except Exception as e:
             show_message("Error", f"Failed to load {key}: {e}", type='error', master=self, custom=True)
+
+    def open_contract_loader_popup(self):
+        ContractLoaderPopup(self, self.config_manager)
 
     def create_bottom_frame(self):
         """Create the bottom frame with configuration and process buttons."""
