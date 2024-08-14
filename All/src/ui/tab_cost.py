@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk, filedialog
@@ -205,26 +206,37 @@ class CostTab(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
-    def find_relevant_sheet(self, file_path):
-        xls = pd.ExcelFile(file_path)
-        for sheet_name in xls.sheet_names:
-            df = pd.read_excel(xls, sheet_name=sheet_name)
-            if {'NETWORK_NAME', 'CNT_NAME_GRP', 'Business model'}.issubset(df.columns):
-                return df
-        return None
-
     def populate_dropdowns(self):
-        self.data['NETWORK_NAME'] = self.data['NETWORK_NAME'].astype(str)
-        self.data['CNT_NAME_GRP'] = self.data['CNT_NAME_GRP'].astype(str)
-        self.data['Business model'] = self.data['Business model'].astype(str)
+        if self.data is None or self.data.empty:
+            self.network_name_dropdown['values'] = ['']
+            self.cnt_name_grp_dropdown['values'] = ['']
+            self.business_model_dropdown['values'] = ['']
+            self.allocation_dropdown['values'] = ['']
 
-        network_names = [''] + sorted(self.data['NETWORK_NAME'].dropna().unique())
-        cnt_name_grps = [''] + sorted(self.data['CNT_NAME_GRP'].dropna().unique())
-        business_models = [''] + sorted(self.data['Business model'].dropna().unique())
+            self.network_name_dropdown.config(state='disabled')
+            self.cnt_name_grp_dropdown.config(state='disabled')
+            self.business_model_dropdown.config(state='disabled')
+            self.allocation_dropdown.config(state='disabled')
+        else:
+            self.network_name_dropdown.config(state='normal')
+            self.cnt_name_grp_dropdown.config(state='normal')
+            self.business_model_dropdown.config(state='normal')
+            self.allocation_dropdown.config(state='normal')
 
-        self.network_name_dropdown['values'] = network_names
-        self.cnt_name_grp_dropdown['values'] = cnt_name_grps
-        self.business_model_dropdown['values'] = business_models
+            self.data['NETWORK_NAME'] = self.data['NETWORK_NAME'].astype(str)
+            self.data['CNT_NAME_GRP'] = self.data['CNT_NAME_GRP'].astype(str)
+            self.data['Business model'] = self.data['Business model'].astype(str)
+            self.data['allocation'] = self.data['allocation'].astype(str)
+
+            network_names = [''] + sorted(self.data['NETWORK_NAME'].dropna().unique())
+            cnt_name_grps = [''] + sorted(self.data['CNT_NAME_GRP'].dropna().unique())
+            business_models = [''] + sorted(self.data['Business model'].dropna().unique())
+            allocations = [''] + sorted(self.data['allocation'].dropna().unique())
+
+            self.network_name_dropdown['values'] = network_names
+            self.cnt_name_grp_dropdown['values'] = cnt_name_grps
+            self.business_model_dropdown['values'] = business_models
+            self.allocation_dropdown['values'] = allocations
 
     def update_dropdowns(self, event=None):
         network_name_selected = self.network_name_var.get()
