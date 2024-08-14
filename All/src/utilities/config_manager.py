@@ -8,6 +8,121 @@ import pandas as pd
 
 from utilities.utils import center_window, show_message
 
+class ContractLoaderPopup(Toplevel):
+    def __init__(self, master, config_manager):
+        super().__init__(master)
+        self.config_manager = config_manager
+        self.config_data = self.config_manager.get_config()
+        self.cost_dest = self.config_data.get('cost_dest', '')
+
+        if not self.cost_dest:
+            print("Debug: 'cost_dest' is not set or is empty.")
+            show_message("Error", "The 'cost_dest' directory is not set or is invalid.", type='error', master=self)
+            self.destroy()
+            return
+
+        print(f"Debug: 'cost_dest' is set to: {self.cost_dest}")
+
+        self.working_contracts_file = os.path.join(self.cost_dest, 'working_contracts.xlsx')
+
+        if not os.path.exists(self.working_contracts_file):
+            print(f"Debug: 'working_contracts.xlsx' file does not exist at: {self.working_contracts_file}")
+            show_message("Error", f"'working_contracts.xlsx' file not found in {self.cost_dest}", type='error', master=self)
+            self.destroy()
+            return
+
+        self.init_ui()
+        center_window(self, master, 500, 400)
+        self.transient(master)
+        self.grab_set()
+        master.wait_window(self)
+
+    def init_ui(self):
+        self.title("Contract Templates")
+        icon_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'favicon.ico')
+        if os.path.exists(icon_path):
+            self.iconbitmap(icon_path)
+        else:
+            print("Icon file not found:", icon_path)
+        self.configure(bg='#f0f0f0')
+
+        sheets = self.get_sheets()
+
+        self.main_frame = ttk.Frame(self, style='Main.TFrame')
+        self.main_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+        self.tree = ttk.Treeview(self.main_frame, columns=('Business Model', 'Path'), show='headings')
+        self.tree.heading('Business Model', text='Business Model')
+        self.tree.heading('Path', text='Path')
+
+        self.tree.column('Business Model', width=250, stretch=True)
+        self.tree.column('Path', width=200, stretch=True)
+
+        bold_font = font.Font(weight="bold")
+
+        for sheet_name in sheets:
+            self.tree.insert('', 'end', values=(sheet_name, self.working_contracts_file))
+
+            self.tree.tag_configure('bold', font=bold_font)
+            self.tree.item(self.tree.get_children()[-1], tags=('bold',))
+        self.tree.pack(fill='both', expand=True)
+
+        self.tree.bind("<Double-1>", self.open_template)
+
+        scrollbar = ttk.Scrollbar(self.main_frame, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscroll=scrollbar.set)
+        scrollbar.pack(side='right', fill='y')
+
+    def get_sheets(self):
+        """Retrieve all sheet names from the centralized working_contracts.xlsx file."""
+        print(f"Debug: Retrieving sheets from {self.working_contracts_file}")
+        xl = pd.ExcelFile(self.working_contracts_file)
+        return xl.sheet_names
+
+    def open_template(self, event):
+        selected_item = self.tree.selection()
+        if selected_item:
+            sheet_name = self.tree.item(selected_item, "values")[0]
+            excel = win32.Dispatch('Excel.Application')
+            workbook = excel.Workbooks.Open(self.working_contracts_file)
+            excel.Visible = True
+
+            try:
+                sheet = workbook.Sheets(sheet_name)
+                sheet.Activate()
+            except Exception as e:
+                show_message("Error", f"Could not find sheet '{sheet_name}'. Error: {e}", master=self.master,
+                             custom=True)
+
+            excel.WindowState = win32.constants.xlMaximized
+            excel.Application.ActiveWindow.Activate()
+
+
+def default_config():
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    output_dir = os.path.join(project_root, 'outputs')
+
+    print(f"Debug: Setting default 'cost_dest' to: {output_dir}")
+    return {
+        'audience_src': '',
+        'audience_dest': '',
+        'cost_src': '',
+        'cost_dest': output_dir,
+    }
+
+
+def default_config():
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    output_dir = os.path.join(project_root, 'outputs')
+
+    print(f"Debug: Setting default 'cost_dest' to: {output_dir}")
+    return {
+        'audience_src': '',
+        'audience_dest': '',
+        'cost_src': '',
+        'cost_dest': output_dir,
+    }
+
 
 class ConfigManager:
     def __init__(self, config_file=None):
