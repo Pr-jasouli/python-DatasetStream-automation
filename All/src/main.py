@@ -152,14 +152,17 @@ class MainApplication(tk.Tk):
         cost_frame = ttk.Labelframe(bottom_frame, text="Cost", padding=5)
         cost_frame.pack(side='left', padx=10, pady=(0, 15))
 
-        process_button = create_styled_button(cost_frame, "New Deal", self.cost_tab.open_new_deal_popup,
-                                              width=12)
-        process_button.pack(side='left', padx=5, pady=5)
+        new_deal_button = create_styled_button(cost_frame, "New Deal", self.cost_tab.open_new_deal_popup,
+                                               width=12)
+        new_deal_button.pack(side='left', padx=5, pady=5)
 
-        update_deal_button = create_styled_button(cost_frame, "Update Deal", self.cost_tab.open_update_deal_popup, width=12)
+        update_deal_button = create_styled_button(cost_frame, "Update Deal", self.cost_tab.open_update_deal_popup,
+                                                  width=12)
         update_deal_button.pack(side='left', padx=5, pady=5)
 
-
+        view_deals_button = create_styled_button(cost_frame, "View Deals", self.open_contract_loader_popup,
+                                                 width=12)
+        view_deals_button.pack(side='left', padx=5, pady=5)
 
     def open_config(self):
         """Open the configuration UI."""
