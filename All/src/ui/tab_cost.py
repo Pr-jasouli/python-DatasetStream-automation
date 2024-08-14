@@ -105,12 +105,8 @@ class CostTab(ttk.Frame):
 
         }
 
-        # if self.file_path:
-        #     self.load_file(self.file_path)
-
     def load_file(self, path):
         self.file_path = path
-        # self.config_manager.update_config('cost_src', path)
         self.load_cost_reference_file(path)
 
     def load_cost_reference_file(self, file_path):
@@ -118,7 +114,6 @@ class CostTab(ttk.Frame):
             self.data = pd.read_excel(file_path, sheet_name='all contract cost file')
             self.populate_dropdowns()
 
-            # Enable the filtering comboboxes once the file is loaded
             self.network_name_dropdown.config(state='normal')
             self.cnt_name_grp_dropdown.config(state='normal')
             self.business_model_dropdown.config(state='normal')
@@ -149,32 +144,33 @@ class CostTab(ttk.Frame):
         tree_container.grid(row=1, column=0, pady=10, padx=10, sticky="nsew")
 
         self.load_cost_button = ttk.Button(
-            top_frame, text="Cost File", command=self.load_cost_data, width=9, style='Custom.TButton'
+            top_frame, text="Cost File", command=self.load_cost_data, width=9, style='AudienceTab.TButton'
         )
         self.load_cost_button.grid(row=0, column=0, pady=5, padx=4, sticky="w")
         self.load_cost_button.bind("<Enter>", lambda e: self.show_tooltip(
-            e, "Business model\nsheet: all contract cost file\ncolumns: 'NETWORK_NAME', 'CNT_NAME_GRP', 'Business model'")
-        )
+            e,
+            "Business model\nsheet: all contract cost file\ncolumns: 'NETWORK_NAME', 'CNT_NAME_GRP', 'Business model'")
+                                   )
         self.load_cost_button.bind("<Leave>", lambda e: self.hide_tooltip())
 
         ttk.Label(top_frame, text="Network:", font=('Helvetica', 10)).grid(
-            row=0, column=1, pady=5, padx=4, sticky="e"
+            row=0, column=3, pady=5, padx=4, sticky="e"
         )
         self.network_name_dropdown = ttk.Combobox(
             top_frame, textvariable=self.network_name_var, state="disabled", font=('Helvetica', 10)
         )
-        self.network_name_dropdown.grid(row=0, column=2, pady=5, padx=4)
+        self.network_name_dropdown.grid(row=0, column=4, pady=5, padx=4)
 
-        ttk.Label(top_frame, text="Contract:", font=('Helvetica', 10)).grid(
-            row=0, column=3, pady=5, padx=4, sticky="e"
+        ttk.Label(top_frame, text="Channel:", font=('Helvetica', 10)).grid(
+            row=0, column=5, pady=5, padx=4, sticky="e"
         )
         self.cnt_name_grp_dropdown = ttk.Combobox(
             top_frame, textvariable=self.cnt_name_grp_var, state="disabled", font=('Helvetica', 10)
         )
-        self.cnt_name_grp_dropdown.grid(row=0, column=4, pady=5, padx=4)
+        self.cnt_name_grp_dropdown.grid(row=0, column=6, pady=5, padx=4)
 
         ttk.Label(top_frame, text="Model:", font=('Helvetica', 10)).grid(
-            row=0, column=5, pady=5, padx=4, sticky="e"
+            row=0, column=1, pady=5, padx=4, sticky="e"
         )
         self.business_model_dropdown = ttk.Combobox(
             top_frame, textvariable=self.business_model_var, state="disabled", font=('Helvetica', 10)
