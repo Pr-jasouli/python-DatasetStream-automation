@@ -191,8 +191,8 @@ class ConfigLoaderPopup(Toplevel):
         master.wait_window(self)
 
     def init_ui(self):
-        self.title("Recent files Loader")
-        icon_path = os.path.join(os.path.dirname(__file__), 'static', 'favicon.ico')
+        self.title("Recent files")
+        icon_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'favicon.ico')
         if os.path.exists(icon_path):
             self.iconbitmap(icon_path)
         else:
