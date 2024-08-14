@@ -26,10 +26,39 @@ class CostTab(ttk.Frame):
         self.base_dir = base_dir
 
         self.init_ui()
-        self.model_columns = {
 
-            'Fixed fee': ['CT_BOOK_YEAR', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
-                          'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
+    def generate_template(self, new_row):
+        working_contracts_file = os.path.join(self.config_data.get('cost_dest', ''), 'working_contracts.xlsx')
+
+        business_model = new_row['Business model'].capitalize()
+
+        if not os.path.exists(working_contracts_file):
+            with pd.ExcelWriter(working_contracts_file, engine='openpyxl') as writer:
+                new_df = pd.DataFrame([new_row])
+                new_df.to_excel(writer, sheet_name=business_model, index=False)
+                print(f"Debug: Created new working contracts file with sheet '{business_model}'.")
+
+        else:
+            with pd.ExcelWriter(working_contracts_file, engine='openpyxl', mode='a',
+                                if_sheet_exists='overlay') as writer:
+                try:
+                    existing_df = pd.read_excel(working_contracts_file, sheet_name=business_model)
+                    updated_df = pd.concat([existing_df, pd.DataFrame([new_row])], ignore_index=True)
+                except ValueError:
+                    updated_df = pd.DataFrame([new_row])
+
+                updated_df.to_excel(writer, sheet_name=business_model, index=False)
+                print(f"Debug: Updated '{business_model}' sheet in the working contracts file.")
+
+        show_message("Success", f"Contract added to {working_contracts_file} under '{business_model}' sheet.",
+                     master=self, custom=True)
+
+    def get_model_columns(self):
+        return {
+            ### OK 100%
+            'Fixed fee': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
+                          'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                          'CT_AVAIL_IN_SCARLET_FR',
                           'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
 
             'fixed fee': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
