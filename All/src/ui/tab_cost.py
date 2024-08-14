@@ -154,6 +154,11 @@ class CostTab(ttk.Frame):
                                    )
         self.load_cost_button.bind("<Leave>", lambda e: self.hide_tooltip())
 
+        self.refresh_fields_button = ttk.Button(
+            top_frame, text="Refresh", command=self.clear_fields, width=9, style='AudienceTab.TButton'
+        )
+        self.refresh_fields_button.grid(row=1, column=0, pady=5, padx=4, sticky="w")
+
         ttk.Label(top_frame, text="Network:", font=('Helvetica', 10)).grid(
             row=0, column=3, pady=5, padx=4, sticky="e"
         )
@@ -273,9 +278,8 @@ class CostTab(ttk.Frame):
         self.allocation_dropdown['values'] = allocations
         self.allocation_var.set(current_allocation if current_allocation in allocations else '')
 
-    def display_metadata(self, network_name, cnt_name_grp, business_model):
-        for column in self.tree.get_children():
-            self.tree.delete(column)
+        if network_name_selected or cnt_name_grp_selected or business_model_selected or allocation_selected:
+            self.display_metadata(network_name_selected, cnt_name_grp_selected, allocation_selected)
 
     def display_metadata(self, network_name, cnt_name_grp=None, allocation=None):
         self.tree.delete(*self.tree.get_children())
@@ -466,11 +470,13 @@ class CostTab(ttk.Frame):
             self.data.at[item_idx, col] = val
 
         self.save_updated_data()
+        self.data.sort_values(by='CT_BOOK_YEAR', ascending=False, inplace=True)
         self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(), self.business_model_var.get())
 
     def add_new_deal_row(self, new_row):
         self.data = pd.concat([self.data, pd.DataFrame([new_row])], ignore_index=True)
         self.save_updated_data()
+        self.data.sort_values(by='CT_BOOK_YEAR', ascending=False, inplace=True)
         self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(), self.business_model_var.get())
 
     def save_updated_data(self):
@@ -482,6 +488,16 @@ class CostTab(ttk.Frame):
 
     def hide_tooltip(self):
         utils.tooltip_hide(self.tooltip)
+
+    def clear_fields(self):
+        self.network_name_var.set('')
+        self.cnt_name_grp_var.set('')
+        self.business_model_var.set('')
+        self.allocation_var.set('')
+
+        self.tree.delete(*self.tree.get_children())
+        self.populate_dropdowns()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
