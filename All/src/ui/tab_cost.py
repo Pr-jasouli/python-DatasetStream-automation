@@ -378,21 +378,25 @@ class CostTab(ttk.Frame):
 
         def submit_deal():
             new_row = {col: entry_vars[col].get() for col in columns}
-            # colonnes cachées
-            if business_model == 'fixed fee' or business_model == 'Fixed fee':
-                new_row['Business model'] = 'Fixed fee'
-                new_row['variable/fix'] = 'fixed'
-            self.add_new_deal_row(pd.Series(new_row))
-            new_deal_popup.destroy()
 
-        def cancel_deal():
+            new_row['Business model'] = business_model
+
+            required_fields = ['allocation', 'Business model', 'NETWORK_NAME', 'CNT_NAME_GRP']
+            for field in required_fields:
+                if not new_row.get(field):
+                    show_message("Error", f"Field '{field}' cannot be empty.", master=new_deal_popup, custom=True)
+                    return
+
+            if business_model == 'Fixed fee' or business_model == 'fixed fee':
+                new_row['variable/fix'] = 'fixed'
+
+            self.generate_template(new_row)
             new_deal_popup.destroy()
+            self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(),
+                                  self.business_model_var.get())
 
         submit_button = ttk.Button(new_deal_popup, text="Save", command=submit_deal)
-        submit_button.grid(row=len(columns), column=0, padx=10, pady=20, sticky='e')
-
-        cancel_button = ttk.Button(new_deal_popup, text="Cancel", command=cancel_deal)
-        cancel_button.grid(row=len(columns), column=1, padx=10, pady=20, sticky='w')
+        submit_button.grid(row=len(columns) + 1, column=0, padx=10, pady=20, sticky='e')
 
     def open_update_deal_popup(self):
         selected_items = self.tree.selection()
