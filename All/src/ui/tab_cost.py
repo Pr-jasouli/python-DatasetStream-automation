@@ -269,25 +269,65 @@ class CostTab(ttk.Frame):
         for column in self.tree.get_children():
             self.tree.delete(column)
 
-        columns = self.model_columns.get(business_model, [])
+    def display_metadata(self, network_name, cnt_name_grp=None, allocation=None):
+        self.tree.delete(*self.tree.get_children())
 
+        business_model_selected = self.business_model_var.get()
+        columns = self.model_columns.get(business_model_selected, [])
         self.tree["columns"] = columns
         for col in columns:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=tkFont.Font().measure(col) + 20)
 
-        filtered_rows = self.data[
-            (self.data['NETWORK_NAME'] == network_name) &
-            (self.data['CNT_NAME_GRP'] == cnt_name_grp) &
-            (self.data['Business model'] == business_model)
-        ]
+        filtered_rows = self.data[self.data['NETWORK_NAME'] == network_name]
+        if cnt_name_grp:
+            filtered_rows = filtered_rows[filtered_rows['CNT_NAME_GRP'] == cnt_name_grp]
+        if business_model_selected:
+            filtered_rows = filtered_rows[filtered_rows['Business model'] == business_model_selected]
+        if allocation:
+            filtered_rows = filtered_rows[filtered_rows['allocation'] == allocation]
 
-        for _, row in filtered_rows.iterrows():
-            values = [row[col] for col in columns]
-            self.tree.insert("", tk.END, values=values)
+        cost_dest = self.config_data.get('cost_dest', '')
+        working_contracts_file = os.path.join(cost_dest, 'working_contracts.xlsx')
+        additional_data = pd.DataFrame()
+
+        if os.path.exists(working_contracts_file) and business_model_selected:
+            print(
+                f"Debug: Loading additional contracts from {working_contracts_file} (Sheet: {business_model_selected})")
+            try:
+                additional_data = pd.read_excel(working_contracts_file, sheet_name=business_model_selected)
+
+                additional_data_filtered = additional_data[additional_data['NETWORK_NAME'] == network_name]
+                if cnt_name_grp:
+                    additional_data_filtered = additional_data_filtered[
+                        additional_data_filtered['CNT_NAME_GRP'] == cnt_name_grp]
+                additional_data_filtered['Source'] = 'cost_dest'
+                additional_data = additional_data_filtered
+            except ValueError as e:
+                print(f"Debug: {e}. Proceeding with only reference entries.")
+                additional_data = pd.DataFrame()
+
+        if not filtered_rows.empty and not additional_data.empty:
+            combined_data = pd.concat([filtered_rows, additional_data], ignore_index=True)
+        elif not filtered_rows.empty:
+            combined_data = filtered_rows
+        else:
+            combined_data = additional_data
+
+        combined_data.sort_values(by='CT_BOOK_YEAR', ascending=False, inplace=True)
+
+        for _, row in combined_data.iterrows():
+            values = [row.get(col, '') for col in columns]
+            if row.get('Source') == 'cost_dest':
+                self.tree.insert("", tk.END, values=values, tags=('highlight',))
+            else:
+                self.tree.insert("", tk.END, values=values)
+
+        self.tree.tag_configure('highlight', background='#ffffcc')
 
         for col in columns:
-            max_width = max((tkFont.Font().measure(str(self.tree.set(item, col))) for item in self.tree.get_children()), default=100)
+            max_width = max((tkFont.Font().measure(str(self.tree.set(item, col))) for item in self.tree.get_children()),
+                            default=100)
             self.tree.column(col, width=max_width + 20)
 
     def open_new_deal_popup(self):
@@ -301,22 +341,40 @@ class CostTab(ttk.Frame):
             return
 
         columns = self.model_columns.get(business_model, [])
-
         new_deal_popup = tk.Toplevel(self)
         new_deal_popup.title("New Deal")
-        new_deal_popup.geometry("400x600")
+        new_deal_popup.geometry("400x650")
 
         entry_vars = {col: tk.StringVar() for col in columns}
 
-        for i, col in enumerate(columns):
-            #colonnes hidden
-            if col not in ['Business model', 'variable/fix']:
-                tk.Label(new_deal_popup, text=col).grid(row=i, column=0, padx=10, pady=5, sticky='e')
+        tk.Label(new_deal_popup, text="Business model").grid(row=0, column=0, padx=10, pady=5, sticky='e')
+        business_model_combobox = ttk.Combobox(new_deal_popup, textvariable=tk.StringVar(value=business_model))
+        business_model_combobox['values'] = self.business_model_dropdown['values']
+        business_model_combobox.grid(row=0, column=1, padx=10, pady=5, sticky='w')
+        business_model_combobox.config(state='readonly')
+
+        for i, col in enumerate(columns, start=1):
+            tk.Label(new_deal_popup, text=col).grid(row=i, column=0, padx=10, pady=5, sticky='e')
+
+            if col == 'allocation':
+                allocation_combobox = ttk.Combobox(new_deal_popup, textvariable=entry_vars[col])
+                allocation_combobox['values'] = self.allocation_dropdown['values']
+                allocation_combobox.grid(row=i, column=1, padx=10, pady=5, sticky='w')
+                allocation_combobox.set(allocation)
+                allocation_combobox.config(state='readonly' if allocation else 'normal')
+            elif col in ['NETWORK_NAME', 'CNT_NAME_GRP']:
                 entry = tk.Entry(new_deal_popup, textvariable=entry_vars[col])
                 entry.grid(row=i, column=1, padx=10, pady=5, sticky='w')
-                if col in ['NETWORK_NAME', 'CNT_NAME_GRP']:
-                    entry.insert(0, network_name if col == 'NETWORK_NAME' else cnt_name_grp)
-                    entry.config(state='readonly')
+                entry.insert(0, network_name if col == 'NETWORK_NAME' else cnt_name_grp)
+                entry.config(state='readonly')
+            elif col == 'CT_TYPE' and business_model in ['Fixed fee', 'fixed fee']:
+                entry = tk.Entry(new_deal_popup, textvariable=entry_vars[col])
+                entry.grid(row=i, column=1, padx=10, pady=5, sticky='w')
+                entry.insert(0, 'F')
+                entry.config(state='readonly')
+            else:
+                entry = tk.Entry(new_deal_popup, textvariable=entry_vars[col])
+                entry.grid(row=i, column=1, padx=10, pady=5, sticky='w')
 
         def submit_deal():
             new_row = {col: entry_vars[col].get() for col in columns}
