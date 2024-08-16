@@ -439,7 +439,21 @@ class CostTab(ttk.Frame):
         columns = self.model_columns.get(business_model, [])
         new_deal_popup = tk.Toplevel(self)
         new_deal_popup.title("New Deal")
-        new_deal_popup.geometry("400x650")
+        new_deal_popup.geometry("1380x555")
+
+        business_model_var = tk.StringVar()
+        entry_vars = {}
+
+        left_frame = ttk.Frame(new_deal_popup)
+        left_frame.grid(row=0, column=0, padx=10, pady=5, sticky='nsew')
+
+        dynamic_widgets = []
+
+        def clear_dynamic_widgets():
+            for widget in dynamic_widgets:
+                widget.grid_forget()
+                widget.destroy()
+            dynamic_widgets.clear()
 
         entry_vars = {col: tk.StringVar() for col in columns}
 
