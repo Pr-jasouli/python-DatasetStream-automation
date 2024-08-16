@@ -428,15 +428,8 @@ class CostTab(ttk.Frame):
 
     def open_new_deal_popup(self):
         network_name = self.network_name_var.get()
-        cnt_name_grp = self.cnt_name_grp_var.get()
-        business_model = self.business_model_var.get()
         allocation = self.allocation_var.get()
 
-        if not business_model:
-            show_message("Warning", "Please select a business model", master=self, custom=True)
-            return
-
-        columns = self.model_columns.get(business_model, [])
         new_deal_popup = tk.Toplevel(self)
         new_deal_popup.title("New Deal")
         new_deal_popup.geometry("1380x555")
