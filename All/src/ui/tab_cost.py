@@ -308,7 +308,22 @@ class CostTab(ttk.Frame):
             self.display_metadata(network_name_selected, cnt_name_grp_selected, allocation_selected)
 
     def display_metadata(self, network_name, cnt_name_grp=None, allocation=None):
-        self.tree.delete(*self.tree.get_children())
+        # refresh table
+        if hasattr(self, 'tree'):
+            self.tree.destroy()
+
+        # frame dédié pour le treeview et les scrollbars
+        tree_frame = ttk.Frame(self)
+        tree_frame.grid(row=2, column=0, columnspan=3, pady=10, padx=10, sticky="nsew")
+
+        #hauteur minimale pour e viter le resizing involontaire
+        columns = self.model_columns.get(self.business_model_var.get(), [])
+        # hauteur fixe
+        self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=20)
+
+        # vertical scroll
+        y_scroll = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
+        y_scroll.grid(row=0, column=1, sticky="ns")
 
         business_model_selected = self.business_model_var.get()
         columns = self.model_columns.get(business_model_selected, [])
