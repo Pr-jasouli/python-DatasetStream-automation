@@ -465,25 +465,37 @@ class CostTab(ttk.Frame):
 
                 entry_vars[col] = tk.StringVar()
 
-            if col == 'allocation':
-                allocation_combobox = ttk.Combobox(new_deal_popup, textvariable=entry_vars[col])
-                allocation_combobox['values'] = self.allocation_dropdown['values']
-                allocation_combobox.grid(row=i, column=1, padx=10, pady=5, sticky='w')
-                allocation_combobox.set(allocation)
-                allocation_combobox.config(state='readonly' if allocation else 'normal')
-            elif col in ['NETWORK_NAME', 'CNT_NAME_GRP']:
-                entry = tk.Entry(new_deal_popup, textvariable=entry_vars[col])
-                entry.grid(row=i, column=1, padx=10, pady=5, sticky='w')
-                entry.insert(0, network_name if col == 'NETWORK_NAME' else cnt_name_grp)
-                entry.config(state='readonly')
-            elif col == 'CT_TYPE' and business_model in ['Fixed fee', 'fixed fee']:
-                entry = tk.Entry(new_deal_popup, textvariable=entry_vars[col])
-                entry.grid(row=i, column=1, padx=10, pady=5, sticky='w')
-                entry.insert(0, 'F')
-                entry.config(state='readonly')
-            else:
-                entry = tk.Entry(new_deal_popup, textvariable=entry_vars[col])
-                entry.grid(row=i, column=1, padx=10, pady=5, sticky='w')
+                if col == 'allocation':
+                    allocation_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    allocation_combobox['values'] = sorted(self.data['allocation'].dropna().unique())
+                    allocation_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(allocation_combobox)
+                    allocation_combobox.set(allocation)
+                elif col == 'NETWORK_NAME':
+                    # sort alphabétique
+                    network_name_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    network_name_combobox['values'] = sorted(self.data['NETWORK_NAME'].dropna().unique().tolist())
+                    network_name_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(network_name_combobox)
+                elif col == 'CT_TYPE':
+                    ct_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    ct_type_combobox['values'] = ['F', 'V']
+                    ct_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(ct_type_combobox)
+                elif col == 'CT_AUTORENEW':
+                    ct_autorenew_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    ct_autorenew_combobox['values'] = ['Yes', 'No']
+                    ct_autorenew_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(ct_autorenew_combobox)
+                elif col == 'variable/fix':
+                    variable_fix_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    variable_fix_combobox['values'] = ['variable', 'fixed']
+                    variable_fix_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(variable_fix_combobox)
+                else:
+                    entry = tk.Entry(left_frame, textvariable=entry_vars[col])
+                    entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(entry)
 
         def submit_deal():
             new_row = {col: entry_vars[col].get() for col in columns}
