@@ -345,11 +345,10 @@ class CostTab(ttk.Frame):
             self.tree.heading(col, text=col)
             self.tree.column(col, width=tkFont.Font().measure(col) + 20)
 
-        filtered_rows = self.data[self.data['NETWORK_NAME'] == network_name]
+        # filtre data par copie
+        filtered_rows = self.data[self.data['NETWORK_NAME'] == network_name].copy()
         if cnt_name_grp:
             filtered_rows = filtered_rows[filtered_rows['CNT_NAME_GRP'] == cnt_name_grp]
-        if business_model_selected:
-            filtered_rows = filtered_rows[filtered_rows['Business model'] == business_model_selected]
         if allocation:
             filtered_rows = filtered_rows[filtered_rows['allocation'] == allocation]
 
