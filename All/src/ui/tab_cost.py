@@ -448,13 +448,16 @@ class CostTab(ttk.Frame):
                 widget.destroy()
             dynamic_widgets.clear()
 
-        entry_vars = {col: tk.StringVar() for col in columns}
+        def update_fields_based_on_business_model(event=None):
+            clear_dynamic_widgets()
 
-        tk.Label(new_deal_popup, text="Business model").grid(row=0, column=0, padx=10, pady=5, sticky='e')
-        business_model_combobox = ttk.Combobox(new_deal_popup, textvariable=tk.StringVar(value=business_model))
-        business_model_combobox['values'] = self.business_model_dropdown['values']
-        business_model_combobox.grid(row=0, column=1, padx=10, pady=5, sticky='w')
-        business_model_combobox.config(state='readonly')
+            selected_model = business_model_var.get()
+            current_columns = self.model_columns.get(selected_model, [])
+
+            for i, col in enumerate(current_columns, start=1):
+                if col in ['CT_BOOK_YEAR', 'CNT_NAME_GRP', 'PROD_EN_NAME', 'Business model']:
+                    # skip
+                    continue
 
         for i, col in enumerate(columns, start=1):
             tk.Label(new_deal_popup, text=col).grid(row=i, column=0, padx=10, pady=5, sticky='e')
