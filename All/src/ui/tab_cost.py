@@ -421,6 +421,10 @@ class CostTab(ttk.Frame):
                             default=100)
             self.tree.column(col, width=max_width + 20)
 
+        # treeview occupe la taille maximale
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
     def open_new_deal_popup(self):
         network_name = self.network_name_var.get()
         cnt_name_grp = self.cnt_name_grp_var.get()
