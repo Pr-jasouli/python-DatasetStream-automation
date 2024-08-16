@@ -21,6 +21,7 @@ class CostTab(ttk.Frame):
         self.data = None
         self.network_name_var = tk.StringVar()
         self.cnt_name_grp_var = tk.StringVar()
+        self.prod_en_name_var = tk.StringVar()
         self.business_model_var = tk.StringVar()
         self.allocation_var = tk.StringVar()
 
@@ -482,8 +483,92 @@ class CostTab(ttk.Frame):
                     show_message("Error", f"Field '{field}' cannot be empty.", master=new_deal_popup, custom=True)
                     return
 
-            if business_model == 'Fixed fee' or business_model == 'fixed fee':
-                new_row['variable/fix'] = 'fixed'
+
+        right_frame = ttk.Frame(new_deal_popup)
+        right_frame.grid(row=0, column=1, padx=10, pady=5, sticky='nsew')
+
+        dynamic_listbox_pairs = []
+
+        def add_listbox_pair():
+            # assignations tv channels/tv packs par colonnes de 3 éléments
+            pair_count = len(dynamic_listbox_pairs)
+            row = (pair_count % 3) * 2
+            col = (pair_count // 3) * 2
+
+            # frame par listbox
+            pair_frame = ttk.Frame(right_frame)
+            pair_frame.grid(row=row, column=col, padx=5, pady=5, sticky='nsew')
+
+            tk.Label(pair_frame, text="Select Channels:").grid(row=0, column=0, padx=5, pady=5, sticky='w')
+            tk.Label(pair_frame, text="Select TV Packs:").grid(row=0, column=1, padx=5, pady=5, sticky='w')
+
+            # tv channels listboxes
+            channels_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=6, exportselection=False)
+            channels_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='w')
+            # alphabetique
+            channels = sorted(self.data['CNT_NAME_GRP'].dropna().unique())
+            for item in channels:
+                channels_listbox.insert(tk.END, item)
+
+            # tv packs listboxes
+            packs_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=6, exportselection=False)
+            packs_listbox.grid(row=1, column=1, padx=5, pady=5, sticky='w')
+            # alphab
+            packs = sorted(self.data['PROD_EN_NAME'].dropna().unique())
+            for item in packs:
+                packs_listbox.insert(tk.END, item)
+
+            dynamic_listbox_pairs.append((channels_listbox, packs_listbox))
+
+        # paires initiales
+        add_listbox_pair()
+
+        def submit_deal(business_model_var, entry_vars):
+            selected_model = business_model_var.get()
+            current_columns = self.model_columns.get(selected_model, [])
+
+            # validation des fields
+            required_fields = {
+                'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
+                'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
+                'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
+                'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
+                'Business model': business_model_var.get(),
+            }
+
+            missing_fields = [field for field, value in required_fields.items() if not value]
+
+            if missing_fields:
+                missing_fields_str = ', '.join(missing_fields)
+                show_message("Error", f"The following fields cannot be empty: {missing_fields_str}",
+                             master=new_deal_popup, custom=True)
+                return  # ne pas sauver le deal si colonne manquante
+
+            for channels_listbox, packs_listbox in dynamic_listbox_pairs:
+                selected_channels = [channels_listbox.get(idx) for idx in channels_listbox.curselection()]
+                selected_packs = [packs_listbox.get(idx) for idx in packs_listbox.curselection()]
+
+                if not selected_channels or not selected_packs:
+                    continue
+
+                for channel in selected_channels:
+                    for pack in selected_packs:
+                        new_row = {
+                            'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
+                            'CNT_NAME_GRP': channel,
+                            'PROD_EN_NAME': pack,
+                            'Business model': business_model_var.get(),
+                            'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
+                            'CT_TYPE': entry_vars.get('CT_TYPE', tk.StringVar()).get(),
+                            'CT_AUTORENEW': entry_vars.get('CT_AUTORENEW', tk.StringVar()).get(),
+                            'variable/fix': entry_vars.get('variable/fix', tk.StringVar()).get(),
+                            'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
+                            'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
+                        }
+
+                        for col in current_columns:
+                            if col not in new_row:
+                                new_row[col] = entry_vars.get(col, tk.StringVar()).get()
 
             self.generate_template(new_row)
             new_deal_popup.destroy()
