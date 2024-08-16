@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 import tkinter.font as tkFont
-from tkinter import ttk, filedialog
+from tkinter import ttk
 
 import pandas as pd
 
