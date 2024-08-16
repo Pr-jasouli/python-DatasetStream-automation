@@ -352,6 +352,7 @@ class CostTab(ttk.Frame):
         if allocation:
             filtered_rows = filtered_rows[filtered_rows['allocation'] == allocation]
 
+        # chargement data additionnels
         cost_dest = self.config_data.get('cost_dest', '')
         working_contracts_file = os.path.join(cost_dest, 'working_contracts.xlsx')
         additional_data = pd.DataFrame()
@@ -359,10 +360,12 @@ class CostTab(ttk.Frame):
         if os.path.exists(working_contracts_file) and business_model_selected:
             print(
                 f"Debug: Loading additional contracts from {working_contracts_file} (Sheet: {business_model_selected})")
+        if os.path.exists(working_contracts_file):
+            print(f"Debug: Loading additional contracts from {working_contracts_file}")
             try:
-                additional_data = pd.read_excel(working_contracts_file, sheet_name=business_model_selected)
+                additional_data = pd.read_excel(working_contracts_file, sheet_name=self.business_model_var.get())
 
-                additional_data_filtered = additional_data[additional_data['NETWORK_NAME'] == network_name]
+                additional_data_filtered = additional_data[additional_data['NETWORK_NAME'] == network_name].copy()
                 if cnt_name_grp:
                     additional_data_filtered = additional_data_filtered[
                         additional_data_filtered['CNT_NAME_GRP'] == cnt_name_grp]
