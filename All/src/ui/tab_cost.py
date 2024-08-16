@@ -577,13 +577,14 @@ class CostTab(ttk.Frame):
                             if col not in new_row:
                                 new_row[col] = entry_vars.get(col, tk.StringVar()).get()
 
-            self.generate_template(new_row)
+                        self.generate_template(new_row)
+
             new_deal_popup.destroy()
             self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(),
                                   self.business_model_var.get())
 
-        submit_button = ttk.Button(new_deal_popup, text="Save", command=submit_deal)
-        submit_button.grid(row=len(columns) + 1, column=0, padx=10, pady=20, sticky='e')
+        # initialize UI
+        update_fields_based_on_business_model()
 
     def open_update_deal_popup(self):
         selected_items = self.tree.selection()
