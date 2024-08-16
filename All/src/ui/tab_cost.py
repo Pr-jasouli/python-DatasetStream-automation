@@ -352,7 +352,33 @@ class CostTab(ttk.Frame):
         else:
             combined_data = additional_data
 
-        combined_data.sort_values(by='CT_BOOK_YEAR', ascending=False, inplace=True)
+        # différents formats de date (4567 ou 01-12-2024)
+        def convert_to_standard_date_format(date):
+            if pd.isna(date):
+                # si no value retourne no value
+                return date
+            if isinstance(date, str):
+                try:
+                    return pd.to_datetime(date, format='%d-%m-%Y', errors='raise').strftime('%d-%m-%Y')
+                except (ValueError, TypeError):
+                    # retourne la valeure originale si pas formattée
+                    return date
+            elif isinstance(date, (int, float)):
+                # retourne nombres en string
+                return str(date)
+            return date
+
+        if 'CT_STARTDATE' in combined_data.columns:
+            combined_data['CT_STARTDATE'] = combined_data['CT_STARTDATE'].apply(convert_to_standard_date_format)
+        if 'CT_ENDDATE' in combined_data.columns:
+            combined_data['CT_ENDDATE'] = combined_data['CT_ENDDATE'].apply(convert_to_standard_date_format)
+
+        # ordre par date
+        if 'CT_STARTDATE' in combined_data.columns:
+            try:
+                combined_data.sort_values(by='CT_STARTDATE', ascending=False, inplace=True)
+            except Exception as e:
+                print(f"Warning: Could not sort by CT_STARTDATE due to mixed data types: {e}")
 
         for _, row in combined_data.iterrows():
             values = [row.get(col, '') for col in columns]
