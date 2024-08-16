@@ -459,8 +459,11 @@ class CostTab(ttk.Frame):
                     # skip
                     continue
 
-        for i, col in enumerate(columns, start=1):
-            tk.Label(new_deal_popup, text=col).grid(row=i, column=0, padx=10, pady=5, sticky='e')
+                label = tk.Label(left_frame, text=col)
+                label.grid(row=i + 2, column=0, padx=10, pady=5, sticky='e')
+                dynamic_widgets.append(label)
+
+                entry_vars[col] = tk.StringVar()
 
             if col == 'allocation':
                 allocation_combobox = ttk.Combobox(new_deal_popup, textvariable=entry_vars[col])
