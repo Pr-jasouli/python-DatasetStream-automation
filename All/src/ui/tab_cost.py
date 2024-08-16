@@ -325,9 +325,22 @@ class CostTab(ttk.Frame):
         y_scroll = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
         y_scroll.grid(row=0, column=1, sticky="ns")
 
-        business_model_selected = self.business_model_var.get()
-        columns = self.model_columns.get(business_model_selected, [])
-        self.tree["columns"] = columns
+        # horiz scroll
+        x_scroll = ttk.Scrollbar(tree_frame, orient="horizontal", command=self.tree.xview)
+        x_scroll.grid(row=1, column=0, sticky="ew")
+
+        # scrolbar to treeview
+        self.tree.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
+        self.tree.grid(row=0, column=0, sticky="nsew")
+
+        # permet expand
+        tree_frame.grid_rowconfigure(0, weight=1)
+        tree_frame.grid_columnconfigure(0, weight=1)
+
+        # main layout, évite resizing
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
         for col in columns:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=tkFont.Font().measure(col) + 20)
