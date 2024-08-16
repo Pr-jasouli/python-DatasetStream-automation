@@ -497,16 +497,20 @@ class CostTab(ttk.Frame):
                     entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(entry)
 
-        def submit_deal():
-            new_row = {col: entry_vars[col].get() for col in columns}
+        submit_button = ttk.Button(left_frame, text="Save", command=lambda: submit_deal(business_model_var, entry_vars),
+                                   style='AudienceTab.TButton')
+        submit_button.grid(row=0, column=0, padx=5, pady=5, sticky='w')
 
-            new_row['Business model'] = business_model
+        add_button = ttk.Button(left_frame, text="Add Another Selection", command=lambda: add_listbox_pair(),
+                                style='AudienceTab.TButton')
+        add_button.grid(row=0, column=1, padx=5, pady=5, sticky='e')
 
-            required_fields = ['allocation', 'Business model', 'NETWORK_NAME', 'CNT_NAME_GRP']
-            for field in required_fields:
-                if not new_row.get(field):
-                    show_message("Error", f"Field '{field}' cannot be empty.", master=new_deal_popup, custom=True)
-                    return
+        tk.Label(left_frame, text="Business model").grid(row=1, column=0, padx=10, pady=5, sticky='e')
+        business_model_combobox = ttk.Combobox(left_frame, textvariable=business_model_var)
+        business_model_combobox['values'] = list(self.model_columns.keys())
+        business_model_combobox.grid(row=1, column=1, padx=10, pady=5, sticky='w')
+
+        business_model_combobox.bind("<<ComboboxSelected>>", update_fields_based_on_business_model)
 
 
         right_frame = ttk.Frame(new_deal_popup)
