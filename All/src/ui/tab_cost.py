@@ -357,9 +357,6 @@ class CostTab(ttk.Frame):
         working_contracts_file = os.path.join(cost_dest, 'working_contracts.xlsx')
         additional_data = pd.DataFrame()
 
-        if os.path.exists(working_contracts_file) and business_model_selected:
-            print(
-                f"Debug: Loading additional contracts from {working_contracts_file} (Sheet: {business_model_selected})")
         if os.path.exists(working_contracts_file):
             print(f"Debug: Loading additional contracts from {working_contracts_file}")
             try:
