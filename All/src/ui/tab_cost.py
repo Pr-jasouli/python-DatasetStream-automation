@@ -628,6 +628,8 @@ class CostTab(ttk.Frame):
                             'variable/fix': entry_vars.get('variable/fix', tk.StringVar()).get(),
                             'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
                             'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
+                            'DATA_TYPE': entry_vars.get('DATA_TYPE', tk.StringVar()).get(),
+                            'CT_FIXFEE_NEW': entry_vars.get('CT_FIXFEE_NEW', tk.StringVar()).get(),
                         }
 
                         for col in current_columns:
