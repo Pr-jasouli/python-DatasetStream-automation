@@ -553,6 +553,32 @@ class CostTab(ttk.Frame):
 
         dynamic_listbox_pairs = []
 
+        def load_channel_grouping_data():
+            try:
+                channel_grouping_src = self.config_data.get('channel_grouping_src', None)
+                if channel_grouping_src:
+                    return pd.read_excel(channel_grouping_src, sheet_name='Content_Channel_Grouping')
+                else:
+                    return pd.DataFrame()
+            except Exception as e:
+                print(f"Error loading channel grouping data: {e}")
+                return pd.DataFrame()
+
+        def get_channels_for_network(network_name):
+            channel_data = load_channel_grouping_data()
+            if not channel_data.empty and 'CHANNEL_NETWORK_GROUP' in channel_data.columns:
+                filtered_channels = channel_data[channel_data['CHANNEL_NETWORK_GROUP'] == network_name]
+                if not filtered_channels.empty:
+                    return sorted(filtered_channels['CHANNEL_NAME'].dropna().unique())
+            return sorted(channel_data['CHANNEL_NAME'].dropna().unique()) if not channel_data.empty else []
+
+        def update_channels_listbox():
+            channels = get_channels_for_network(entry_vars['NETWORK_NAME'].get())
+            for pair in dynamic_listbox_pairs:
+                pair[0].delete(0, tk.END)
+                for item in channels:
+                    pair[0].insert(tk.END, item)
+
         def add_listbox_pair():
             # assignations tv channels/tv packs par colonnes de 3 éléments
             pair_count = len(dynamic_listbox_pairs)
