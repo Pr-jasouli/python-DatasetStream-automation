@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 import tkinter.font as tkFont
+from datetime import timedelta, datetime
 from tkinter import ttk
 
 import pandas as pd
@@ -132,15 +133,35 @@ class CostTab(ttk.Frame):
         self.file_path = path
         self.load_cost_reference_file(path)
 
+    def convert_excel_date(self, excel_serial):
+        """Convert an Excel serial date to a Python datetime object."""
+        try:
+            if pd.isna(excel_serial):
+                return None
+            if isinstance(excel_serial, (int, float)):
+                base_date = datetime(1899, 12, 30)
+                return base_date + timedelta(days=int(excel_serial))
+            return pd.to_datetime(excel_serial, errors='coerce')
+        except Exception as e:
+            print(f"Error converting date: {excel_serial} - {e}")
+            return None
+
     def load_cost_reference_file(self, file_path):
         try:
             self.data = pd.read_excel(file_path, sheet_name='all contract cost file')
+
+            self.data['CT_STARTDATE'] = self.data['CT_STARTDATE'].apply(self.convert_excel_date)
+            self.data['CT_ENDDATE'] = self.data['CT_ENDDATE'].apply(self.convert_excel_date)
+
             self.populate_dropdowns()
 
             self.network_name_dropdown.config(state='normal')
             self.cnt_name_grp_dropdown.config(state='normal')
             self.business_model_dropdown.config(state='normal')
             self.allocation_dropdown.config(state='normal')
+
+            self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(),
+                                  self.business_model_var.get())
         except Exception as e:
             show_message("Error", f"Failed to load cost file: {e}", type='error', master=self, custom=True)
 
@@ -379,26 +400,13 @@ class CostTab(ttk.Frame):
         else:
             combined_data = additional_data
 
-        # différents formats de date (4567 ou 01-12-2024)
-        def convert_to_standard_date_format(date):
-            if pd.isna(date):
-                # si no value retourne no value
-                return date
-            if isinstance(date, str):
-                try:
-                    return pd.to_datetime(date, format='%d-%m-%Y', errors='raise').strftime('%d-%m-%Y')
-                except (ValueError, TypeError):
-                    # retourne la valeure originale si pas formattée
-                    return date
-            elif isinstance(date, (int, float)):
-                # retourne nombres en string
-                return str(date)
-            return date
 
         if 'CT_STARTDATE' in combined_data.columns:
-            combined_data['CT_STARTDATE'] = combined_data['CT_STARTDATE'].apply(convert_to_standard_date_format)
+            combined_data['CT_STARTDATE'] = pd.to_datetime(combined_data['CT_STARTDATE'], errors='coerce').dt.strftime(
+                '%d-%m-%Y')
         if 'CT_ENDDATE' in combined_data.columns:
-            combined_data['CT_ENDDATE'] = combined_data['CT_ENDDATE'].apply(convert_to_standard_date_format)
+            combined_data['CT_ENDDATE'] = pd.to_datetime(combined_data['CT_ENDDATE'], errors='coerce').dt.strftime(
+                '%d-%m-%Y')
 
         # ordre par date
         if 'CT_STARTDATE' in combined_data.columns:
