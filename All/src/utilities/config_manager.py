@@ -108,20 +108,11 @@ def default_config():
         'audience_dest': '',
         'cost_src': '',
         'cost_dest': output_dir,
+        'product_grouping_src': '',
+        'channel_grouping_src': '',
     }
 
 
-def default_config():
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    output_dir = os.path.join(project_root, 'outputs')
-
-    print(f"Debug: Setting default 'cost_dest' to: {output_dir}")
-    return {
-        'audience_src': '',
-        'audience_dest': '',
-        'cost_src': '',
-        'cost_dest': output_dir,
-    }
 
 
 class ConfigManager:
@@ -174,10 +165,11 @@ class ConfigManager:
 
 
 class ConfigLoaderPopup(Toplevel):
-    def __init__(self, master, config_manager, callback):
+    def __init__(self, master, config_manager, callback, audience_tab):
         super().__init__(master)
         self.config_manager = config_manager
         self.callback = callback
+        self.audience_tab = audience_tab
         self.config_data = self.config_manager.get_config()
         self.loaded_files = set()
         self.selected_files = set()
@@ -247,6 +239,9 @@ class ConfigLoaderPopup(Toplevel):
     def load_selected_files(self):
         selected_items = self.tree.selection()
         files_to_load = []
+        audience_loaded = False
+        grouping_loaded = False
+
         for item in selected_items:
             values = self.tree.item(item, "values")
             key, path = values[0], values[2]
@@ -255,6 +250,12 @@ class ConfigLoaderPopup(Toplevel):
                 if path not in self.loaded_files:
                     self.loaded_files.add(path)
                     files_to_load.append((key, path))
+
+                    # Check if audience_src or groupings are selected
+                    if key == 'audience_src':
+                        audience_loaded = True
+                    elif key in ['product_grouping_src', 'channel_grouping_src']:
+                        grouping_loaded = True
 
         if files_to_load:
             for key, path in files_to_load:
@@ -267,6 +268,10 @@ class ConfigLoaderPopup(Toplevel):
                         show_message("Error", f"File not found: {path}", type='error', master=self.master, custom=True)
                 except Exception as e:
                     show_message("Error", f"Failed to load {key}: {e}", type='error', master=self.master, custom=True)
+
+        # Check if audience and a grouping file are both loaded, and enable specifics if so
+        if audience_loaded and grouping_loaded:
+            self.audience_tab.enable_specifics()
 
         self.selected_files.clear()
         self.destroy()
