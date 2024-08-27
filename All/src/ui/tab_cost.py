@@ -490,25 +490,47 @@ class CostTab(ttk.Frame):
                     network_name_combobox['values'] = sorted(self.data['NETWORK_NAME'].dropna().unique().tolist())
                     network_name_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(network_name_combobox)
+                    network_name_combobox.set(network_name)
+                    network_name_combobox.bind("<<ComboboxSelected>>", lambda e: update_channels_listbox())
                 elif col == 'CT_TYPE':
-                    ct_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
-                    ct_type_combobox['values'] = ['F', 'V']
-                    ct_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                    dynamic_widgets.append(ct_type_combobox)
+                    if selected_model.lower() == 'fixed fee':
+                        entry_vars[col].set('F')
+                        ct_type_label = tk.Label(left_frame, text='F')
+                        ct_type_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                        dynamic_widgets.append(ct_type_label)
+                    else:
+                        ct_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                        ct_type_combobox['values'] = ['F', 'V']
+                        ct_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                        dynamic_widgets.append(ct_type_combobox)
                 elif col == 'CT_AUTORENEW':
                     ct_autorenew_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
                     ct_autorenew_combobox['values'] = ['Yes', 'No']
                     ct_autorenew_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(ct_autorenew_combobox)
                 elif col == 'variable/fix':
-                    variable_fix_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
-                    variable_fix_combobox['values'] = ['variable', 'fixed']
-                    variable_fix_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                    dynamic_widgets.append(variable_fix_combobox)
+                    if selected_model.lower() == 'fixed fee':
+                        entry_vars[col].set('fixed')
+                        variable_fix_label = tk.Label(left_frame, text='fixed')
+                        variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                        dynamic_widgets.append(variable_fix_label)
+                    else:
+                        variable_fix_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                        variable_fix_combobox['values'] = ['variable', 'fixed']
+                        variable_fix_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                        dynamic_widgets.append(variable_fix_combobox)
+                elif col == 'DATA_TYPE':
+                    data_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    data_type_combobox['values'] = ['ACTUALS', 'FORECAST', 'PLAN']
+                    data_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(data_type_combobox)
                 else:
                     entry = tk.Entry(left_frame, textvariable=entry_vars[col])
                     entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(entry)
+
+
+        update_fields_based_on_business_model()
 
         submit_button = ttk.Button(left_frame, text="Save", command=lambda: submit_deal(business_model_var, entry_vars),
                                    style='AudienceTab.TButton')
