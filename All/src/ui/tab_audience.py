@@ -379,6 +379,91 @@ class AudienceTab(ttk.Frame):
         self.bus_chanl_num_listbox.selection_clear(0, 'end')
         self.section_specifics_counters_update()
 
+    def enable_specifics(self):
+        """Enables the specifics checkbox and loads the necessary DataFrame values."""
+        self.specifics_var.set(True)
+        self.section_specifics_checkbox_enable()
+
+        # Automatically load the product and channel grouping if the files are preloaded
+        if self.config_manager.get_config().get('product_grouping_src'):
+            self.load_product_grouping_from_config(self.config_manager.get_config().get('product_grouping_src'))
+
+        if self.config_manager.get_config().get('channel_grouping_src'):
+            self.grouping_channel_load_from_config(self.config_manager.get_config().get('channel_grouping_src'))
+
+    def load_product_grouping_from_config(self, file_path):
+        """Loads the product grouping file from the preloaded config and updates the PROD_NUM listbox."""
+        self.specifics_var.set(True)
+        self.section_specifics_checkbox_enable()
+
+        try:
+            product_grouping_df = pd.read_excel(file_path, sheet_name='Content_Product_Grouping WS 241')
+
+            prod_nums = self.prod_num_listbox.get(0, 'end')
+            updated_prod_nums = []
+
+            for prod_num in prod_nums:
+                try:
+                    match = product_grouping_df[product_grouping_df['PROD_NUM'].astype(str) == str(prod_num)]
+                    if not match.empty:
+                        updated_prod_nums.append((prod_num, match['LOOKUP_KEY'].values[0]))
+                    else:
+                        updated_prod_nums.append((prod_num, prod_num))
+                except ValueError:
+                    updated_prod_nums.append((prod_num, prod_num))
+
+            updated_prod_nums.sort(key=lambda x: str(x[1]).lower() if isinstance(x[1], str) else str(x[1]))
+
+            self.prod_num_listbox.delete(0, 'end')
+            self.prod_num_map = {}
+            self.lookup_key_to_prod_num = {}
+
+            for prod_num, display_value in updated_prod_nums:
+                self.prod_num_listbox.insert('end', display_value)
+                self.prod_num_map[display_value] = prod_num
+                self.lookup_key_to_prod_num[display_value] = prod_num
+
+        except Exception as e:
+            show_message("Error", f"An error occurred while loading the product grouping: {e}", type="error",
+                         master=self)
+
+    def grouping_channel_load_from_config(self, file_path):
+        """Loads the channel grouping file from the preloaded config and updates the BUS_CHANL_NUM listbox."""
+        self.specifics_var.set(True)
+        self.section_specifics_checkbox_enable()
+
+        try:
+            channel_grouping_df = pd.read_excel(file_path, sheet_name='Content_Channel_Grouping')
+
+            bus_chanl_nums = self.bus_chanl_num_listbox.get(0, 'end')
+            updated_bus_chanl_nums = []
+
+            for bus_chanl_num in bus_chanl_nums:
+                try:
+                    bus_chanl_num_float = float(bus_chanl_num)
+                    match = channel_grouping_df[channel_grouping_df['BUS_CHANNEL_ID'] == bus_chanl_num_float]
+                    if not match.empty:
+                        updated_bus_chanl_nums.append((bus_chanl_num, match['CHANNEL_NAME'].values[0]))
+                    else:
+                        updated_bus_chanl_nums.append((bus_chanl_num, bus_chanl_num))
+                except ValueError:
+                    updated_bus_chanl_nums.append((bus_chanl_num, bus_chanl_num))
+
+            updated_bus_chanl_nums.sort(key=lambda x: str(x[1]).lower() if isinstance(x[1], str) else str(x[1]))
+
+            self.bus_chanl_num_listbox.delete(0, 'end')
+            self.bus_chanl_num_map = {}
+
+            for bus_chanl_num, display_value in updated_bus_chanl_nums:
+                self.bus_chanl_num_listbox.insert('end', display_value)
+                self.bus_chanl_num_map[display_value] = bus_chanl_num
+
+            self.bus_chanl_label.config(text="CHANNEL_NAME")
+
+        except Exception as e:
+            show_message("Error", f"An error occurred while loading the channel grouping: {e}", type="error",
+                         master=self)
+
     def section_specifics_checkbox_enable(self):
         """Toggles the visibility and content of the specifics listboxes based on the checkbox state."""
         if self.specifics_var.get():
