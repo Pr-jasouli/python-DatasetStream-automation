@@ -1,6 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
-
+from tkinter import ttk, filedialog
 
 from ui.tab_audience import AudienceTab
 from ui.tab_cost import CostTab
@@ -66,7 +65,15 @@ class MainApplication(tk.Tk):
         self.config(menu=menubar)
 
         file_menu = tk.Menu(menubar, tearoff=0)
-        file_menu.add_command(label="Open", command=self.file_open)
+
+        open_menu = tk.Menu(file_menu, tearoff=0)
+        for key, path in self.config_data.items():
+            if os.path.isfile(path):
+                open_menu.add_command(label=f"Open {key}", command=lambda k=key: self.replace_config_file(k))
+
+        file_menu.add_cascade(label="Open", menu=open_menu)
+        file_menu.add_command(label="Recent Files Loader", command=self.open_recent_files_loader)
+        file_menu.add_separator()
         file_menu.add_command(label="Save Configuration", command=self.save_configuration)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.exit_app)
@@ -192,6 +199,19 @@ class MainApplication(tk.Tk):
 
     def update_config_data(self, key, value):
         self.config_manager.update_config(key, value)
+
+    def open_recent_files_loader(self):
+        """Open the Recent Files Loader popup."""
+        ConfigLoaderPopup(self, self.config_manager, self.load_tab_content, self.audience_tab)
+
+    def replace_config_file(self, key):
+        """Replace the file for a specific configuration key."""
+        file_path = filedialog.askopenfilename(title=f"Select new file for {key}", filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")])
+        if file_path:
+            self.config_manager.update_config(key, file_path)
+            self.config_manager.save_config()
+            self.load_tab_content(key, file_path)
+            show_message("Success", f"Loaded new file for {key}: {file_path}", type="info", master=self, custom=True)
 
 
 if __name__ == "__main__":
