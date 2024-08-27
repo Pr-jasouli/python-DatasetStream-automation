@@ -180,7 +180,7 @@ class ConfigLoaderPopup(Toplevel):
         master.wait_window(self)
 
     def init_ui(self):
-        self.title("Recent files")
+        self.title("Preload Recent Files")
         icon_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'favicon.ico')
         if os.path.exists(icon_path):
             self.iconbitmap(icon_path)
@@ -189,11 +189,6 @@ class ConfigLoaderPopup(Toplevel):
         self.configure(bg='#f0f0f0')
 
         files_to_load = {k: v for k, v in self.config_data.items() if os.path.isfile(v)}
-
-        # unique_files = {}
-        # for key, path in files_to_load.items():
-        #     if path not in unique_files:
-        #         unique_files[path] = key
 
         data = []
         for key, path in files_to_load.items():
@@ -227,11 +222,19 @@ class ConfigLoaderPopup(Toplevel):
         scrollbar.pack(side='left', fill='y')
 
         self.button_frame = ttk.Frame(self.main_frame, style='Main.TFrame')
-        self.button_frame.grid(row=0, column=1, sticky="ns")
+        self.button_frame.grid(row=1, column=0, pady=10, sticky="ew")
 
-        close_button = ttk.Button(self.main_frame, text="Next", command=self.load_selected_files)
-        close_button.grid(row=1, column=0, columnspan=2, pady=10, sticky="ew")
-        close_button.config(width=10)
+        self.button_frame.columnconfigure(0, weight=1)
+        self.button_frame.columnconfigure(1, weight=1)
+
+        load_all_button = ttk.Button(self.button_frame, text="Load All", command=self.load_all_files)
+        load_all_button.grid(row=0, column=0, padx=2, sticky="ew")
+
+        next_button = ttk.Button(self.button_frame, text="Load Selection", command=self.load_selected_files)
+        next_button.grid(row=0, column=1, padx=2, sticky="ew")
+
+        help_label = ttk.Label(self.main_frame, text="*Sélectionnez plusieurs fichiers à l'aide de la touche Ctrl ou Alt", font=('Helvetica', 10, 'italic'))
+        help_label.grid(row=2, column=0, pady=0, padx=2, sticky="w")
 
         self.main_frame.columnconfigure(0, weight=1)
         self.main_frame.rowconfigure(0, weight=1)
@@ -275,3 +278,8 @@ class ConfigLoaderPopup(Toplevel):
 
         self.selected_files.clear()
         self.destroy()
+
+    def load_all_files(self):
+        for item in self.tree.get_children():
+            self.tree.selection_add(item)
+        self.load_selected_files()
