@@ -668,8 +668,10 @@ class CostTab(ttk.Frame):
             self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(),
                                   self.business_model_var.get())
 
-        # initialize UI
         update_fields_based_on_business_model()
+
+    ######## refefefef
+
 
     def open_update_deal_popup(self):
         selected_items = self.tree.selection()
