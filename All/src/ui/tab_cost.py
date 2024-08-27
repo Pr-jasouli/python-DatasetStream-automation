@@ -436,12 +436,13 @@ class CostTab(ttk.Frame):
     def open_new_deal_popup(self):
         network_name = self.network_name_var.get()
         allocation = self.allocation_var.get()
+        business_model = self.business_model_var.get()
 
         new_deal_popup = tk.Toplevel(self)
         new_deal_popup.title("New Deal")
         new_deal_popup.geometry("1380x555")
 
-        business_model_var = tk.StringVar()
+        business_model_var = tk.StringVar(value=business_model)  # Pre-fill the business model
         entry_vars = {}
 
         left_frame = ttk.Frame(new_deal_popup)
@@ -461,9 +462,14 @@ class CostTab(ttk.Frame):
             selected_model = business_model_var.get()
             current_columns = self.model_columns.get(selected_model, [])
 
-            for i, col in enumerate(current_columns, start=1):
-                if col in ['CT_BOOK_YEAR', 'CNT_NAME_GRP', 'PROD_EN_NAME', 'Business model']:
-                    # skip
+            field_order = ['Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE', 'variable/fix',
+                           'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE'] + \
+                          [col for col in current_columns if col not in [
+                              'Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE', 'CT_FIXFEE',
+                              'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE', 'variable/fix']]
+
+            for i, col in enumerate(field_order, start=1):
+                if col in ['Business model']:
                     continue
 
                 label = tk.Label(left_frame, text=col)
