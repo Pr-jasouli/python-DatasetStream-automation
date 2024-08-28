@@ -8,7 +8,7 @@ import pandas as pd
 
 from utilities.utils import center_window, show_message
 
-class ContractLoaderPopup(Toplevel):
+class ViewDealsLoaderPopup(Toplevel):
     def __init__(self, master, config_manager):
         super().__init__(master)
         self.config_manager = config_manager

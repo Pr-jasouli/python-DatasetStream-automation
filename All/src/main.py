@@ -6,6 +6,7 @@ from ui.tab_cost import CostTab
 from ui.ui_config import ConfigUI
 from utilities.utils import show_message, create_styled_button, prevent_multiple_instances, get_base_dir, center_window
 from utilities.config_manager import ConfigManager, ConfigLoaderPopup, ContractLoaderPopup
+from utilities.config_manager import ConfigManager, ConfigLoaderPopup, ViewDealsLoaderPopup
 import os
 
 
@@ -137,7 +138,7 @@ class MainApplication(tk.Tk):
             show_message("Error", f"Failed to load {key}: {e}", type='error', master=self, custom=True)
 
     def open_contract_loader_popup(self):
-        ContractLoaderPopup(self, self.config_manager)
+        ViewDealsLoaderPopup(self, self.config_manager)
 
     def create_bottom_frame(self):
         """Create the bottom frame with configuration and process buttons."""
@@ -164,9 +165,9 @@ class MainApplication(tk.Tk):
                                                width=12)
         new_deal_button.pack(side='left', padx=5, pady=5)
 
-        update_deal_button = create_styled_button(cost_frame, "Update Deal", self.cost_tab.open_update_deal_popup,
-                                                  width=12)
-        update_deal_button.pack(side='left', padx=5, pady=5)
+        # update_deal_button = create_styled_button(cost_frame, "Update Deal", self.cost_tab.open_update_deal_popup,
+        #                                           width=12)
+        # update_deal_button.pack(side='left', padx=5, pady=5)
 
         view_deals_button = create_styled_button(cost_frame, "View Deals", self.open_contract_loader_popup,
                                                  width=12)
