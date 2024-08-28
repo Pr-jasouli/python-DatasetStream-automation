@@ -7,6 +7,20 @@ from tkinter import ttk, filedialog, messagebox
 import pandas as pd
 
 
+def set_window_icon(window, icon_name='favicon.ico'):
+    """Sets the icon for the given tkinter window.
+
+    Args:
+        window: The tkinter window (Tk or Toplevel) where the icon will be set.
+        icon_name: The name of the icon file (default is 'favicon.ico').
+    """
+    icon_path = os.path.join(os.path.dirname(__file__), '..', 'static', icon_name)
+
+    if os.path.exists(icon_path):
+        window.iconbitmap(icon_path)
+    else:
+        print(f"Error: Icon file not found: {icon_path}")
+
 def get_base_dir(main_file_path):
     """Determine the base directory for the application."""
     if getattr(sys, 'frozen', False):

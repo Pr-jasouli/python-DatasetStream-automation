@@ -6,7 +6,7 @@ import win32com.client as win32
 
 import pandas as pd
 
-from utilities.utils import center_window, show_message
+from utilities.utils import center_window, show_message, set_window_icon
 
 class ViewDealsLoaderPopup(Toplevel):
     def __init__(self, master, config_manager):
@@ -39,11 +39,7 @@ class ViewDealsLoaderPopup(Toplevel):
 
     def init_ui(self):
         self.title("Contract Templates")
-        icon_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'favicon.ico')
-        if os.path.exists(icon_path):
-            self.iconbitmap(icon_path)
-        else:
-            print("Icon file not found:", icon_path)
+        set_window_icon(self)
         self.configure(bg='#f0f0f0')
 
         sheets = self.get_sheets()
@@ -180,12 +176,7 @@ class ConfigLoaderPopup(Toplevel):
         master.wait_window(self)
 
     def init_ui(self):
-        self.title("Preload Recent Files")
-        icon_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'favicon.ico')
-        if os.path.exists(icon_path):
-            self.iconbitmap(icon_path)
-        else:
-            print("Icon file not found:", icon_path)
+        set_window_icon(self)
         self.configure(bg='#f0f0f0')
 
         files_to_load = {k: v for k, v in self.config_data.items() if os.path.isfile(v)}
