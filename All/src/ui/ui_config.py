@@ -3,7 +3,8 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 from functools import partial
 
-from utilities.utils import center_window, create_menu, show_message, clean_file_path, create_styled_button
+from utilities.utils import center_window, create_menu, show_message, clean_file_path, create_styled_button, \
+    set_window_icon
 
 
 class ConfigUI(tk.Toplevel):
@@ -18,6 +19,7 @@ class ConfigUI(tk.Toplevel):
     def init_ui(self):
         """Initializes the user interface components and lays out the window."""
         center_window(self, self.master)
+        set_window_icon(self)
         self.resizable(False, False)
         self.create_menus()
         self.create_frames()
