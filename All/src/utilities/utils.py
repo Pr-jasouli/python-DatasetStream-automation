@@ -162,6 +162,7 @@ def show_custom_message(master, title, message, type='info'):
 
     top = tk.Toplevel(master)
     top.title(title)
+    set_window_icon(top)
 
     screen_width = master.winfo_screenwidth()
     screen_height = master.winfo_screenheight()
