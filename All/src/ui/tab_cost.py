@@ -31,30 +31,46 @@ class CostTab(ttk.Frame):
         self.init_ui()
 
     def generate_template(self, new_row):
-        working_contracts_file = os.path.join(self.config_data.get('cost_dest', ''), 'working_contracts.xlsx')
+        output_dir = os.path.abspath(os.path.join(self.config_data.get('cost_dest', ''), '../outputs'))
+        working_contracts_file = os.path.join(output_dir, 'working_contracts.xlsx')
+
+        if not os.path.exists(output_dir):
+            print(f"Debug: Output directory '{output_dir}' does not exist. Creating it.")
+            os.makedirs(output_dir)
+        else:
+            print(f"Debug: Output directory '{output_dir}' already exists.")
+
+        print(f"Debug: Working contracts file path: {working_contracts_file}")
 
         business_model = new_row['Business model'].capitalize()
 
+        if business_model.lower() == 'fixed fee' and new_row.get('allocation', '').lower() == 'provider level':
+            handler = FixedFeeProviderLevelHandler(new_row)
+            handler.add_additional_fields()
+
+        new_df = pd.DataFrame([new_row])
+
         if not os.path.exists(working_contracts_file):
+            print(f"Debug: File '{working_contracts_file}' does not exist. Creating new file.")
             with pd.ExcelWriter(working_contracts_file, engine='openpyxl') as writer:
-                new_df = pd.DataFrame([new_row])
                 new_df.to_excel(writer, sheet_name=business_model, index=False)
                 print(f"Debug: Created new working contracts file with sheet '{business_model}'.")
-
         else:
+            print(f"Debug: File '{working_contracts_file}' exists. Appending data.")
             with pd.ExcelWriter(working_contracts_file, engine='openpyxl', mode='a',
                                 if_sheet_exists='overlay') as writer:
                 try:
                     existing_df = pd.read_excel(working_contracts_file, sheet_name=business_model)
-                    updated_df = pd.concat([existing_df, pd.DataFrame([new_row])], ignore_index=True)
+                    updated_df = pd.concat([existing_df, new_df], ignore_index=True)
                 except ValueError:
-                    updated_df = pd.DataFrame([new_row])
+                    updated_df = new_df
 
                 updated_df.to_excel(writer, sheet_name=business_model, index=False)
                 print(f"Debug: Updated '{business_model}' sheet in the working contracts file.")
 
         show_message("Success", f"Contract added to {working_contracts_file} under '{business_model}' sheet.",
                      master=self, custom=True)
+
 
     def get_model_columns(self):
         return {
