@@ -595,15 +595,17 @@ class CostTab(ttk.Frame):
             # tv channels listboxes
             channels_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=6, exportselection=False)
             channels_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='w')
-            # alphabetique
-            channels = sorted(self.data['CNT_NAME_GRP'].dropna().unique())
+
+            # channels depending on slected network
+            channels = get_channels_for_network(entry_vars['NETWORK_NAME'].get())
             for item in channels:
                 channels_listbox.insert(tk.END, item)
 
-            # tv packs listboxes
+            # tv packs listbox
             packs_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=6, exportselection=False)
             packs_listbox.grid(row=1, column=1, padx=5, pady=5, sticky='w')
-            # alphab
+
+            # Populate TV packs listbox with all available packs (or apply any filtering logic if needed)
             packs = sorted(self.data['PROD_EN_NAME'].dropna().unique())
             for item in packs:
                 packs_listbox.insert(tk.END, item)
