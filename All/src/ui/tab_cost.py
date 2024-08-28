@@ -6,6 +6,7 @@ from tkinter import ttk
 
 import pandas as pd
 
+from parser.fixedFee_providerLevel import FixedFeeProviderLevelHandler
 from utilities import utils
 from utilities.config_manager import ConfigManager
 from utilities.utils import show_message, open_file_and_update_config
@@ -75,9 +76,7 @@ class CostTab(ttk.Frame):
     def get_model_columns(self):
         return {
             ### OK 100%
-            'Fixed fee': ['CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME', 'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
-                          'CT_AVAIL_IN_SCARLET_FR',
-                          'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
+            'Fixed fee': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW',  'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'variable/fix'],
 
             'fixed fee': ['allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
                           'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
@@ -644,13 +643,6 @@ class CostTab(ttk.Frame):
                 'Business model': business_model_var.get(),
             }
 
-            missing_fields = [field for field, value in required_fields.items() if not value]
-
-            if missing_fields:
-                missing_fields_str = ', '.join(missing_fields)
-                show_message("Error", f"The following fields cannot be empty: {missing_fields_str}",
-                             master=new_deal_popup, custom=True)
-                return  # ne pas sauver le deal si colonne manquante
 
             for channels_listbox, packs_listbox in dynamic_listbox_pairs:
                 selected_channels = [channels_listbox.get(idx) for idx in channels_listbox.curselection()]
@@ -679,6 +671,11 @@ class CostTab(ttk.Frame):
                         for col in current_columns:
                             if col not in new_row:
                                 new_row[col] = entry_vars.get(col, tk.StringVar()).get()
+
+                        if (new_row['Business model'].lower() == 'fixed fee' and
+                                new_row['allocation'].lower() == 'provider level'):
+                            handler = FixedFeeProviderLevelHandler(new_row)
+                            handler.add_additional_fields()
 
                         self.generate_template(new_row)
 
