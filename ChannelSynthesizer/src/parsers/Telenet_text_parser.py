@@ -95,6 +95,7 @@ def clean_text(text, section_names):
         'Alles van Streamz+, én daarnaast:',
         '•	 Een heleboel themazenders',
         'met non-stop films.',
+        'TV-gids:',
         '5',
         '€',
         '19,95',
