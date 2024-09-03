@@ -713,6 +713,19 @@ class CostTab(ttk.Frame):
                                 new_row['allocation'].lower() == 'provider level'):
                             handler = FixedFeeProviderLevelHandler(new_row)
                             handler.add_additional_fields()
+                        if (new_row['Business model'].lower() == 'fixed fee' and
+                                new_row['allocation'].lower() == 'channel group level'):
+                            handler = FixedFeeChannelGroupLevelHandler(new_row)
+                            handler.add_additional_fields()
+                        if new_row['Business model'].lower() == 'free':
+                            handler = FreeLevelHandler(new_row)
+                            handler.add_additional_fields()
+                        if new_row['Business model'].lower() == 'fixed fee + index':
+                            handler = FixedFeeIndexLevelHandler(new_row)
+                            handler.add_additional_fields()
+                        if new_row['Business model'].lower() == 'Fixed fee cogs':
+                            handler = FixedFeeCogsLevelHandler(new_row)
+                            handler.add_additional_fields()
 
                         self.generate_template(new_row)
 
