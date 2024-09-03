@@ -663,32 +663,25 @@ class CostTab(ttk.Frame):
                     pair[0].insert(tk.END, item)
 
         def add_listbox_pair():
-            # assignations tv channels/tv packs par colonnes de 3 éléments
-            pair_count = len(dynamic_listbox_pairs)
-            row = (pair_count % 3) * 2
-            col = (pair_count // 3) * 2
+            # Ensure channels are fetched using the correct network name
+            channels = get_channels_for_network(entry_vars['NETWORK_NAME'].get())
 
-            # frame par listbox
+            # Assign channels and TV packs to listboxes
             pair_frame = ttk.Frame(right_frame)
-            pair_frame.grid(row=row, column=col, padx=5, pady=5, sticky='nsew')
+            pair_frame.grid(row=len(dynamic_listbox_pairs) * 2, column=0, padx=5, pady=5, sticky='nsew')
 
             tk.Label(pair_frame, text="Select Channels:").grid(row=0, column=0, padx=5, pady=5, sticky='w')
             tk.Label(pair_frame, text="Select TV Packs:").grid(row=0, column=1, padx=5, pady=5, sticky='w')
 
-            # tv channels listboxes
             channels_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=6, exportselection=False)
             channels_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='w')
 
-            # channels depending on slected network
-            channels = get_channels_for_network(entry_vars['NETWORK_NAME'].get())
             for item in channels:
                 channels_listbox.insert(tk.END, item)
 
-            # tv packs listbox
             packs_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=6, exportselection=False)
             packs_listbox.grid(row=1, column=1, padx=5, pady=5, sticky='w')
 
-            # Populate TV packs listbox with all available packs (or apply any filtering logic if needed)
             packs = sorted(self.data['PROD_EN_NAME'].dropna().unique())
             for item in packs:
                 packs_listbox.insert(tk.END, item)
