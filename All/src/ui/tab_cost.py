@@ -81,20 +81,25 @@ class CostTab(ttk.Frame):
             row_copy['CT_STARTDATE'] = row_copy['CT_STARTDATE'].strftime('%d-%m-%Y')
             row_copy['CT_ENDDATE'] = row_copy['CT_ENDDATE'].strftime('%d-%m-%Y')
 
-        if not os.path.exists(working_contracts_file):
-            print(f"Debug: File '{working_contracts_file}' does not exist. Creating new file.")
-            with pd.ExcelWriter(working_contracts_file, engine='openpyxl') as writer:
-                new_df.to_excel(writer, sheet_name=business_model, index=False)
-                print(f"Debug: Created new working contracts file with sheet '{business_model}'.")
-        else:
-            print(f"Debug: File '{working_contracts_file}' exists. Appending data.")
-            with pd.ExcelWriter(working_contracts_file, engine='openpyxl', mode='a',
-                                if_sheet_exists='overlay') as writer:
-                try:
-                    existing_df = pd.read_excel(working_contracts_file, sheet_name=business_model)
-                    updated_df = pd.concat([existing_df, new_df], ignore_index=True)
-                except ValueError:
-                    updated_df = new_df
+            rows_to_add.append(row_copy)
+
+        new_df = pd.DataFrame(rows_to_add)
+
+        try:
+            if not os.path.exists(working_contracts_file):
+                print(f"Debug: File '{working_contracts_file}' does not exist. Creating new file.")
+                with pd.ExcelWriter(working_contracts_file, engine='openpyxl') as writer:
+                    new_df.to_excel(writer, sheet_name=business_model, index=False)
+                    print(f"Debug: Created new working contracts file with sheet '{business_model}'.")
+            else:
+                print(f"Debug: File '{working_contracts_file}' exists. Appending data.")
+                with pd.ExcelWriter(working_contracts_file, engine='openpyxl', mode='a',
+                                    if_sheet_exists='overlay') as writer:
+                    try:
+                        existing_df = pd.read_excel(working_contracts_file, sheet_name=business_model)
+                        updated_df = pd.concat([existing_df, new_df], ignore_index=True)
+                    except ValueError:
+                        updated_df = new_df
 
                     updated_df.to_excel(writer, sheet_name=business_model, index=False)
                     print(f"Debug: Updated '{business_model}' sheet in the working contracts file.")
