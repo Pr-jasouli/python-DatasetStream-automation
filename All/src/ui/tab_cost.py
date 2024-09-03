@@ -498,6 +498,7 @@ class CostTab(ttk.Frame):
         new_deal_popup = tk.Toplevel(self)
         new_deal_popup.title("New Deal")
         new_deal_popup.geometry("1080x625")
+        set_window_icon(new_deal_popup)
 
         business_model_var = tk.StringVar(value=business_model)  # Pre-fill the business model
         entry_vars = {}
