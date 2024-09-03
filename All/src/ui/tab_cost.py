@@ -77,7 +77,9 @@ class CostTab(ttk.Frame):
             row_copy = new_row.copy()
             row_copy['YEAR'] = year
 
-        new_df = pd.DataFrame([new_row])
+            # Format dates back to dd-mm-yyyy
+            row_copy['CT_STARTDATE'] = row_copy['CT_STARTDATE'].strftime('%d-%m-%Y')
+            row_copy['CT_ENDDATE'] = row_copy['CT_ENDDATE'].strftime('%d-%m-%Y')
 
         if not os.path.exists(working_contracts_file):
             print(f"Debug: File '{working_contracts_file}' does not exist. Creating new file.")
