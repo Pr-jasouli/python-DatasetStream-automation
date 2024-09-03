@@ -49,9 +49,33 @@ class CostTab(ttk.Frame):
 
         business_model = new_row['Business model'].capitalize()
 
-        if business_model.lower() == 'fixed fee' and new_row.get('allocation', '').lower() == 'provider level':
-            handler = FixedFeeProviderLevelHandler(new_row)
-            handler.add_additional_fields()
+        # Possible date formats to handle dd-mm-yyyy and dd-mm-yy
+        date_formats = ['%d-%m-%Y', '%d-%m-%y']
+
+        def parse_date(date_str):
+            for fmt in date_formats:
+                try:
+                    return pd.to_datetime(date_str, format=fmt, dayfirst=True)
+                except ValueError:
+                    continue
+            raise ValueError(f"Date {date_str} is not in a recognized format")
+
+        try:
+            new_row['CT_STARTDATE'] = parse_date(new_row['CT_STARTDATE'])
+            new_row['CT_ENDDATE'] = parse_date(new_row['CT_ENDDATE'])
+        except Exception as e:
+            print(f"Error converting dates: {e}")
+            show_message("Error", f"Invalid date format in CT_STARTDATE or CT_ENDDATE: {e}", master=self, custom=True)
+            return
+
+        start_year = new_row['CT_STARTDATE'].year
+        end_year = new_row['CT_ENDDATE'].year
+
+        # Prepare the rows to be added, one per year
+        rows_to_add = []
+        for year in range(start_year, end_year + 1):
+            row_copy = new_row.copy()
+            row_copy['YEAR'] = year
 
         new_df = pd.DataFrame([new_row])
 
