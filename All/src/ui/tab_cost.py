@@ -70,8 +70,12 @@ class CostTab(ttk.Frame):
                 except ValueError:
                     updated_df = new_df
 
-                updated_df.to_excel(writer, sheet_name=business_model, index=False)
-                print(f"Debug: Updated '{business_model}' sheet in the working contracts file.")
+                    updated_df.to_excel(writer, sheet_name=business_model, index=False)
+                    print(f"Debug: Updated '{business_model}' sheet in the working contracts file.")
+        except PermissionError:
+            show_message("Error", "Please close the 'working_contracts.xlsx' file and try saving again.", master=self,
+                         custom=True)
+            return
 
         show_message("Success", f"Contract added to {working_contracts_file} under '{business_model}' sheet.",
                      master=self, custom=True)
