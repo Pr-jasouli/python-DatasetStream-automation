@@ -696,14 +696,13 @@ class CostTab(ttk.Frame):
             current_columns = self.model_columns.get(selected_model, [])
 
             # validation des fields
-            required_fields = {
-                'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
-                'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
-                'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
-                'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
-                'Business model': business_model_var.get(),
-            }
-
+            # required_fields = {
+            #     'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
+            #     'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
+            #     'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
+            #     'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
+            #     'Business model': business_model_var.get(),
+            # }
 
             for channels_listbox, packs_listbox in dynamic_listbox_pairs:
                 selected_channels = [channels_listbox.get(idx) for idx in channels_listbox.curselection()]
