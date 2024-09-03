@@ -80,49 +80,50 @@ class CostTab(ttk.Frame):
     def get_model_columns(self):
         return {
             ### OK 100%
-            'Fixed fee': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW',  'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'variable/fix'],
+            'Fixed fee': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                          'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
+                          'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
-            'fixed fee': ['allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
-                          'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
-                          'CT_AVAIL_IN_SCARLET_FR',
-                          'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW', 'Business model', 'variable/fix'],
+            'fixed fee': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                          'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
+                          'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
-            'Free': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
-                     'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+            'Free': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                     'CT_DURATION', 'CT_TYPE', 'CT_AUTORENEW', 'CNT_NAME_GRP', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
                      'CT_AVAIL_IN_SCARLET_FR',
-                     'CT_AVAIL_IN_SCARLET_NL', 'Business model', 'variable/fix'],
-            'free': ['CT_BOOK_YEAR', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'CT_TYPE', 'CT_STARTDATE', 'CT_ENDDATE',
-                     'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
-                     'CT_AVAIL_IN_SCARLET_FR',
-                     'CT_AVAIL_IN_SCARLET_NL', 'Business model', 'variable/fix'],
+                     'CT_AVAIL_IN_SCARLET_NL', ],
 
-            'fixed fee + index': [
-                'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
-                'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
-                'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW',
-                'Business model', 'variable/fix', 'CT_INDEX'
-            ],
-            'Fixed fee cogs': [
-                'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
-                'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
-                'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW',
-                'Business model', 'variable/fix'
-            ],
+            'free': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                     'CT_DURATION', 'CT_TYPE', 'CT_AUTORENEW', 'CNT_NAME_GRP', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
+                     'CT_AVAIL_IN_SCARLET_FR',
+                     'CT_AVAIL_IN_SCARLET_NL', ],
+
+            'fixed fee + index': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                                  'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_INDEX', 'CT_TYPE', 'CT_AUTORENEW',
+                                  'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
+                                  'CT_AVAIL_IN_SCARLET_NL'],
+
+            'Fixed fee cogs': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                               'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE',
+                               'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
+
             'fixed fee cogs': [
                 'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
                 'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
                 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW',
-                'Business model', 'variable/fix'
+                'Business model'
             ],
-            'CPS Over MG Subs': [
-                'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
-                'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
-                'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_INDEX', 'CT_MG', 'CT_VARFEE', 'CT_VARFEE_NEW', 'CT_STEP1_SUBS', 'CT_STEP2_SUBS', 'CT_STEP3_SUBS'
-            ],
+
+            'CPS Over MG Subs': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
+
+
+
+
             'CPS Over MG Subs + index': [
                 'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
                 'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
-                'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_INDEX', 'CT_MG', 'CT_VARFEE', 'CT_VARFEE_NEW', 'CT_STEP1_SUBS', 'CT_STEP2_SUBS', 'CT_STEP3_SUBS'
+                'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_INDEX', 'CT_MG', 'CT_VARFEE', 'CT_VARFEE_NEW',
+                'CT_STEP1_SUBS', 'CT_STEP2_SUBS', 'CT_STEP3_SUBS'
             ],
             'Revenue share over MG subs': [
                 'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
@@ -133,7 +134,8 @@ class CostTab(ttk.Frame):
             'CPS on product park': [
                 'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
                 'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
-                'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'PROD_PRICE', 'CT_STEP1_SUBS', 'CT_STEP2_SUBS', 'CT_STEP3_SUBS' #, '#Subscriber', 'PROD_PRICE_VAT_EXCL'
+                'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'PROD_PRICE', 'CT_STEP1_SUBS', 'CT_STEP2_SUBS',
+                'CT_STEP3_SUBS'  #, '#Subscriber', 'PROD_PRICE_VAT_EXCL'
             ],
             'CPS on volume regionals + index': [
                 'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
@@ -145,6 +147,12 @@ class CostTab(ttk.Frame):
                 'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
                 'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
                 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_VARFEE', 'CT_VARFEE_NEW'
+            ],
+            'Revenue share': [
+                'CT_TYPE', 'allocation'
+            ],
+            'CPS- 5 steps': [
+                'CT_TYPE', 'allocation'
             ],
         }
 
