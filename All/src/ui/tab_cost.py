@@ -471,6 +471,31 @@ class CostTab(ttk.Frame):
                 widget.destroy()
             dynamic_widgets.clear()
 
+        allocation_combobox = None
+        allocation_options = {
+            'Fixed fee': ['channel group level', 'product level', 'provider level', 'provider level (gulli excluded)'],
+            'fixed fee + index': ['provider & product level', 'provider level', 'provider level & product(basic)'],
+            'Fixed fee cogs': ['channel group level', 'channel level', 'product level', 'provider level'],
+            'Free': ['channel group level', 'product level'],
+            'CPS Over MG Subs': ['provider level', 'provider level & product(options)'],
+            'CPS Over MG Subs + index': ['provider & product level'],
+            'Revenue share over MG subs': ['provider level'],
+            'CPS on product park': [
+                'channel group level', 'subscriber based - provider level', 'subscriber based (only basic)',
+                'subscriber based (pxs/scarlet)', 'suscriber based FR/NL(only basic)', 'product price level(basic)'
+            ],
+            'CPS on volume regionals + index': ['provider level', 'subscriber based - provider level'],
+            'Event Based INTEC': ['product level', 'provider level'],
+            'Revenue share': ['channel group level', 'product level'],
+            'CPS- 5 steps': ['provider level']
+        }
+
+        def update_allocation_options(selected_model):
+            options = allocation_options.get(selected_model, sorted(self.data['allocation'].dropna().unique()))
+            allocation_combobox['values'] = options
+            if options:
+                allocation_combobox.set(options[0])
+
         def update_fields_based_on_business_model(event=None):
             clear_dynamic_widgets()
 
@@ -494,13 +519,13 @@ class CostTab(ttk.Frame):
                 entry_vars[col] = tk.StringVar()
 
                 if col == 'allocation':
+                    nonlocal allocation_combobox
                     allocation_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
-                    allocation_combobox['values'] = sorted(self.data['allocation'].dropna().unique())
                     allocation_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(allocation_combobox)
-                    allocation_combobox.set(allocation)
+                    update_allocation_options(
+                        selected_model)
                 elif col == 'NETWORK_NAME':
-                    # sort alphabétique
                     network_name_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
                     network_name_combobox['values'] = sorted(self.data['NETWORK_NAME'].dropna().unique().tolist())
                     network_name_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
