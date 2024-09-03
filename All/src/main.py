@@ -22,7 +22,7 @@ class MainApplication(tk.Tk):
         self.config_ui_callback = self.update_config_data
 
         self.initialize_ui()
-        center_window(self, self.master, 970, 805)
+        center_window(self, self.master, 970, 820)
         self.show_file_loader_popup_if_files_exist()
 
     def show_file_loader_popup_if_files_exist(self):
