@@ -297,7 +297,6 @@ class CostTab(ttk.Frame):
         )
         self.allocation_dropdown.grid(row=1, column=2, pady=5, padx=4)
 
-
         self.tree = ttk.Treeview(tree_container, columns=(), show="headings")
         self.tree.grid(row=0, column=0, sticky="nsew")
 
@@ -462,7 +461,6 @@ class CostTab(ttk.Frame):
         else:
             combined_data = additional_data
 
-
         if 'CT_STARTDATE' in combined_data.columns:
             combined_data['CT_STARTDATE'] = pd.to_datetime(combined_data['CT_STARTDATE'], errors='coerce').dt.strftime(
                 '%d-%m-%Y')
@@ -505,8 +503,9 @@ class CostTab(ttk.Frame):
         new_deal_popup.geometry("1080x625")
         set_window_icon(new_deal_popup)
 
-        business_model_var = tk.StringVar(value=business_model)  # Pre-fill the business model
+        business_model_var = tk.StringVar(value=business_model)
         entry_vars = {}
+        entry_vars['NETWORK_NAME'] = tk.StringVar(value=network_name)
 
         left_frame = ttk.Frame(new_deal_popup)
         left_frame.grid(row=0, column=0, padx=10, pady=5, sticky='nsew')
@@ -557,7 +556,7 @@ class CostTab(ttk.Frame):
                               'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE', 'variable/fix']]
 
             for i, col in enumerate(field_order, start=1):
-                if col in ['Business model']:
+                if col == 'Business model':
                     continue
 
                 label = tk.Label(left_frame, text=col)
@@ -602,6 +601,11 @@ class CostTab(ttk.Frame):
                         variable_fix_label = tk.Label(left_frame, text='fixed')
                         variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                         dynamic_widgets.append(variable_fix_label)
+                    elif selected_model.lower() == 'free':
+                        entry_vars[col].set('free')
+                        variable_fix_label = tk.Label(left_frame, text='free')
+                        variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                        dynamic_widgets.append(variable_fix_label)
                     else:
                         variable_fix_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
                         variable_fix_combobox['values'] = ['variable', 'fixed']
@@ -617,8 +621,8 @@ class CostTab(ttk.Frame):
                     entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(entry)
 
-
-        update_fields_based_on_business_model()
+            # Ensure the allocation options are updated when the business model changes
+            update_allocation_options(selected_model)
 
         submit_button = ttk.Button(left_frame, text="Save", command=lambda: submit_deal(business_model_var, entry_vars),
                                    style='AudienceTab.TButton')
@@ -630,11 +634,11 @@ class CostTab(ttk.Frame):
 
         tk.Label(left_frame, text="Business model").grid(row=1, column=0, padx=10, pady=5, sticky='e')
         business_model_combobox = ttk.Combobox(left_frame, textvariable=business_model_var)
-        business_model_combobox['values'] = list(self.model_columns.keys())
+        business_model_combobox['values'] = [model for model in self.model_columns.keys() if
+                                             model not in ['fixed fee', 'free', 'fixed fee cogs']]
         business_model_combobox.grid(row=1, column=1, padx=10, pady=5, sticky='w')
 
         business_model_combobox.bind("<<ComboboxSelected>>", update_fields_based_on_business_model)
-
 
         right_frame = ttk.Frame(new_deal_popup)
         right_frame.grid(row=0, column=1, padx=10, pady=5, sticky='nsew')
@@ -757,6 +761,7 @@ class CostTab(ttk.Frame):
 
                         self.generate_template(new_row)
 
+
             new_deal_popup.destroy()
             self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(),
                                   self.business_model_var.get())
@@ -764,7 +769,6 @@ class CostTab(ttk.Frame):
         update_fields_based_on_business_model()
 
     ######## refefefef
-
 
     def open_update_deal_popup(self):
         selected_items = self.tree.selection()
