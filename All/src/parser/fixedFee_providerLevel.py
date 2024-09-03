@@ -9,6 +9,7 @@ class FixedFeeProviderLevelHandler:
         self.new_row['AUDSHARE_ALLOC_KEY'] = self.generate_audshare_alloc_key()
         self.new_row['TOTAL_COST_NETWORK'] = self.calculate_total_cost_network()
         self.new_row['FIX_YEARLY_COST_ALLOC'] = self.calculate_fix_yearly_cost_alloc()
+        self.new_row['CAPEX'] = self.calculate_capex()
 
     def calculate_cnt_name_prd_mins(self):
         pass
@@ -26,4 +27,7 @@ class FixedFeeProviderLevelHandler:
         pass
 
     def retrieve_previous_fixfee(self):
+        pass
+
+    def calculate_capex(self):
         pass
