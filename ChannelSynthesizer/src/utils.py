@@ -1,6 +1,8 @@
 import re
 
 import pandas as pd
+from pathlib import Path
+
 
 def get_provider_and_year(filename):
     """
@@ -21,6 +23,7 @@ def get_provider_and_year(filename):
         year = year_match.group(0)
 
     return provider, year
+
 
 def read_section_names(file_path):
     """
@@ -65,6 +68,7 @@ def ensure_region_columns_exist(df):
             df[col] = 0  # Initialiser la colonne avec des zéros
     return df
 
+
 def process_providers(section_dir, text_dir, output_path):
     """
     traite les fichiers des differents fournisseurs et creer un rapport consolidé
@@ -83,7 +87,8 @@ def process_providers(section_dir, text_dir, output_path):
 
     create_consolidated_excel(all_data, output_path)
 
-from pathlib import Path
+
+
 
 def find_file_pairs(section_dir, text_dir):
     """
@@ -155,6 +160,7 @@ def is_basic_section(section_name):
 
     return bool(basic_sections_regex.search(section_name))
 
+
 def synchronize_channel_group_case(final_df):
     """
     synchroniser la casse pour les valeurs de 'Channel Group Level' qui diffèrent uniquement par la casse
@@ -168,7 +174,11 @@ def synchronize_channel_group_case(final_df):
     final_df['Channel Group Level'] = final_df['Channel Group Level'].str.lower().map(group_map)
 
     return final_df
+
+
 def create_summary_table(final_df):
+    from ChannelSynthesizer.src.main import load_config, PageSelectionDialog, save_config
+
     """
     cree un tableau récapitulatif basé sur les niveaux de groupe de chaînes uniques
     exclure les lignes où TV/Radio est 'Radio'
@@ -205,11 +215,12 @@ def create_summary_table(final_df):
     return summary_df
 
 
-def create_consolidated_excel(all_data, output_path):
+def create_consolidated_excel(all_data, output_path, channel_grouping_df):
     """
     crée un rapport Excel consolidé à partir des données analysées
     :param all_data: liste de tuples contenant le fournisseur, l'année, les données et les noms de section
     :param output_path: chemin vers le fichier Excel à enregistrer
+    :param channel_grouping_df: DataFrame contenant les correspondances de noms de chaînes et de groupes
     """
     combined_data = []
 
@@ -246,8 +257,6 @@ def create_consolidated_excel(all_data, output_path):
         for entry in data:
             section = entry[0]
             channel = entry[1]
-
-
 
             # Initialiser les régions comme non disponibles
             regions = [0, 0, 0, 0]  # [Flanders, Brussels, Wallonia, Germanophone]
@@ -314,7 +323,9 @@ def create_consolidated_excel(all_data, output_path):
             df_data.append([channel, period] + regions + [option, tv_radio, hd_sd])
 
         # Créer un DataFrame à partir des données traitées
-        df = pd.DataFrame(df_data, columns=['Channel', 'Provider_Period'] + static_columns + ['Basic/Option', 'TV/Radio', 'HD/SD'])
+        df = pd.DataFrame(df_data,
+                          columns=['Channel', 'Provider_Period'] + static_columns + ['Basic/Option', 'TV/Radio',
+                                                                                     'HD/SD'])
         combined_data.append(df)
 
     # Combiner tous les DataFrames en un seul DataFrame final
@@ -329,15 +340,16 @@ def create_consolidated_excel(all_data, output_path):
     # Supprimer les lignes en double avec le même 'Channel' et 'Provider_Period'
     final_df = final_df.drop_duplicates(subset=['Channel', 'Provider_Period'])
 
-    # Ajouter une colonne 'Channel Group Level'
-    final_df['Channel Group Level'] = final_df['Channel'].apply(lambda x: re.sub(
-        r"\b(HD|SD|FR|NL|van DAZN|de DAZN|Gent|Sint-Niklaas|Dendermonde|Oudenaarde|Eeklo|Herenthout|Turnhout|Vl\.|Disco & Funk|Komen|Limburg|Mechelen|Geel|Antwerpen|West-Vl\.|60\'s-70\'s|80\'s & 90\'s|VL|Internationale|Vlaams Brabant|Oost Vlaanderen|West Vlaanderen|Eng|NWS|CANVAS|Canvas|Nl|Ukraine|Crime|Dagpas|Info|Open|Premier League|-Music Radio|-music radio|-music|-Maximum Hits|-Foute Radio|-Allstar| France|Germany|Italy|Nordic|Spain|Turk|Müzigi|non stop dokters|non-stop dokters|Maroc|Monde|Europe|.|English|Int.|Belgique| Classic|Frisson|Premier|R'n'B & Soul|Rock|21|Calm|Greats|Orchestral|International|Vl.|JR|Jr|Wild|WILD|- TVi|-tvi| tvi|Television|Plug|Club|club|- UK|Breizh|Oost| Plus| Polonia|Classic| •)\b",
-        '',
-        x).strip()
+    final_df = final_df.merge(
+        channel_grouping_df[['CHANNEL_NAME', 'CHANNEL_NAME_GROUP']],
+        how='left',
+        left_on='Channel',
+        right_on='CHANNEL_NAME'
     )
 
-    final_df['Channel Group Level'] = final_df['Channel Group Level'].str.replace(r'[()]', '', regex=True)
+    final_df.rename(columns={'CHANNEL_NAME_GROUP': 'Channel Group Level'}, inplace=True)
 
+    final_df.drop(columns=['CHANNEL_NAME'], inplace=True)
 
     final_df = synchronize_channel_group_case(final_df)
 
@@ -346,10 +358,9 @@ def create_consolidated_excel(all_data, output_path):
 
     final_df = final_df[final_df['Channel'].str.strip() != '']
 
-
-
     # Écrire le DataFrame final dans un fichier Excel
     with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
         final_df.to_excel(writer, sheet_name='Consolidated', index=False)
 
     print(f"Rapport Excel consolidé créé à : {output_path}")
+

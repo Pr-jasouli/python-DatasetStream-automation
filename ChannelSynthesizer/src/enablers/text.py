@@ -1,15 +1,18 @@
 import os
 import json
 import re
+from tkinter import Tk
 
 import fitz
-from ChannelSynthesizer.src.parsers.Orange_text_parser import parse_orange_pdf
-from ChannelSynthesizer.src.parsers.VOO_text_parser import parse_voo_pdf
-from ChannelSynthesizer.src.parsers.Telenet_text_parser import parse_telenet_pdf
-from ChannelSynthesizer.src.parsers.all_sections_parser import detect_provider_and_year
+
+from ChannelSynthesizer.src.parsers.all_sections_parser import detect_provider_and_year, get_pages_to_process
+from ChannelSynthesizer.src.parsers.providers.orange import parse_orange_pdf
+from ChannelSynthesizer.src.parsers.providers.telenet import parse_telenet_pdf
+from ChannelSynthesizer.src.parsers.providers.voo import parse_voo_pdf
 from ChannelSynthesizer.src.utils import read_section_names
 
 CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.config/page_selection.json'))
+
 
 def load_page_selection() -> dict:
     """
@@ -56,7 +59,7 @@ def add_tv_radio_codes(tsv_path, section_names):
 
         # verifier si la section actuelle devrait etre catégorisée comme radio
         is_radio_section = (
-            current_section and re.search(r'radio|stingray|music|radios|radiozenders|CHAÎNES DE MUSIQUE', current_section, re.IGNORECASE)
+                current_section and re.search(r'radio|stingray|music|radios|radiozenders|CHAÎNES DE MUSIQUE', current_section, re.IGNORECASE)
         )
 
         # corriger la categorisation si la ligne a deja un code tv/r incorrect

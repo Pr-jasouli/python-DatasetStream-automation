@@ -406,7 +406,6 @@ def parse_voo_pdf(pdf_path):
         section_names = read_section_names(section_tsv_path)
         process_single_tsv(tsv_path, section_names)
         insert_section_name_rows(tsv_path, section_names)
-    # add_tv_radio_codes(tsv_path, section_names)
 
     remove_specific_string(tsv_path, "Retrouvez votre chaîne locale ici")
     remove_everything_after_word(tsv_path, "Retrouvez les")
