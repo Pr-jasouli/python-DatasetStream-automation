@@ -3,6 +3,7 @@ class FixedFeeCogsLevelHandler:
         self.new_row = new_row
 
     def add_additional_fields(self):
+        self.new_row['YEAR'] = self.calculate_year()
         self.new_row['CT_FIXFEE'] = self.retrieve_previous_fixfee()
         self.new_row['CNT_NAME_PRD_MINS'] = self.calculate_cnt_name_prd_mins()
         self.new_row['CNT_NAME_PRD_MINS_TOT'] = self.calculate_cnt_name_prd_mins_tot()
@@ -10,6 +11,7 @@ class FixedFeeCogsLevelHandler:
         self.new_row['TOTAL_COST_NETWORK'] = self.calculate_total_cost_network()
         self.new_row['FIX_YEARLY_COST_ALLOC'] = self.calculate_fix_yearly_cost_alloc()
         self.new_row['CAPEX'] = self.calculate_capex()
+        self.new_row['COGS'] = self.calculate_cogs()
 
     def calculate_cnt_name_prd_mins(self):
         pass
@@ -30,4 +32,10 @@ class FixedFeeCogsLevelHandler:
         pass
 
     def calculate_capex(self):
+        pass
+
+    def calculate_cogs(self):
+        pass
+
+    def calculate_year(self):
         pass

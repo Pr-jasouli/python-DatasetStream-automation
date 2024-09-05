@@ -3,6 +3,7 @@ class FixedFeeIndexLevelHandler:
         self.new_row = new_row
 
     def add_additional_fields(self):
+        self.new_row['YEAR'] = self.calculate_year()
         self.new_row['CT_FIXFEE'] = self.retrieve_previous_fixfee()
         self.new_row['CNT_NAME_PRD_MINS'] = self.calculate_cnt_name_prd_mins()
         self.new_row['CNT_NAME_PRD_MINS_TOT'] = self.calculate_cnt_name_prd_mins_tot()
@@ -30,4 +31,7 @@ class FixedFeeIndexLevelHandler:
         pass
 
     def calculate_capex(self):
+        pass
+
+    def calculate_year(self):
         pass
