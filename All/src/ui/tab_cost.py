@@ -6,6 +6,8 @@ from tkinter import ttk
 
 import pandas as pd
 
+from parser.cps_over_mg_subs import CpsOverMgSubsHandler
+from parser.cps_over_mg_subs_index import CpsOverMgSubsIndexHandler
 from parser.fixedFee_cogs import FixedFeeCogsLevelHandler
 from parser.fixedFee_index import FixedFeeIndexLevelHandler
 from parser.fixedFee_channelGroupLevel import FixedFeeChannelGroupLevelHandler
@@ -757,6 +759,12 @@ class CostTab(ttk.Frame):
                             handler.add_additional_fields()
                         if new_row['Business model'].lower() == 'Fixed fee cogs':
                             handler = FixedFeeCogsLevelHandler(new_row)
+                            handler.add_additional_fields()
+                        if new_row['Business model'].lower() == 'CPS Over MG Subs':
+                            handler = CpsOverMgSubsHandler(new_row)
+                            handler.add_additional_fields()
+                        if new_row['Business model'].lower() == 'CPS Over MG Subs + index':
+                            handler = CpsOverMgSubsIndexHandler(new_row)
                             handler.add_additional_fields()
 
                         self.generate_template(new_row)
