@@ -548,7 +548,7 @@ class AudienceTab(ttk.Frame):
 
         if not self.base_dir:
             raise ValueError("Base directory is not set.")
-        script_path = os.path.join(self.base_dir, 'parser', 'audience_parser.py')
+        script_path = os.path.join(self.base_dir, 'parser', 'parser_audience.py')
         script_path = os.path.abspath(script_path)
         print(f"Script Path: {script_path}")
 

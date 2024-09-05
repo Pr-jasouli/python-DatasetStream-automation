@@ -117,30 +117,30 @@ class CostTab(ttk.Frame):
     def get_model_columns(self):
         return {
             ### OK 100%
-            'Fixed fee': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+            'Fixed fee': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
                           'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
                           'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
-            'fixed fee': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+            'fixed fee': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
                           'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
                           'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
-            'Free': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
-                     'CT_DURATION', 'CT_TYPE', 'CT_AUTORENEW', 'CNT_NAME_GRP', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
+            'Free': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                     'CT_DURATION', 'CT_AUTORENEW', 'CNT_NAME_GRP', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
                      'CT_AVAIL_IN_SCARLET_FR',
                      'CT_AVAIL_IN_SCARLET_NL', ],
 
-            'free': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
-                     'CT_DURATION', 'CT_TYPE', 'CT_AUTORENEW', 'CNT_NAME_GRP', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
+            'free': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                     'CT_DURATION', 'CT_AUTORENEW', 'CNT_NAME_GRP', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
                      'CT_AVAIL_IN_SCARLET_FR',
                      'CT_AVAIL_IN_SCARLET_NL', ],
 
-            'fixed fee + index': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+            'fixed fee + index': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
                                   'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_INDEX', 'CT_TYPE', 'CT_AUTORENEW',
                                   'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
                                   'CT_AVAIL_IN_SCARLET_NL'],
 
-            'Fixed fee cogs': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+            'Fixed fee cogs': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
                                'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE',
                                'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
@@ -151,7 +151,7 @@ class CostTab(ttk.Frame):
                 'Business model'
             ],
 
-            'CPS Over MG Subs': ['YEAR', 'Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
+            'CPS Over MG Subs': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
 
 
