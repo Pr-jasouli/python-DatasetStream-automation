@@ -16,6 +16,7 @@ class CpsOverMgSubsHandler:
         self.new_row['TOTAL_COST_NETWORK'] = self.calculate_total_cost_network()
         self.new_row['FIX_YEARLY_COST_ALLOC'] = self.calculate_fix_yearly_cost_alloc()
         #Subs here ??
+        
         self.new_row['CT_MIN_SUBS'] = self.calculate_minimum_subs()
         # CAPEX / COGS
         self.new_row['CAPEX'] = self.calculate_capex()
