@@ -131,10 +131,7 @@ def remove_redundant_sections(sections: List[List[str]]) -> List[List[str]]:
             seen_sections.add(section_name)
     return unique_sections
 
-
-
-def save_sections(filename: str, sections: List[List[str]]) -> None:
-    output_dir = os.path.join(os.path.dirname(__file__), '../../outputs/section/')
+def save_sections(filename: str, sections: List[List[str]], output_dir: str) -> None:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
