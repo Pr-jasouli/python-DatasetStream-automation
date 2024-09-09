@@ -1,18 +1,16 @@
 import os
 import json
 import re
-from tkinter import Tk
 
 import fitz
+from parsers.providers.orange import parse_orange_pdf
+from parsers.providers.voo import parse_voo_pdf
+from parsers.providers.telenet import parse_telenet_pdf
+from parsers.all_sections_parser import detect_provider_and_year
+from utils import read_section_names
 
-from ChannelSynthesizer.src.parsers.all_sections_parser import detect_provider_and_year, get_pages_to_process
-from ChannelSynthesizer.src.parsers.providers.orange import parse_orange_pdf
-from ChannelSynthesizer.src.parsers.providers.telenet import parse_telenet_pdf
-from ChannelSynthesizer.src.parsers.providers.voo import parse_voo_pdf
-from ChannelSynthesizer.src.utils import read_section_names
-
-CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.config/page_selection.json'))
-
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+CONFIG_PATH = os.path.join(BASE_DIR, '.config/page_selection.json')
 
 def load_page_selection() -> dict:
     """
@@ -59,7 +57,7 @@ def add_tv_radio_codes(tsv_path, section_names):
 
         # verifier si la section actuelle devrait etre catégorisée comme radio
         is_radio_section = (
-                current_section and re.search(r'radio|stingray|music|radios|radiozenders|CHAÎNES DE MUSIQUE', current_section, re.IGNORECASE)
+            current_section and re.search(r'radio|stingray|music|radios|radiozenders|CHAÎNES DE MUSIQUE', current_section, re.IGNORECASE)
         )
 
         # corriger la categorisation si la ligne a deja un code tv/r incorrect
@@ -111,10 +109,13 @@ def process_pdfs(directory):
                 total_pages = document.page_count
                 document.close()
 
+
+                section_file = os.path.join(BASE_DIR, 'outputs/section', os.path.splitext(filename)[0] + '_sections.tsv')
+                tsv_path = os.path.join(BASE_DIR, 'outputs/text', os.path.splitext(filename)[0] + '_text.tsv')
+
                 # charger les noms de section si disponible
                 section_names = []
-                section_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/section/',
-                                                            os.path.splitext(filename)[0] + '_sections.tsv'))
+
                 if os.path.exists(section_file):
                     section_names = read_section_names(section_file)
 
@@ -130,12 +131,11 @@ def process_pdfs(directory):
                     print(f"provider non supporté {provider} pour le fichier {filename}")
 
                 # appliquer le marquage tv/radio au fichier tsv
-                tsv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../outputs/text/', os.path.splitext(filename)[0] + '_text.tsv'))
                 add_tv_radio_codes(tsv_path, section_names)
 
             except ValueError as e:
                 print(f"erreur en traitant {filename}: {e}")
 
 if __name__ == "__main__":
-    input_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../inputs/pdf'))
+    input_directory = os.path.join(BASE_DIR, 'inputs/pdf')
     process_pdfs(input_directory)
