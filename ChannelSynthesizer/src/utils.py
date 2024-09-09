@@ -1,7 +1,11 @@
+import os
 import re
+import subprocess
 
 import pandas as pd
 from pathlib import Path
+
+BASE_DIR = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 
 def get_provider_and_year(filename):
@@ -67,27 +71,6 @@ def ensure_region_columns_exist(df):
         if col not in df.columns:
             df[col] = 0  # Initialiser la colonne avec des zéros
     return df
-
-
-def process_providers(section_dir, text_dir, output_path):
-    """
-    traite les fichiers des differents fournisseurs et creer un rapport consolidé
-    :param section_dir: répertoire contenant les fichiers de section
-    :param text_dir: répertoire contenant les fichiers texte
-    :param output_path: chemin vers le fichier de sortie
-    """
-    file_pairs = find_file_pairs(section_dir, text_dir)
-    all_data = []
-
-    for section_file, text_file in file_pairs:
-        provider, year = get_provider_and_year(text_file.stem)
-        section_names = read_section_names(section_file)
-        data = parse_tsv(text_file, section_names, provider)
-        all_data.append((provider, year, data, section_names))
-
-    create_consolidated_excel(all_data, output_path)
-
-
 
 
 def find_file_pairs(section_dir, text_dir):
@@ -177,8 +160,6 @@ def synchronize_channel_group_case(final_df):
 
 
 def create_summary_table(final_df):
-    from ChannelSynthesizer.src.main import load_config, PageSelectionDialog, save_config
-
     """
     cree un tableau récapitulatif basé sur les niveaux de groupe de chaînes uniques
     exclure les lignes où TV/Radio est 'Radio'
@@ -217,39 +198,43 @@ def create_summary_table(final_df):
 
 def create_consolidated_excel(all_data, output_path, channel_grouping_df):
     """
-    crée un rapport Excel consolidé à partir des données analysées
-    :param all_data: liste de tuples contenant le fournisseur, l'année, les données et les noms de section
-    :param output_path: chemin vers le fichier Excel à enregistrer
-    :param channel_grouping_df: DataFrame contenant les correspondances de noms de chaînes et de groupes
+    cree un rapport excel consolide a partir des donnees analysees
+    :param all_data: liste de tuples contenant le fournisseur, l'annee, les donnees et les noms de section
+    :param output_path: chemin vers le fichier excel a enregistrer
+    :param channel_grouping_df: dataframe contenant les correspondances de noms de chaines et de groupes
     """
     combined_data = []
 
-    VOO_info_codes = {
-        "VS": "VOOsport",
-        "w VS": "VOOsport World",
-        "Pa": "Bouquet Panorama",
-        "Ci": "Option Ciné Pass",
-        "Doc": "Be Bouquet Documentaires",
-        "Div": "Be Bouquet Divertissement",
-        "Co": "Be Cool",
-        "Enf": "Be Bouquet Enfant",
-        "Sp": "Be Bouquet Sport",
-        "Sel": "Be Bouquet Selection",
-        "Inf": "Option Infos",
-        "Sen": "Option Sensation",
-        "Ch": "Option Charme",
-        "FF": "Family Fun",
-        "DM": "Discover More",
-        "CX": "Classé X",
-        "MX": "Man-X",
+    #dictionnaire des codes d'info voo pour mapper les noms des bouquets
+    voo_info_codes = {
+        "VS": "voosport",
+        "w VS": "voosport world",
+        "Pa": "bouquet panorama",
+        "Ci": "option cine pass",
+        "Doc": "be bouquet documentaires",
+        "Div": "be bouquet divertissement",
+        "Co": "be cool",
+        "Enf": "be bouquet enfant",
+        "Sp": "be bouquet sport",
+        "Sel": "be bouquet selection",
+        "Inf": "option infos",
+        "Sen": "option sensation",
+        "Ch": "option charme",
+        "FF": "family fun",
+        "DM": "discover more",
+        "CX": "classe x",
+        "MX": "man-x",
     }
 
+    #regex pour identifier les mots cles des options orange
     orange_option_keywords = re.compile(
-        r'Be 1|Be Séries|Be seri|Be Cin|Ciné\+|Cine\+|ELEVEN Pro|VOOSPORT WORLD',
+        r'be 1|be series|be seri|be cin|cine\+|cine\+|eleven pro|voosport world',
         re.IGNORECASE
     )
 
     for provider, year, data, section_names in all_data:
+        print(f"processing provider: {provider}, year: {year}")
+        print(f"data length: {len(data)}")
         period = f"{provider} {year}"
         static_columns = ['Region Flanders', 'Brussels', 'Region Wallonia', 'Communauté Germanophone']
         df_data = []
@@ -257,61 +242,62 @@ def create_consolidated_excel(all_data, output_path, channel_grouping_df):
         for entry in data:
             section = entry[0]
             channel = entry[1]
+            print(f"processing channel: {channel}")
 
-            # Initialiser les régions comme non disponibles
-            regions = [0, 0, 0, 0]  # [Flanders, Brussels, Wallonia, Germanophone]
+            #initialiser les regions comme non disponibles
+            regions = [0, 0, 0, 0]  #flanders, brussels, wallonia, germanophone
 
-            # Déterminer les régions en fonction des codes de région dans le nom de la chaîne
+            #determiner les regions en fonction des codes de region dans le nom de la chaine
             if provider in ["Orange", "Voo"]:
                 if 'W' in channel.split():
-                    regions = [0, 0, 1, 0]  # Seulement Wallonie
+                    regions = [0, 0, 1, 0]  #seulement wallonie
                 elif 'B' in channel.split():
-                    regions = [0, 1, 0, 0]  # Seulement Bruxelles
+                    regions = [0, 1, 0, 0]  #seulement bruxelles
                 elif 'G' in channel.split():
-                    regions = [0, 0, 0, 1]  # Seulement Germanophone
+                    regions = [0, 0, 0, 1]  #seulement germanophone
                 elif 'F' in channel.split():
-                    regions = [1, 0, 0, 0]  # Seulement Flandre
+                    regions = [1, 0, 0, 0]  #seulement flandre
                 else:
-                    regions = [1, 1, 1, 1]  # Par défaut toutes les régions
+                    regions = [1, 1, 1, 1]  #par defaut toutes les regions
 
-                # Supprimer le code de région du nom de la chaîne
+                #supprimer le code de region du nom de la chaine
                 channel = re.sub(r'\b(W|B|G|F| w)\b', '', channel).strip()
 
             elif provider == "Telenet":
-                regions = [1, 1, 0, 0]  # Disponible en Flandre et Bruxelles
+                regions = [1, 1, 0, 0]  #disponible en flandre et bruxelles
 
-            # Déterminer si la section est Basic ou Option pour VOO
+            #determiner si la section est basic ou option pour voo
             if provider == "Voo":
-                if any(code in channel.split() for code in VOO_info_codes.keys()):
+                if any(code in channel.split() for code in voo_info_codes.keys()):
                     option = 'Option'
                 else:
                     option = 'Basic'
-                # Supprimer les codes d'info VOO du nom de la chaîne
-                channel = ' '.join([word for word in channel.split() if word not in VOO_info_codes.keys()])
+                #supprimer les codes d'info voo du nom de la chaine
+                channel = ' '.join([word for word in channel.split() if word not in voo_info_codes.keys()])
             elif provider == "Orange":
-                # Pour Orange, par défaut Basic sauf si le nom de la chaîne correspond à l'un des mots-clés d'option
+                #pour orange, par defaut basic sauf si le nom de la chaine correspond a un mot-cle d'option
                 if orange_option_keywords.search(channel):
                     option = 'Option'
                 else:
                     option = 'Basic'
             else:
-                # Pour d'autres fournisseurs, utiliser le nom de la section pour déterminer Basic ou Option
+                #pour d'autres fournisseurs, utiliser le nom de la section pour determiner basic ou option
                 if is_basic_section(section):
                     option = 'Basic'
                 else:
                     option = 'Option'
 
-            # Déterminer si la chaîne est TV ou Radio en fonction du nom de la chaîne
+            #determiner si la chaine est tv ou radio en fonction du nom de la chaine
             if channel.endswith('TV'):
                 tv_radio = 'TV'
-                channel = channel[:-2].strip()  # Supprimer le suffixe 'TV' du nom de la chaîne
+                channel = channel[:-2].strip()  #supprimer le suffixe 'tv' du nom de la chaine
             elif channel.endswith('R'):
                 tv_radio = 'Radio'
-                channel = channel[:-1].strip()  # Supprimer le suffixe 'R' du nom de la chaîne
+                channel = channel[:-1].strip()  #supprimer le suffixe 'r' du nom de la chaine
             else:
                 tv_radio = 'TV'
 
-            # Déterminer si la chaîne est HD, SD, ou ni l'un ni l'autre
+            #determiner si la chaine est hd, sd, ou ni l'un ni l'autre
             if 'HD' in channel:
                 hd_sd = 'HD'
             elif 'SD' in channel:
@@ -319,48 +305,112 @@ def create_consolidated_excel(all_data, output_path, channel_grouping_df):
             else:
                 hd_sd = ''
 
-            # Ajouter les données traitées pour cette chaîne
+            #ajouter les donnees traitees pour cette chaine
             df_data.append([channel, period] + regions + [option, tv_radio, hd_sd])
 
-        # Créer un DataFrame à partir des données traitées
+        #creer un dataframe a partir des donnees traitees
         df = pd.DataFrame(df_data,
-                          columns=['Channel', 'Provider_Period'] + static_columns + ['Basic/Option', 'TV/Radio',
-                                                                                     'HD/SD'])
+                          columns=['Channel', 'Provider_Period'] + static_columns + ['Basic/Option', 'TV/Radio', 'HD/SD'])
         combined_data.append(df)
 
-    # Combiner tous les DataFrames en un seul DataFrame final
+    #combiner tous les dataframes en un seul dataframe final
     final_df = pd.concat(combined_data, ignore_index=True)
 
-    # Appliquer un post-traitement pour la cohérence des régions Orange
+    #appliquer un post-traitement pour la coherence des regions orange
     final_df = post_process_orange_regions(final_df)
 
-    # Supprimer les lignes où la valeur de Channel est simplement 'w'
+    #supprimer les lignes ou la valeur de channel est simplement 'w'
     final_df = final_df[final_df['Channel'] != 'w']
 
-    # Supprimer les lignes en double avec le même 'Channel' et 'Provider_Period'
+    #supprimer les lignes en double avec le meme 'channel' et 'provider_period'
     final_df = final_df.drop_duplicates(subset=['Channel', 'Provider_Period'])
 
-    final_df = final_df.merge(
-        channel_grouping_df[['CHANNEL_NAME', 'CHANNEL_NAME_GROUP']],
-        how='left',
-        left_on='Channel',
-        right_on='CHANNEL_NAME'
+    #verifier si les colonnes necessaires existent dans le dataframe de groupement
+    if 'CHANNEL_NAME' in channel_grouping_df.columns and 'CHANNEL_NAME_GROUP' in channel_grouping_df.columns:
+        #fusionner les donnees consolidees avec le groupement des chaines
+        final_df = final_df.merge(
+            channel_grouping_df[['CHANNEL_NAME', 'CHANNEL_NAME_GROUP']],
+            how='left',
+            left_on='Channel',
+            right_on='CHANNEL_NAME'
+        )
+
+        final_df.rename(columns={'CHANNEL_NAME_GROUP': 'Channel Group Level'}, inplace=True)
+
+        final_df.drop(columns=['CHANNEL_NAME'], inplace=True)
+
+        #synchroniser la casse des noms de groupes de chaines
+        final_df = synchronize_channel_group_case(final_df)
+
+        #ajouter une colonne hd/sd
+        final_df['HD/SD'] = final_df['Channel'].apply(lambda x: 'HD' if 'HD' in x else ('SD' if 'SD' in x else ''))
+
+        final_df = final_df[final_df['Channel'].str.strip() != '']
+
+        #ecrire le dataframe final dans un fichier excel
+        with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
+            final_df.to_excel(writer, sheet_name='Consolidated', index=False)
+
+        print(f"rapport excel consolide cree a : {output_path}")
+    else:
+        print("les colonnes 'CHANNEL_NAME' et 'CHANNEL_NAME_GROUP' sont absentes du dataframe de groupement.")
+
+def open_file_with_default_app(file_path: str):
+    """
+    ouvre le fichier spécifié avec l'application par défaut du système.
+    essaye d'utiliser la commande adaptée selon le système d'exploitation
+    :param file_path: Chemin du fichier à ouvrir.
+    """
+    try:
+        if os.name == 'nt':  #Windows
+            os.startfile(file_path)
+        elif os.uname().sysname == 'Darwin': #Mac
+            subprocess.run(['open', file_path])
+        else:  #Linux
+            subprocess.run(['xdg-open', file_path])
+    except Exception as e:
+        print(f"Erreur lors de l'ouverture du fichier : {e}")
+
+
+def clean_consolidated_sheet(output_path: str):
+    """
+    nettoyer la feuille consolidated en supprimant les lignes ou la valeur 'channel' correspond aux motifs specifies
+    utilise une regex pour filtrer les chaines non valides dans le fichier excel consolide
+    :param output_path: le chemin du fichier excel consolide a nettoyer
+    """
+    #charger la feuille 'consolidated' du fichier excel
+    consolidated_df = pd.read_excel(output_path, sheet_name='Consolidated')
+
+    #definir les motifs de suppression avec une regex
+    pattern = (
+        r"^[•/+-]"  #commence par •, /, -, +
+        r"|^\d{1,2},\d{2}"  #commence par 1 ou 2 chiffres suivis d'une virgule (ex: 17,99)
+        r"|^[a-z]+$"  #que des lettres minuscules (sans majuscules)
+        r"|^[a-z]+ .+"  #commence par un mot en minuscule suivi d'un espace
+        r"|\.\.\."  #contient "..." (ellipse)
+        r"|\(.*\)"  #valeurs entre parentheses
     )
 
-    final_df.rename(columns={'CHANNEL_NAME_GROUP': 'Channel Group Level'}, inplace=True)
+    #filtrer les lignes qui ne correspondent pas au motif
+    cleaned_df = consolidated_df[~consolidated_df['Channel'].str.match(pattern, na=False)]
 
-    final_df.drop(columns=['CHANNEL_NAME'], inplace=True)
+    #ecrire le dataframe nettoye dans le fichier excel
+    with pd.ExcelWriter(output_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+        cleaned_df.to_excel(writer, sheet_name='Consolidated', index=False)
 
-    final_df = synchronize_channel_group_case(final_df)
+    print("les lignes correspondantes aux motifs specifies ont ete supprimees")
 
-    # Ajouter une colonne HD/SD
-    final_df['HD/SD'] = final_df['Channel'].apply(lambda x: 'HD' if 'HD' in x else ('SD' if 'SD' in x else ''))
 
-    final_df = final_df[final_df['Channel'].str.strip() != '']
 
-    # Écrire le DataFrame final dans un fichier Excel
-    with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
-        final_df.to_excel(writer, sheet_name='Consolidated', index=False)
-
-    print(f"Rapport Excel consolidé créé à : {output_path}")
-
+def check_if_file_open(file_path):
+    """
+    Vérifie si un fichier est actuellement ouvert par un autre programme.
+    :param file_path: Chemin vers le fichier à vérifier.
+    :return: True si le fichier est ouvert, False sinon.
+    """
+    try:
+        with open(file_path, 'a'):
+            pass
+    except PermissionError:
+        return True
+    return False
