@@ -586,6 +586,16 @@ class CostTab(ttk.Frame):
 
                 entry_vars[col] = tk.StringVar()
 
+                if col == 'CT_AVAIL_IN_SCARLET_FR' or col == 'CT_AVAIL_IN_SCARLET_NL':
+                    avail_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    avail_combobox['values'] = ['Yes', 'No']
+                    avail_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(avail_combobox)
+                else:
+                    entry = tk.Entry(left_frame, textvariable=entry_vars[col])
+                    entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(entry)
+
                 if col == 'allocation':
                     nonlocal allocation_combobox
                     allocation_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
