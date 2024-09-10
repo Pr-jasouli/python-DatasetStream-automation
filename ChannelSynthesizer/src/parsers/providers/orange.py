@@ -56,7 +56,7 @@ def determine_region_from_filename(filename):
         return 'F'
     elif re.search(r'brussels|brussel|bruxelles', filename, re.IGNORECASE):
         return 'B'
-    elif re.search(r'wallonia|wallonie|walloon', filename, re.IGNORECASE):
+    elif re.search(r'wallonia|wallonie|walloon|wallonië', filename, re.IGNORECASE):
         return 'W'
     elif re.search(r'germanophone|german-speaking|german', filename, re.IGNORECASE):
         return 'G'

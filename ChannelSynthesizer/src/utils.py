@@ -268,9 +268,9 @@ def create_consolidated_excel(all_data, output_path, channel_grouping_df):
                     regions = [1, 0, 0, 0]
                 elif 'Brussels' in filename or 'Bruxelles' in filename or 'Brussel' in filename:
                     regions = [0, 1, 0, 0]
-                elif 'Wallonia' in filename or 'Wallonie' in filename:
+                elif 'Wallonia' in filename or 'Wallonie' in filename or 'Wallonië' in filename:
                     regions = [0, 0, 1, 0]
-                elif 'Germanophone' in filename or 'German-speaking' in filename:
+                elif 'Germanophone' in filename or 'German-speaking' in filename or 'German' in filename:
                     regions = [0, 0, 0, 1]
                 else:
                     regions = [1, 1, 0, 0]
