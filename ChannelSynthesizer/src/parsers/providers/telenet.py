@@ -46,106 +46,6 @@ def read_section_names(section_tsv_path):
         section_names = [line.strip() for line in f if line.strip()]
     return section_names
 
-def clean_text(text, section_names):
-    remove_strings = [
-        'telenetv.be ou l’appli Telenet TV',
-        'Disponibles via le guide TV:',
-        'Offre de base',
-        'Région de Bruxelles',
-        'et Wallonie',
-        'Disponible en fonction de la région',
-        'de fautes matérielles.',
-        'Digiboxen.',
-        'vergissingen en materiële fouten.',
-        'Zenderaanbod',
-        'Vlaanderen',
-        '\x07',
-        '*',
-        'via l’appli ou le site.',
-        'Basisaanbod',
-        'Regio Brussel en Wallonië',
-        'Al je kanalen',
-        'in één oogopslag',
-        'Regio Brussel en Wallonië',
-        'Toutes vos chaînes',
-        'en un clin d’oeil',
-        '61 digitale radiozenders',
-        '10 digitale muziekzenders',
-        'Extra zenderpakketten',
-        'van HBO Max',
-        'alleen op Streamz te bekijken',
-        'Meer dan 80 digitale tv-zenders',
-        '+ 32 zenders',
-        'Beleef sport zoals nooit tevoren',
-        '2. 	Belgisch voetbal en Eredivisie',
-        'en exclusieve losse crossen',
-        '7. 	 24/7 golf kanaal',
-        'altijd en overal',
-        '+ Onbeperkt',
-        'toegang  tot onze',
-        'brede waaier',
-        'van erotische films',
-        'op aanvraag',
-        'Topseries',
-        'van overal en',
-        'van bij onz.',
-        'Voor de',
-        'filmliefhebbers',
-        'onder onz.',
-        'Alles van Streamz+, én daarnaast:',
-        '•	 Een heleboel themazenders',
-        'met non-stop films.',
-        'TV-gids:',
-        '5',
-        '€',
-        '19,95',
-        '24,95',
-        '19,95',
-        '19,95',
-        '/maand',
-        '11,95',
-        'Via je',
-        'TV-box',
-        'heb je toegang tot',
-        ',...',
-        'Deze zenders vind je via je',
-        'TV - gids:',
-    ]
-
-    cleaned_lines = []
-
-    for line in text.splitlines():
-        if line.strip() and not any(remove_string in line for remove_string in remove_strings):
-            if 'L’offre de chaînes' in line:
-                line = line.split('L’offre de chaînes')[0].rstrip()
-            cleaned_lines.append(line)
-
-    final_lines = []
-    skip = False
-    for line in cleaned_lines:
-        if 'L’offre de chaînes' in line:
-            skip = True
-        elif skip and any(keyword in line for keyword in section_names):
-            skip = False
-        if not skip:
-            if len(line) > 35 and not any(section in line for section in section_names):
-                continue
-            match = re.match(r'(\d{3})(.*)', line)
-            if match:
-                final_lines.append(match.group(1))
-                if match.group(2).strip():
-                    final_lines.append(match.group(2).strip())
-            else:
-                final_lines.append(line)
-
-    i = 0
-    while i < len(final_lines) - 1:
-        if final_lines[i].isupper() and final_lines[i + 1].isupper():
-            del final_lines[i + 1]
-        else:
-            i += 1
-
-    return "\n".join(final_lines)
 
 def process_final_tsv(tsv_path):
     """
@@ -250,3 +150,114 @@ def parse_telenet_pdf(pdf_path, pages_to_process, min_font_size=5.0):
     cleaned_text = clean_text(text, section_names)
     tsv_path = save_as_tsv(cleaned_text, pdf_path)
     process_final_tsv(tsv_path)
+
+
+def clean_text(text, section_names):
+    remove_strings = [
+        'telenetv.be ou l’appli Telenet TV',
+        'Disponibles via le guide TV:',
+        'Offre de base',
+        'Région de Bruxelles',
+        'et Wallonie',
+        'Disponible en fonction de la région',
+        'de fautes matérielles.',
+        'Digiboxen.',
+        'vergissingen en materiële fouten.',
+        'Zenderaanbod',
+        'Vlaanderen',
+        '\x07',
+        '*',
+        'via l’appli ou le site.',
+        'Basisaanbod',
+        'Regio Brussel en Wallonië',
+        'Al je kanalen',
+        'in één oogopslag',
+        'Regio Brussel en Wallonië',
+        'Toutes vos chaînes',
+        'en un clin d’oeil',
+        '61 digitale radiozenders',
+        '10 digitale muziekzenders',
+        'Extra zenderpakketten',
+        'van HBO Max',
+        'alleen op Streamz te bekijken',
+        'Meer dan 80 digitale tv-zenders',
+        '+ 32 zenders',
+        'Beleef sport zoals nooit tevoren',
+        '2. 	Belgisch voetbal en Eredivisie',
+        'en exclusieve losse crossen',
+        '7. 	 24/7 golf kanaal',
+        'altijd en overal',
+        '+ Onbeperkt',
+        'toegang  tot onze',
+        'brede waaier',
+        'van erotische films',
+        'op aanvraag',
+        'Topseries',
+        'van overal en',
+        'van bij onz.',
+        'Voor de',
+        'filmliefhebbers',
+        'onder onz.',
+        'Alles van Streamz+, én daarnaast:',
+        '•	 Een heleboel themazenders',
+        'met non-stop films.',
+        'TV-gids:',
+        '5',
+        '€',
+        '19,95',
+        '24,95',
+        '19,95',
+        '19,95',
+        '/maand',
+        '11,95',
+        'Via je',
+        'TV-box',
+        'heb je toegang tot',
+        ',...',
+        'Deze zenders vind je via je',
+        'TV - gids:',
+        'Antwerpen',
+        'Brabant',
+        'Internationale',
+        '10 CHAÎNES DE MUSIQUE DIGITALE',
+        'mentés par la rédaction sport',
+        'dédiés au cinéma et aux',
+        'séries.',
+        'Inclus dans votre',
+        'abonnement.'
+    ]
+
+    cleaned_lines = []
+
+    for line in text.splitlines():
+        if line.strip() and not any(remove_string in line for remove_string in remove_strings):
+            if 'L’offre de chaînes' in line:
+                line = line.split('L’offre de chaînes')[0].rstrip()
+            cleaned_lines.append(line)
+
+    final_lines = []
+    skip = False
+    for line in cleaned_lines:
+        if 'L’offre de chaînes' in line:
+            skip = True
+        elif skip and any(keyword in line for keyword in section_names):
+            skip = False
+        if not skip:
+            if len(line) > 35 and not any(section in line for section in section_names):
+                continue
+            match = re.match(r'(\d{3})(.*)', line)
+            if match:
+                final_lines.append(match.group(1))
+                if match.group(2).strip():
+                    final_lines.append(match.group(2).strip())
+            else:
+                final_lines.append(line)
+
+    i = 0
+    while i < len(final_lines) - 1:
+        if final_lines[i].isupper() and final_lines[i + 1].isupper():
+            del final_lines[i + 1]
+        else:
+            i += 1
+
+    return "\n".join(final_lines)
