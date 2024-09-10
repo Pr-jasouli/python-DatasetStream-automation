@@ -141,7 +141,7 @@ class MainApplication(tk.Tk):
         bottom_frame = ttk.Frame(self, padding=10, style='Bottom.TFrame')
         bottom_frame.pack(side='bottom', fill='x')
 
-        create_styled_button(bottom_frame, '\U0001F527', self.open_config).pack(side='left', padx=10)
+        create_styled_button(bottom_frame, 'Preferences', self.open_config).pack(side='left', padx=10)
 
         audience_frame = ttk.Labelframe(bottom_frame, text="Audience", padding=5)
         audience_frame.pack(side='left', padx=10, pady=(0, 15))

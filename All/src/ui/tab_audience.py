@@ -84,7 +84,7 @@ class AudienceTab(ttk.Frame):
         label_checkbox_container.pack(side='top', pady=(10, 5), anchor='center')
 
         # Title label
-        specifics_label = ttk.Label(label_checkbox_container, text="SPECIFICS", style='Title.TLabel')
+        specifics_label = ttk.Label(label_checkbox_container, text="CUSTOM SELECTION", style='Title.TLabel')
         specifics_label.pack(side='left', padx=(0, 5))
 
         # Enable checkbox
@@ -696,7 +696,7 @@ class AudienceTab(ttk.Frame):
     def setup_show_columns_button(self, parent, context):
         """Sets up a button to show column names from the loaded DataFrame."""
         if context == 'REFERENCE':
-            self.show_columns_button = ttk.Button(parent, text="☱", command=self.section_reference_button_columns_show, style='AudienceTab.TButton')
+            self.show_columns_button = ttk.Button(parent, text="Metadata Exploration", command=self.section_reference_button_columns_show, style='AudienceTab.TButton')
             self.show_columns_button.pack(side='right', padx=10)
 
     def section_reference_button_columns_show(self):
@@ -721,7 +721,7 @@ class AudienceTab(ttk.Frame):
     def section_references_setup(self):
         container = ttk.Frame(self)
         container.pack(side='top', fill='x', expand=False, padx=20, pady=10)
-        ttk.Label(container, text="REFERENCE", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
+        ttk.Label(container, text="REFERENCE YEAR OF CALCULATION", style='Title.TLabel').pack(side='top', padx=10, pady=(10, 5))
         self.references_file_details(container)
         self.setup_buttons_and_entries(container, 'REFERENCE')
 
