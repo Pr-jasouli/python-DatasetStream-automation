@@ -496,6 +496,25 @@ class CostTab(ttk.Frame):
         self.grid_columnconfigure(0, weight=1)
 
     def open_new_deal_popup(self):
+        #permet de loader le cost file des settings si pas encore fait
+        if not self.file_path or self.data is None:
+            #en cliquant sur New Deal ça le load puis ça montre le New Deal
+            config_cost_src = self.config_data.get('cost_src', None)
+            if config_cost_src and os.path.exists(config_cost_src):
+                show_message(f"Error", "Loading cost_src from {config_cost_src}", master=self,
+                                 custom=True)
+                #Nécessaire pour que le New Deal fonctionne
+                self.load_file(config_cost_src)
+                if self.data is None:
+                    show_message("Error", "Failed to load cost source data. Please check the cost file.", master=self,
+                                 custom=True)
+                    return
+            else:
+                show_message("Error", "Cost source file is not loaded. Please load a cost file first.", master=self,
+                             custom=True)
+                return
+
+        # Proceed to open the New Deal popup
         network_name = self.network_name_var.get()
         allocation = self.allocation_var.get()
         business_model = self.business_model_var.get()
