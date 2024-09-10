@@ -232,7 +232,7 @@ def create_consolidated_excel(all_data, output_path, channel_grouping_df):
         re.IGNORECASE
     )
 
-    for provider, year, data, section_names in all_data:
+    for provider, year, data, section_names, filename in all_data:
         print(f"processing provider: {provider}, year: {year}")
         print(f"data length: {len(data)}")
         period = f"{provider} {year}"
@@ -264,7 +264,16 @@ def create_consolidated_excel(all_data, output_path, channel_grouping_df):
                 channel = re.sub(r'\b(W|B|G|F| w)\b', '', channel).strip()
 
             elif provider == "Telenet":
-                regions = [1, 1, 0, 0]  #disponible en flandre et bruxelles
+                if 'Flanders' in filename or 'Vlaanderen' in filename:
+                    regions = [1, 0, 0, 0]
+                elif 'Brussels' in filename or 'Bruxelles' in filename or 'Brussel' in filename:
+                    regions = [0, 1, 0, 0]
+                elif 'Wallonia' in filename or 'Wallonie' in filename:
+                    regions = [0, 0, 1, 0]
+                elif 'Germanophone' in filename or 'German-speaking' in filename:
+                    regions = [0, 0, 0, 1]
+                else:
+                    regions = [1, 1, 0, 0]
 
             #determiner si la section est basic ou option pour voo
             if provider == "Voo":

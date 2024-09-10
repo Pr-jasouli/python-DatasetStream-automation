@@ -25,9 +25,12 @@ def generate_excel_report(output_directory, channel_grouping_df):
         provider, year = get_provider_and_year(text_file.stem)
         section_names = read_section_names(section_file)
         data = parse_tsv(text_file, section_names, provider)
-
+        filename = text_file.name
         if data:
-            all_data.append((provider, year, data, section_names))
+            print(f"Extraction des données pour le fournisseur: {provider}, année: {year}, taille des data: {len(data)}")
+            all_data.append((provider, year, data, section_names, filename))
+        else:
+            print(f"Pas de data trouvé pour le fournisseur: {provider}, année: {year}")
 
     #creer le rapport Excel consolide
     create_consolidated_excel(all_data, output_path, channel_grouping_df)
