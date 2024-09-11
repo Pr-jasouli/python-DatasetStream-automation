@@ -19,5 +19,7 @@ numpy~=2.0.0
 openpyxl~=3.1.5
 pandas~=2.2.2
 pdfplumber~=0.11.2
+babel~=2.16.0
+tkcalendar~=1.6.1
 pywin32
 traits
