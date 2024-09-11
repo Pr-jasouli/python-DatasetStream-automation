@@ -34,6 +34,8 @@ class CostTab(ttk.Frame):
         self.prod_en_name_var = tk.StringVar()
         self.business_model_var = tk.StringVar()
         self.allocation_var = tk.StringVar()
+        self.new_deal_popup_open = False
+        self.view_deals_popup_open = False
 
         self.base_dir = base_dir
 
@@ -495,6 +497,11 @@ class CostTab(ttk.Frame):
         self.grid_columnconfigure(0, weight=1)
 
     def open_new_deal_popup(self):
+        if self.new_deal_popup_open:
+            show_message("Warning", "New Deal menu already open.", master=self, custom=True)
+            return
+
+        self.new_deal_popup_open = True
         #permet de loader le cost file des settings si pas encore fait
         if not self.file_path or self.data is None:
             #en cliquant sur New Deal ça le load puis ça montre le New Deal
@@ -521,6 +528,8 @@ class CostTab(ttk.Frame):
         new_deal_popup.title("New Deal")
         new_deal_popup.geometry("1080x625")
         set_window_icon(new_deal_popup)
+
+        new_deal_popup.protocol("WM_DELETE_WINDOW", lambda: self.close_new_deal_popup(new_deal_popup))
 
         business_model_var = tk.StringVar(value=business_model)
         entry_vars = {}
@@ -836,6 +845,9 @@ class CostTab(ttk.Frame):
 
         update_fields_based_on_business_model()
 
+    def close_new_deal_popup(self, popup):
+        self.new_deal_popup_open = False
+        popup.destroy()
     ######## refefefef
 
     def open_update_deal_popup(self):
