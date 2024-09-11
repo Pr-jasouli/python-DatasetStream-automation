@@ -767,9 +767,12 @@ class CostTab(ttk.Frame):
 
                     for channel in selected_channels:
                         for pack in selected_packs:
+                            prod_id = self.data.loc[self.data['PROD_EN_NAME'] == pack, 'PROD_ID'].values[0]
+
                             new_row = {
                                 'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
                                 'CNT_NAME_GRP': channel,
+                                'PROD_ID': prod_id,
                                 'PROD_EN_NAME': pack,
                                 'Business model': business_model_var.get(),
                                 'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
