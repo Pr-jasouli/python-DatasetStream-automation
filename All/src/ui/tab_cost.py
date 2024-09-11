@@ -525,7 +525,9 @@ class CostTab(ttk.Frame):
 
         new_deal_popup = tk.Toplevel(self)
         new_deal_popup.title("New Deal")
-        new_deal_popup.geometry("1080x625")
+        new_deal_popup.geometry("800x700")
+        new_deal_popup.grid_rowconfigure(0, weight=1)
+        new_deal_popup.grid_columnconfigure(0, weight=1)
         set_window_icon(new_deal_popup)
 
         new_deal_popup.protocol("WM_DELETE_WINDOW", lambda: self.close_new_deal_popup(new_deal_popup))
@@ -533,8 +535,46 @@ class CostTab(ttk.Frame):
         business_model_var = tk.StringVar(value=business_model)
         entry_vars = {}
         entry_vars['NETWORK_NAME'] = tk.StringVar(value=network_name)
+        main_frame = ttk.Frame(new_deal_popup)
+        main_frame.grid(row=0, column=0, sticky='nsew')
+        main_frame.grid_rowconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(0, weight=1)
 
-        left_frame = ttk.Frame(new_deal_popup)
+        canvas = tk.Canvas(main_frame)
+        canvas.grid(row=0, column=0, sticky='nsew')
+
+        def on_mouse_scroll(event):
+            if event.delta:
+                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            else:
+                if event.num == 4:
+                    canvas.yview_scroll(-1, "units")
+                elif event.num == 5:
+                    canvas.yview_scroll(1, "units")
+
+        new_deal_popup.bind_all("<MouseWheel>", on_mouse_scroll)
+
+        new_deal_popup.bind_all("<Button-4>", on_mouse_scroll)
+        new_deal_popup.bind_all("<Button-5>", on_mouse_scroll)
+
+        canvas.bind("<Configure>", lambda e: canvas.config(scrollregion=canvas.bbox("all")))
+
+        v_scrollbar = ttk.Scrollbar(main_frame, orient='vertical', command=canvas.yview)
+        v_scrollbar.grid(row=0, column=1, sticky='ns')
+        h_scrollbar = ttk.Scrollbar(main_frame, orient='horizontal', command=canvas.xview)
+        h_scrollbar.grid(row=1, column=0, sticky='ew')
+
+        canvas.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
+
+        content_frame = ttk.Frame(canvas)
+        canvas.create_window((0, 0), window=content_frame, anchor='nw')
+
+        def on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        content_frame.bind("<Configure>", on_frame_configure)
+
+        left_frame = ttk.Frame(content_frame)
         left_frame.grid(row=0, column=0, padx=10, pady=5, sticky='nsew')
 
         dynamic_widgets = []
@@ -668,7 +708,7 @@ class CostTab(ttk.Frame):
 
         business_model_combobox.bind("<<ComboboxSelected>>", update_fields_based_on_business_model)
 
-        right_frame = ttk.Frame(new_deal_popup)
+        right_frame = ttk.Frame(content_frame)
         right_frame.grid(row=0, column=1, padx=10, pady=5, sticky='nsew')
 
         dynamic_listbox_pairs = []
@@ -722,6 +762,8 @@ class CostTab(ttk.Frame):
                 packs_listbox.insert(tk.END, item)
 
             dynamic_listbox_pairs.append((channels_listbox, packs_listbox))
+
+            canvas.configure(scrollregion=canvas.bbox("all"))
 
         # paires initiales
         add_listbox_pair()
