@@ -5,6 +5,7 @@ from datetime import timedelta, datetime
 from tkinter import ttk
 
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 
 from parser.cps_over_mg_subs import CpsOverMgSubsHandler
 from parser.cps_over_mg_subs_index import CpsOverMgSubsIndexHandler
@@ -697,9 +698,25 @@ class CostTab(ttk.Frame):
         # paires initiales
         add_listbox_pair()
 
+        def calculate_duration(start_date_str, end_date_str):
+            try:
+                start_date = pd.to_datetime(start_date_str, format='%d-%m-%Y', dayfirst=True)
+                end_date = pd.to_datetime(end_date_str, format='%d-%m-%Y', dayfirst=True)
+
+                duration = relativedelta(end_date, start_date).months + (relativedelta(end_date, start_date).years * 12)
+
+                if end_date.day > 1 or (end_date.day == 1 and start_date.day != 1):
+                    duration += 1
+
+                return duration
+            except Exception as e:
+                print(f"Error calculating CT_DURATION: {e}")
+                return None
+
         def submit_deal(business_model_var, entry_vars):
             try:
-                required_fields = ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE']
+                required_fields = ['allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                                   'CT_FIXFEE_NEW']
 
                 missing_fields = [field for field in required_fields if
                                   field not in entry_vars or not entry_vars[field].get()]
@@ -725,6 +742,14 @@ class CostTab(ttk.Frame):
                     ct_type = ''
                     variable_fix = ''
 
+                duration = calculate_duration(entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
+                                              entry_vars.get('CT_ENDDATE', tk.StringVar()).get())
+
+                if duration is None:
+                    show_message("Error", "Could not calculate contract duration. Please check the date format.",
+                                 master=self, custom=True)
+                    return
+
                 for channels_listbox, packs_listbox in dynamic_listbox_pairs:
                     selected_channels = [channels_listbox.get(idx) for idx in channels_listbox.curselection()]
                     selected_packs = [packs_listbox.get(idx) for idx in packs_listbox.curselection()]
@@ -747,6 +772,7 @@ class CostTab(ttk.Frame):
                                 'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
                                 'DATA_TYPE': entry_vars.get('DATA_TYPE', tk.StringVar()).get(),
                                 'CT_FIXFEE_NEW': entry_vars.get('CT_FIXFEE_NEW', tk.StringVar()).get(),
+                                'CT_DURATION': duration
                             }
 
                             for col in current_columns:
