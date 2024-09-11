@@ -187,6 +187,9 @@ class CostTab(ttk.Frame):
             'CPS- 5 steps': [
                 'CT_TYPE', 'allocation'
             ],
+            '5 steps CPS': [
+                'CT_TYPE', 'allocation'
+            ],
         }
 
     def load_file(self, path):
@@ -723,8 +726,7 @@ class CostTab(ttk.Frame):
 
         def submit_deal(business_model_var, entry_vars):
             try:
-                required_fields = ['allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
-                                   'CT_FIXFEE_NEW']
+                required_fields = ['allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE']
 
                 missing_fields = [field for field in required_fields if
                                   field not in entry_vars or not entry_vars[field].get()]
