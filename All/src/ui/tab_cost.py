@@ -6,6 +6,7 @@ from tkinter import ttk
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
+from tkcalendar import DateEntry
 
 from parser.cps_over_mg_subs import CpsOverMgSubsHandler
 from parser.cps_over_mg_subs_index import CpsOverMgSubsIndexHandler
@@ -584,7 +585,17 @@ class CostTab(ttk.Frame):
                 dynamic_widgets.append(label)
 
                 entry_vars[col_without_asterisk] = tk.StringVar()
+                if col_without_asterisk == 'CT_STARTDATE':
+                    ct_startdate_entry = DateEntry(left_frame, textvariable=entry_vars[col_without_asterisk],
+                                                   date_pattern='dd-mm-yyyy', width=12)
+                    ct_startdate_entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='ew')
+                    dynamic_widgets.append(ct_startdate_entry)
 
+                elif col_without_asterisk == 'CT_ENDDATE':
+                    ct_enddate_entry = DateEntry(left_frame, textvariable=entry_vars[col_without_asterisk],
+                                                 date_pattern='dd-mm-yyyy', width=12)
+                    ct_enddate_entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='ew')
+                    dynamic_widgets.append(ct_enddate_entry)
                 if col_without_asterisk == 'CT_AVAIL_IN_SCARLET_FR' or col_without_asterisk == 'CT_AVAIL_IN_SCARLET_NL':
                     avail_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
                     avail_combobox['values'] = ['Yes', 'No']
