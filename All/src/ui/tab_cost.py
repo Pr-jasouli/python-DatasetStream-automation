@@ -568,14 +568,23 @@ class CostTab(ttk.Frame):
             selected_model = business_model_var.get()
             current_columns = self.model_columns.get(selected_model, [])
 
-            required_fields = ['allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
-                               'CT_FIXFEE_NEW']
+            exclude_fixfee_models = [
+                'free', 'Free', 'CPS Over MG Subs', 'CPS Over MG Subs + index', 'CPS on product Park',
+                'CPS on volume regionals + index', 'Event Based INTEC', 'Revenue share', 'CPS-5 steps'
+            ]
 
-            field_order = ['Business model*', 'allocation*', 'NETWORK_NAME*', 'DATA_TYPE',
-                           'CT_FIXFEE_NEW*', 'CT_STARTDATE*', 'CT_ENDDATE*'] + \
-                          [col for col in current_columns if col not in [
-                              'Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE', 'CT_FIXFEE',
-                              'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE']]
+            required_fields = ['allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE']
+
+            if selected_model not in exclude_fixfee_models:
+                field_order = ['Business model*', 'allocation*', 'NETWORK_NAME*', 'DATA_TYPE',
+                               'CT_FIXFEE_NEW*', 'CT_STARTDATE*', 'CT_ENDDATE*']
+            else:
+                field_order = ['Business model*', 'allocation*', 'NETWORK_NAME*', 'DATA_TYPE',
+                               'CT_STARTDATE*', 'CT_ENDDATE*']
+
+            field_order += [col for col in current_columns if col not in [
+                'Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE', 'CT_FIXFEE', 'CT_FIXFEE_NEW',
+                'CT_STARTDATE', 'CT_ENDDATE']]
 
             for i, col in enumerate(field_order, start=1):
                 col_without_asterisk = col.replace('*', '')
@@ -599,7 +608,7 @@ class CostTab(ttk.Frame):
                                                  date_pattern='dd-mm-yyyy', width=12)
                     ct_enddate_entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='ew')
                     dynamic_widgets.append(ct_enddate_entry)
-                if col_without_asterisk == 'CT_AVAIL_IN_SCARLET_FR' or col_without_asterisk == 'CT_AVAIL_IN_SCARLET_NL':
+                elif col_without_asterisk == 'CT_AVAIL_IN_SCARLET_FR' or col_without_asterisk == 'CT_AVAIL_IN_SCARLET_NL':
                     avail_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
                     avail_combobox['values'] = ['Yes', 'No']
                     avail_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
