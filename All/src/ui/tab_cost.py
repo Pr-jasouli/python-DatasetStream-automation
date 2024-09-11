@@ -81,10 +81,8 @@ class CostTab(ttk.Frame):
         for year in range(start_year, end_year + 1):
             row_copy = new_row.copy()
             row_copy['YEAR'] = year
-
             row_copy['CT_STARTDATE'] = row_copy['CT_STARTDATE'].strftime('%d-%m-%Y')
             row_copy['CT_ENDDATE'] = row_copy['CT_ENDDATE'].strftime('%d-%m-%Y')
-
             rows_to_add.append(row_copy)
 
         new_df = pd.DataFrame(rows_to_add)
@@ -104,16 +102,17 @@ class CostTab(ttk.Frame):
                         updated_df = pd.concat([existing_df, new_df], ignore_index=True)
                     except ValueError:
                         updated_df = new_df
-
                     updated_df.to_excel(writer, sheet_name=business_model, index=False)
                     print(f"Debug: Updated '{business_model}' sheet in the working contracts file.")
+
         except PermissionError:
             show_message("Error", "Please close the 'working_contracts.xlsx' file and try saving again.", master=self,
                          custom=True)
             return
 
-        show_message("Success", f"Contract added to {working_contracts_file} under '{business_model}' sheet.",
-                     master=self, custom=True)
+        # show_message("Success",
+        #              f"Rows added to {working_contracts_file} under '{business_model}' sheet.",
+        #              master=self, custom=True)
 
 
     def get_model_columns(self):
