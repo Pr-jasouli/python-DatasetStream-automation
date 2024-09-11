@@ -566,60 +566,60 @@ class CostTab(ttk.Frame):
             selected_model = business_model_var.get()
             current_columns = self.model_columns.get(selected_model, [])
 
-            field_order = ['Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE',
-                           'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE'] + \
+            required_fields = ['allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
+                               'CT_FIXFEE_NEW']
+
+            field_order = ['Business model*', 'allocation*', 'NETWORK_NAME*', 'DATA_TYPE',
+                           'CT_FIXFEE_NEW*', 'CT_STARTDATE*', 'CT_ENDDATE*'] + \
                           [col for col in current_columns if col not in [
                               'Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE', 'CT_FIXFEE',
                               'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE']]
 
             for i, col in enumerate(field_order, start=1):
-                if col == 'Business model':
+                col_without_asterisk = col.replace('*', '')
+
+                if col_without_asterisk == 'Business model':
                     continue
 
                 label = tk.Label(left_frame, text=col)
                 label.grid(row=i + 2, column=0, padx=10, pady=5, sticky='e')
                 dynamic_widgets.append(label)
 
-                entry_vars[col] = tk.StringVar()
+                entry_vars[col_without_asterisk] = tk.StringVar()
 
-                if col == 'CT_AVAIL_IN_SCARLET_FR' or col == 'CT_AVAIL_IN_SCARLET_NL':
-                    avail_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                if col_without_asterisk == 'CT_AVAIL_IN_SCARLET_FR' or col_without_asterisk == 'CT_AVAIL_IN_SCARLET_NL':
+                    avail_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
                     avail_combobox['values'] = ['Yes', 'No']
                     avail_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(avail_combobox)
                 else:
-                    entry = tk.Entry(left_frame, textvariable=entry_vars[col])
+                    entry = tk.Entry(left_frame, textvariable=entry_vars[col_without_asterisk])
                     entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(entry)
 
-                if col == 'allocation':
+                if col_without_asterisk == 'allocation':
                     nonlocal allocation_combobox
-                    allocation_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    allocation_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
                     allocation_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(allocation_combobox)
-                    update_allocation_options(
-                        selected_model)
-                elif col == 'NETWORK_NAME':
-                    network_name_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                    update_allocation_options(selected_model)
+                elif col_without_asterisk == 'NETWORK_NAME':
+                    network_name_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
                     network_name_combobox['values'] = sorted(self.data['NETWORK_NAME'].dropna().unique().tolist())
                     network_name_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(network_name_combobox)
                     network_name_combobox.set(network_name)
                     network_name_combobox.bind("<<ComboboxSelected>>", lambda e: update_channels_listbox())
-                elif col == 'CT_AUTORENEW':
-                    ct_autorenew_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                elif col_without_asterisk == 'CT_AUTORENEW':
+                    ct_autorenew_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
                     ct_autorenew_combobox['values'] = ['Yes', 'No']
                     ct_autorenew_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(ct_autorenew_combobox)
-                elif col == 'DATA_TYPE':
-                    data_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                elif col_without_asterisk == 'DATA_TYPE':
+                    data_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
                     data_type_combobox['values'] = ['ACTUALS', 'FORECAST', 'PLAN']
                     data_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(data_type_combobox)
-                else:
-                    entry = tk.Entry(left_frame, textvariable=entry_vars[col])
-                    entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                    dynamic_widgets.append(entry)
 
             update_allocation_options(selected_model)
 
@@ -698,80 +698,93 @@ class CostTab(ttk.Frame):
         add_listbox_pair()
 
         def submit_deal(business_model_var, entry_vars):
-            selected_model = business_model_var.get()
-            current_columns = self.model_columns.get(selected_model, [])
+            try:
+                required_fields = ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE']
 
-            if 'fixed' in selected_model.lower():
-                ct_type = 'F'
-                variable_fix = 'fixed'
-            elif 'cps' in selected_model.lower() or 'share' in selected_model.lower():
-                ct_type = 'V'
-                variable_fix = 'variable'
-            elif 'free' in selected_model.lower():
-                ct_type = 'F'
-                variable_fix = 'free'
-            else:
-                ct_type = ''
-                variable_fix = ''
+                missing_fields = [field for field in required_fields if
+                                  field not in entry_vars or not entry_vars[field].get()]
 
-            for channels_listbox, packs_listbox in dynamic_listbox_pairs:
-                selected_channels = [channels_listbox.get(idx) for idx in channels_listbox.curselection()]
-                selected_packs = [packs_listbox.get(idx) for idx in packs_listbox.curselection()]
+                if missing_fields:
+                    show_message("Error", f"The following required fields are missing: {', '.join(missing_fields)}",
+                                 master=self, custom=True)
+                    return
 
-                if not selected_channels or not selected_packs:
-                    continue
+                selected_model = business_model_var.get()
+                current_columns = self.model_columns.get(selected_model, [])
 
-                for channel in selected_channels:
-                    for pack in selected_packs:
-                        new_row = {
-                            'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
-                            'CNT_NAME_GRP': channel,
-                            'PROD_EN_NAME': pack,
-                            'Business model': business_model_var.get(),
-                            'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
-                            'CT_TYPE': ct_type,
-                            'variable/fix': variable_fix,
-                            'CT_AUTORENEW': entry_vars.get('CT_AUTORENEW', tk.StringVar()).get(),
-                            'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
-                            'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
-                            'DATA_TYPE': entry_vars.get('DATA_TYPE', tk.StringVar()).get(),
-                            'CT_FIXFEE_NEW': entry_vars.get('CT_FIXFEE_NEW', tk.StringVar()).get(),
-                        }
+                if 'fixed' in selected_model.lower():
+                    ct_type = 'F'
+                    variable_fix = 'fixed'
+                elif 'cps' in selected_model.lower() or 'share' in selected_model.lower():
+                    ct_type = 'V'
+                    variable_fix = 'variable'
+                elif 'free' in selected_model.lower():
+                    ct_type = 'F'
+                    variable_fix = 'free'
+                else:
+                    ct_type = ''
+                    variable_fix = ''
 
-                        for col in current_columns:
-                            if col not in new_row:
-                                new_row[col] = entry_vars.get(col, tk.StringVar()).get()
+                for channels_listbox, packs_listbox in dynamic_listbox_pairs:
+                    selected_channels = [channels_listbox.get(idx) for idx in channels_listbox.curselection()]
+                    selected_packs = [packs_listbox.get(idx) for idx in packs_listbox.curselection()]
 
-                        if (new_row['Business model'].lower() == 'fixed fee' and
-                                new_row['allocation'].lower() == 'provider level'):
-                            handler = FixedFeeProviderLevelHandler(new_row)
-                            handler.add_additional_fields()
-                        if (new_row['Business model'].lower() == 'fixed fee' and
-                                new_row['allocation'].lower() == 'channel group level'):
-                            handler = FixedFeeChannelGroupLevelHandler(new_row)
-                            handler.add_additional_fields()
-                        if new_row['Business model'].lower() == 'free':
-                            handler = FreeLevelHandler(new_row)
-                            handler.add_additional_fields()
-                        if new_row['Business model'].lower() == 'fixed fee + index':
-                            handler = FixedFeeIndexLevelHandler(new_row)
-                            handler.add_additional_fields()
-                        if new_row['Business model'].lower() == 'fixed fee cogs':
-                            handler = FixedFeeCogsLevelHandler(new_row)
-                            handler.add_additional_fields()
-                        if new_row['Business model'].lower() == 'cps over mg subs':
-                            handler = CpsOverMgSubsHandler(new_row)
-                            handler.add_additional_fields()
-                        if new_row['Business model'].lower() == 'cps over mg subs + index':
-                            handler = CpsOverMgSubsIndexHandler(new_row)
-                            handler.add_additional_fields()
+                    if not selected_channels or not selected_packs:
+                        continue
 
-                        self.generate_template(new_row)
+                    for channel in selected_channels:
+                        for pack in selected_packs:
+                            new_row = {
+                                'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
+                                'CNT_NAME_GRP': channel,
+                                'PROD_EN_NAME': pack,
+                                'Business model': business_model_var.get(),
+                                'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
+                                'CT_TYPE': ct_type,
+                                'variable/fix': variable_fix,
+                                'CT_AUTORENEW': entry_vars.get('CT_AUTORENEW', tk.StringVar()).get(),
+                                'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
+                                'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
+                                'DATA_TYPE': entry_vars.get('DATA_TYPE', tk.StringVar()).get(),
+                                'CT_FIXFEE_NEW': entry_vars.get('CT_FIXFEE_NEW', tk.StringVar()).get(),
+                            }
 
+                            for col in current_columns:
+                                if col not in new_row:
+                                    new_row[col] = entry_vars.get(col, tk.StringVar()).get()
 
-            new_deal_popup.destroy()
-            self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(),
-                                  self.business_model_var.get())
+                            if (new_row['Business model'].lower() == 'fixed fee' and
+                                    new_row['allocation'].lower() == 'provider level'):
+                                handler = FixedFeeProviderLevelHandler(new_row)
+                                handler.add_additional_fields()
+                            if (new_row['Business model'].lower() == 'fixed fee' and
+                                    new_row['allocation'].lower() == 'channel group level'):
+                                handler = FixedFeeChannelGroupLevelHandler(new_row)
+                                handler.add_additional_fields()
+                            if new_row['Business model'].lower() == 'free':
+                                handler = FreeLevelHandler(new_row)
+                                handler.add_additional_fields()
+                            if new_row['Business model'].lower() == 'fixed fee + index':
+                                handler = FixedFeeIndexLevelHandler(new_row)
+                                handler.add_additional_fields()
+                            if new_row['Business model'].lower() == 'fixed fee cogs':
+                                handler = FixedFeeCogsLevelHandler(new_row)
+                                handler.add_additional_fields()
+                            if new_row['Business model'].lower() == 'cps over mg subs':
+                                handler = CpsOverMgSubsHandler(new_row)
+                                handler.add_additional_fields()
+                            if new_row['Business model'].lower() == 'cps over mg subs + index':
+                                handler = CpsOverMgSubsIndexHandler(new_row)
+                                handler.add_additional_fields()
+
+                            self.generate_template(new_row)
+
+                new_deal_popup.destroy()
+                self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(),
+                                      self.business_model_var.get())
+
+            except KeyError as e:
+                show_message("Error", f"Missing required field: {str(e)}", master=self, custom=True)
 
         update_fields_based_on_business_model()
 
