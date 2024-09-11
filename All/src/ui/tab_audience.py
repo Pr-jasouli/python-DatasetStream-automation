@@ -5,7 +5,7 @@ import sys
 import time
 import traceback
 from datetime import datetime
-from tkinter import filedialog, Listbox, MULTIPLE, BooleanVar, Toplevel
+from tkinter import filedialog, Listbox, MULTIPLE, BooleanVar, Toplevel, StringVar
 from tkinter import ttk
 
 import pandas as pd
@@ -34,6 +34,61 @@ class AudienceTab(ttk.Frame):
         self.current_year = self.current_date.year
         self.current_month = self.current_date.month
         self.audience_tab_setup()
+
+    def section_filter_bar_setup(self):
+        filter_container = ttk.Frame(self.specifics_frame)
+        filter_container.pack(side='top', fill='x', padx=10, pady=(5, 10))
+
+        ttk.Label(filter_container, text="Filter:").pack(side='left', padx=(0, 5))
+
+        self.filter_var = StringVar()
+        self.filter_bar = ttk.Entry(filter_container, textvariable=self.filter_var, width=40)
+        self.filter_bar.pack(side='left', fill='x', expand=True)
+
+        self.filter_bar.bind('<KeyRelease>', self.filter_listboxes)
+
+    def filter_listboxes(self, event=None):
+        search_term = self.filter_var.get().lower()
+
+        currently_selected = set(self.bus_chanl_num_listbox.get(i) for i in self.bus_chanl_num_listbox.curselection())
+
+        self.bus_chanl_num_listbox.delete(0, 'end')
+        for display_value, bus_chanl_num in self.bus_chanl_num_map.items():
+            display_value_str = str(display_value).lower()
+            bus_chanl_num_str = str(bus_chanl_num).lower()
+
+            if search_term in display_value_str or search_term in bus_chanl_num_str:
+                self.bus_chanl_num_listbox.insert('end', display_value)
+
+        self.restore_selection_after_filter(currently_selected)
+
+    def restore_selection_after_filter(self, previously_selected):
+        current_items = set(self.bus_chanl_num_listbox.get(0, 'end'))
+
+        selected_items_to_restore = previously_selected & current_items
+
+        for i in range(self.bus_chanl_num_listbox.size()):
+            if self.bus_chanl_num_listbox.get(i) in selected_items_to_restore:
+                self.bus_chanl_num_listbox.selection_set(i)
+
+    def section_specifics_listbox_highlight_top(self, listbox):
+        selected_indices = listbox.curselection()
+        if not selected_indices:
+            return
+
+        first_visible_index = listbox.nearest(0)
+
+        selected_items = [listbox.get(i) for i in selected_indices]
+        remaining_items = [listbox.get(i) for i in range(listbox.size()) if i not in selected_indices]
+
+        listbox.delete(0, 'end')
+        for item in selected_items:
+            listbox.insert('end', item)
+            listbox.selection_set('end')
+        for item in remaining_items:
+            listbox.insert('end', item)
+
+        listbox.yview_scroll(first_visible_index - listbox.nearest(0), 'units')
 
     def audience_tab_setup(self):
         """Sets up user interface components."""
@@ -167,6 +222,7 @@ class AudienceTab(ttk.Frame):
 
         self.prod_num_listbox.bind('<<ListboxSelect>>', self.section_specifics_counters_update)
         self.bus_chanl_num_listbox.bind('<<ListboxSelect>>', self.section_specifics_counters_update)
+        self.section_filter_bar_setup()
 
         self.section_specifics_checkbox_enable()
 
@@ -350,29 +406,6 @@ class AudienceTab(ttk.Frame):
         self.section_specifics_listbox_highlight_top(self.bus_chanl_num_listbox)
         self.section_specifics_listbox_highlight_top(self.prod_num_listbox)
 
-    def section_specifics_listbox_highlight_top(self, listbox):
-        """Move selected items to the top of the listbox without resetting the scroll position."""
-        selected_indices = listbox.curselection()
-        if not selected_indices:
-            return
-
-        # Save the current scroll position
-        first_visible_index = listbox.nearest(0)
-
-        # Extract selected and remaining items
-        selected_items = [listbox.get(i) for i in selected_indices]
-        remaining_items = [listbox.get(i) for i in range(listbox.size()) if i not in selected_indices]
-
-        # Update the listbox with selected items at the top
-        listbox.delete(0, 'end')
-        for item in selected_items:
-            listbox.insert('end', item)
-            listbox.selection_set('end')
-        for item in remaining_items:
-            listbox.insert('end', item)
-
-        # Restore the scroll position
-        listbox.yview_scroll(first_visible_index - listbox.nearest(0), 'units')
     def section_specifics_listbox_reset(self, event=None):
         """Resets the selections in both listboxes."""
         self.prod_num_listbox.selection_clear(0, 'end')
