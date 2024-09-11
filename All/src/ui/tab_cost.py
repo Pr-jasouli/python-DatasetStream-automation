@@ -38,6 +38,7 @@ class CostTab(ttk.Frame):
         self.init_ui()
 
     def generate_template(self, new_row):
+        print(f"Debug: CT_TYPE={new_row['CT_TYPE']}, variable/fix={new_row['variable/fix']}")
         output_dir = os.path.abspath(os.path.join(self.config_data.get('cost_dest', ''), '../outputs'))
         working_contracts_file = os.path.join(output_dir, 'working_contracts.xlsx')
 
@@ -118,11 +119,11 @@ class CostTab(ttk.Frame):
         return {
             ### OK 100%
             'Fixed fee': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
-                          'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
+                          'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
                           'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
             'fixed fee': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
-                          'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
+                          'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER',
                           'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
             'Free': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
@@ -136,22 +137,21 @@ class CostTab(ttk.Frame):
                      'CT_AVAIL_IN_SCARLET_NL', ],
 
             'fixed fee + index': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
-                                  'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_INDEX', 'CT_TYPE', 'CT_AUTORENEW',
+                                  'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_INDEX', 'CT_AUTORENEW',
                                   'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR',
                                   'CT_AVAIL_IN_SCARLET_NL'],
 
             'Fixed fee cogs': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE',
-                               'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE',
+                               'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_AUTORENEW', 'CT_NOTICE_DATE',
                                'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
             'fixed fee cogs': [
-                'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME',
-                'CT_TYPE', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
+                'CT_STARTDATE', 'CT_ENDDATE', 'allocation', 'NETWORK_NAME', 'CNT_NAME_GRP', 'PROD_EN_NAME', 'CT_DURATION', 'CT_NOTICE_DATE', 'CT_AUTORENEW', 'CT_NOTICE_PER',
                 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL', 'CT_FIXFEE', 'CT_FIXFEE_NEW',
                 'Business model'
             ],
 
-            'CPS Over MG Subs': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_TYPE', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
+            'CPS Over MG Subs': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
 
 
@@ -570,11 +570,11 @@ class CostTab(ttk.Frame):
             selected_model = business_model_var.get()
             current_columns = self.model_columns.get(selected_model, [])
 
-            field_order = ['Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE', 'variable/fix',
+            field_order = ['Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE',
                            'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE'] + \
                           [col for col in current_columns if col not in [
                               'Business model', 'allocation', 'NETWORK_NAME', 'DATA_TYPE', 'CT_FIXFEE',
-                              'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE', 'variable/fix']]
+                              'CT_FIXFEE_NEW', 'CT_STARTDATE', 'CT_ENDDATE']]
 
             for i, col in enumerate(field_order, start=1):
                 if col == 'Business model':
@@ -610,38 +610,38 @@ class CostTab(ttk.Frame):
                     dynamic_widgets.append(network_name_combobox)
                     network_name_combobox.set(network_name)
                     network_name_combobox.bind("<<ComboboxSelected>>", lambda e: update_channels_listbox())
-                elif col == 'CT_TYPE':
-                    if selected_model.lower() == 'fixed fee':
-                        entry_vars[col].set('F')
-                        ct_type_label = tk.Label(left_frame, text='F')
-                        ct_type_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                        dynamic_widgets.append(ct_type_label)
-                    else:
-                        ct_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
-                        ct_type_combobox['values'] = ['F', 'V']
-                        ct_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                        dynamic_widgets.append(ct_type_combobox)
+                # elif col == 'CT_TYPE':
+                #     if selected_model.lower() == 'fixed fee':
+                #         entry_vars[col].set('F')
+                #         ct_type_label = tk.Label(left_frame, text='F')
+                #         ct_type_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                #         dynamic_widgets.append(ct_type_label)
+                #     else:
+                #         ct_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                #         ct_type_combobox['values'] = ['F', 'V']
+                #         ct_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                #         dynamic_widgets.append(ct_type_combobox)
                 elif col == 'CT_AUTORENEW':
                     ct_autorenew_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
                     ct_autorenew_combobox['values'] = ['Yes', 'No']
                     ct_autorenew_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(ct_autorenew_combobox)
-                elif col == 'variable/fix':
-                    if selected_model.lower() == 'fixed fee':
-                        entry_vars[col].set('fixed')
-                        variable_fix_label = tk.Label(left_frame, text='fixed')
-                        variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                        dynamic_widgets.append(variable_fix_label)
-                    elif selected_model.lower() == 'free':
-                        entry_vars[col].set('free')
-                        variable_fix_label = tk.Label(left_frame, text='free')
-                        variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                        dynamic_widgets.append(variable_fix_label)
-                    else:
-                        variable_fix_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
-                        variable_fix_combobox['values'] = ['variable', 'fixed']
-                        variable_fix_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                        dynamic_widgets.append(variable_fix_combobox)
+                # elif col == 'variable/fix':
+                #     if selected_model.lower() == 'fixed fee':
+                #         entry_vars[col].set('fixed')
+                #         variable_fix_label = tk.Label(left_frame, text='fixed')
+                #         variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                #         dynamic_widgets.append(variable_fix_label)
+                #     elif selected_model.lower() == 'free':
+                #         entry_vars[col].set('free')
+                #         variable_fix_label = tk.Label(left_frame, text='free')
+                #         variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                #         dynamic_widgets.append(variable_fix_label)
+                #     else:
+                #         variable_fix_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
+                #         variable_fix_combobox['values'] = ['variable', 'fixed']
+                #         variable_fix_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                #         dynamic_widgets.append(variable_fix_combobox)
                 elif col == 'DATA_TYPE':
                     data_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
                     data_type_combobox['values'] = ['ACTUALS', 'FORECAST', 'PLAN']
@@ -652,7 +652,6 @@ class CostTab(ttk.Frame):
                     entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(entry)
 
-            # Ensure the allocation options are updated when the business model changes
             update_allocation_options(selected_model)
 
         submit_button = ttk.Button(left_frame, text="Save", command=lambda: submit_deal(business_model_var, entry_vars),
@@ -743,6 +742,18 @@ class CostTab(ttk.Frame):
             #     'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
             #     'Business model': business_model_var.get(),
             # }
+            if 'fixed' in selected_model.lower():
+                ct_type = 'F'
+                variable_fix = 'fixed'
+            elif 'cps' in selected_model.lower() or 'share' in selected_model.lower():
+                ct_type = 'V'
+                variable_fix = 'variable'
+            elif 'free' in selected_model.lower():
+                ct_type = 'F'
+                variable_fix = 'free'
+            else:
+                ct_type = ''
+                variable_fix = ''
 
             for channels_listbox, packs_listbox in dynamic_listbox_pairs:
                 selected_channels = [channels_listbox.get(idx) for idx in channels_listbox.curselection()]
@@ -759,9 +770,9 @@ class CostTab(ttk.Frame):
                             'PROD_EN_NAME': pack,
                             'Business model': business_model_var.get(),
                             'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
-                            'CT_TYPE': entry_vars.get('CT_TYPE', tk.StringVar()).get(),
+                            'CT_TYPE': ct_type,
+                            'variable/fix': variable_fix,
                             'CT_AUTORENEW': entry_vars.get('CT_AUTORENEW', tk.StringVar()).get(),
-                            'variable/fix': entry_vars.get('variable/fix', tk.StringVar()).get(),
                             'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
                             'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
                             'DATA_TYPE': entry_vars.get('DATA_TYPE', tk.StringVar()).get(),
@@ -786,13 +797,13 @@ class CostTab(ttk.Frame):
                         if new_row['Business model'].lower() == 'fixed fee + index':
                             handler = FixedFeeIndexLevelHandler(new_row)
                             handler.add_additional_fields()
-                        if new_row['Business model'].lower() == 'Fixed fee cogs':
+                        if new_row['Business model'].lower() == 'fixed fee cogs':
                             handler = FixedFeeCogsLevelHandler(new_row)
                             handler.add_additional_fields()
-                        if new_row['Business model'].lower() == 'CPS Over MG Subs':
+                        if new_row['Business model'].lower() == 'cps over mg subs':
                             handler = CpsOverMgSubsHandler(new_row)
                             handler.add_additional_fields()
-                        if new_row['Business model'].lower() == 'CPS Over MG Subs + index':
+                        if new_row['Business model'].lower() == 'cps over mg subs + index':
                             handler = CpsOverMgSubsIndexHandler(new_row)
                             handler.add_additional_fields()
 
