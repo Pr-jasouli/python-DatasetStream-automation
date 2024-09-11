@@ -256,7 +256,7 @@ class ConfigLoaderPopup(Toplevel):
                 try:
                     if os.path.exists(path):
                         self.callback(key, path)
-                        show_message("File Loaded", f"Successfully loaded {key} from {path}", master=self.master,
+                        show_message("File Loading...", f"Successfully loaded {key} from {path}", master=self.master,
                                      custom=True)
                     else:
                         show_message("Error", f"File not found: {path}", type='error', master=self.master, custom=True)
