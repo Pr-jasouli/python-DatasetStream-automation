@@ -52,7 +52,6 @@ class CostTab(ttk.Frame):
 
         business_model = new_row['Business model'].capitalize()
 
-        # Possible date formats to handle dd-mm-yyyy and dd-mm-yy
         date_formats = ['%d-%m-%Y', '%d-%m-%y']
 
         def parse_date(date_str):
@@ -74,13 +73,11 @@ class CostTab(ttk.Frame):
         start_year = new_row['CT_STARTDATE'].year
         end_year = new_row['CT_ENDDATE'].year
 
-        # Prepare the rows to be added, one per year
         rows_to_add = []
         for year in range(start_year, end_year + 1):
             row_copy = new_row.copy()
             row_copy['YEAR'] = year
 
-            # Format dates back to dd-mm-yyyy
             row_copy['CT_STARTDATE'] = row_copy['CT_STARTDATE'].strftime('%d-%m-%Y')
             row_copy['CT_ENDDATE'] = row_copy['CT_ENDDATE'].strftime('%d-%m-%Y')
 
@@ -514,7 +511,6 @@ class CostTab(ttk.Frame):
                              custom=True)
                 return
 
-        # Proceed to open the New Deal popup
         network_name = self.network_name_var.get()
         allocation = self.allocation_var.get()
         business_model = self.business_model_var.get()
@@ -610,38 +606,11 @@ class CostTab(ttk.Frame):
                     dynamic_widgets.append(network_name_combobox)
                     network_name_combobox.set(network_name)
                     network_name_combobox.bind("<<ComboboxSelected>>", lambda e: update_channels_listbox())
-                # elif col == 'CT_TYPE':
-                #     if selected_model.lower() == 'fixed fee':
-                #         entry_vars[col].set('F')
-                #         ct_type_label = tk.Label(left_frame, text='F')
-                #         ct_type_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                #         dynamic_widgets.append(ct_type_label)
-                #     else:
-                #         ct_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
-                #         ct_type_combobox['values'] = ['F', 'V']
-                #         ct_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                #         dynamic_widgets.append(ct_type_combobox)
                 elif col == 'CT_AUTORENEW':
                     ct_autorenew_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
                     ct_autorenew_combobox['values'] = ['Yes', 'No']
                     ct_autorenew_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(ct_autorenew_combobox)
-                # elif col == 'variable/fix':
-                #     if selected_model.lower() == 'fixed fee':
-                #         entry_vars[col].set('fixed')
-                #         variable_fix_label = tk.Label(left_frame, text='fixed')
-                #         variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                #         dynamic_widgets.append(variable_fix_label)
-                #     elif selected_model.lower() == 'free':
-                #         entry_vars[col].set('free')
-                #         variable_fix_label = tk.Label(left_frame, text='free')
-                #         variable_fix_label.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                #         dynamic_widgets.append(variable_fix_label)
-                #     else:
-                #         variable_fix_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
-                #         variable_fix_combobox['values'] = ['variable', 'fixed']
-                #         variable_fix_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
-                #         dynamic_widgets.append(variable_fix_combobox)
                 elif col == 'DATA_TYPE':
                     data_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col])
                     data_type_combobox['values'] = ['ACTUALS', 'FORECAST', 'PLAN']
@@ -702,10 +671,8 @@ class CostTab(ttk.Frame):
                     pair[0].insert(tk.END, item)
 
         def add_listbox_pair():
-            # Ensure channels are fetched using the correct network name
             channels = get_channels_for_network(entry_vars['NETWORK_NAME'].get())
 
-            # Assign channels and TV packs to listboxes
             pair_frame = ttk.Frame(right_frame)
             pair_frame.grid(row=len(dynamic_listbox_pairs) * 2, column=0, padx=5, pady=5, sticky='nsew')
 
@@ -734,14 +701,6 @@ class CostTab(ttk.Frame):
             selected_model = business_model_var.get()
             current_columns = self.model_columns.get(selected_model, [])
 
-            # validation des fields
-            # required_fields = {
-            #     'CT_STARTDATE': entry_vars.get('CT_STARTDATE', tk.StringVar()).get(),
-            #     'CT_ENDDATE': entry_vars.get('CT_ENDDATE', tk.StringVar()).get(),
-            #     'allocation': entry_vars.get('allocation', tk.StringVar()).get(),
-            #     'NETWORK_NAME': entry_vars.get('NETWORK_NAME', tk.StringVar()).get(),
-            #     'Business model': business_model_var.get(),
-            # }
             if 'fixed' in selected_model.lower():
                 ct_type = 'F'
                 variable_fix = 'fixed'
