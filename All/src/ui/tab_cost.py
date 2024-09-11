@@ -149,9 +149,7 @@ class CostTab(ttk.Frame):
                 'Business model'
             ],
 
-            'CPS Over MG Subs': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_DURATION', 'CT_FIXFEE_NEW', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
-
-
+            'CPS Over MG Subs': ['Business model', 'allocation', 'NETWORK_NAME', 'CT_STARTDATE', 'CT_ENDDATE', 'CT_VARFEE_NEW', 'CT_MIN_SUBS', 'CT_AUTORENEW', 'CT_NOTICE_DATE', 'CT_NOTICE_PER', 'CT_AVAIL_IN_SCARLET_FR', 'CT_AVAIL_IN_SCARLET_NL'],
 
 
             'CPS Over MG Subs + index': [

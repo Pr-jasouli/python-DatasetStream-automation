@@ -8,7 +8,6 @@ class CpsOverMgSubsHandler:
         self.new_row['CT_MG'] = self.calculate_minimum_garanti()
         # variable fees
         self.new_row['CT_VARFEE'] = self.calculate_variable_fee()
-        self.new_row['CT_VARFEE_NEW'] = self.calculate_variable_fee()
         # audience
         self.new_row['CNT_NAME_PRD_MINS'] = self.calculate_cnt_name_prd_mins()
         self.new_row['CNT_NAME_PRD_MINS_TOT'] = self.calculate_cnt_name_prd_mins_tot()
