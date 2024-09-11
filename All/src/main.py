@@ -22,7 +22,7 @@ class MainApplication(tk.Tk):
         self.config_ui_callback = self.update_config_data
 
         self.initialize_ui()
-        center_window(self, self.master, 970, 820)
+        center_window(self, self.master, 1200, 875)
         self.show_file_loader_popup_if_files_exist()
 
     def show_file_loader_popup_if_files_exist(self):
@@ -141,7 +141,7 @@ class MainApplication(tk.Tk):
         bottom_frame = ttk.Frame(self, padding=10, style='Bottom.TFrame')
         bottom_frame.pack(side='bottom', fill='x')
 
-        create_styled_button(bottom_frame, 'Preferences', self.open_config).pack(side='left', padx=10)
+        create_styled_button(bottom_frame, 'Preferences', self.open_config).pack(side='left', padx=10, pady=(4, 0))
 
         audience_frame = ttk.Labelframe(bottom_frame, text="Audience", padding=5)
         audience_frame.pack(side='left', padx=10, pady=(0, 15))
