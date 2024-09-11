@@ -50,7 +50,11 @@ class AudienceTab(ttk.Frame):
     def filter_listboxes(self, event=None):
         search_term = self.filter_var.get().lower()
 
+        if not hasattr(self, 'global_selected_channels'):
+            self.global_selected_channels = set()
+
         currently_selected = set(self.bus_chanl_num_listbox.get(i) for i in self.bus_chanl_num_listbox.curselection())
+        self.global_selected_channels.update(currently_selected)
 
         self.bus_chanl_num_listbox.delete(0, 'end')
         for display_value, bus_chanl_num in self.bus_chanl_num_map.items():
@@ -60,12 +64,12 @@ class AudienceTab(ttk.Frame):
             if search_term in display_value_str or search_term in bus_chanl_num_str:
                 self.bus_chanl_num_listbox.insert('end', display_value)
 
-        self.restore_selection_after_filter(currently_selected)
+        self.restore_selection_after_filter()
 
-    def restore_selection_after_filter(self, previously_selected):
+    def restore_selection_after_filter(self):
         current_items = set(self.bus_chanl_num_listbox.get(0, 'end'))
 
-        selected_items_to_restore = previously_selected & current_items
+        selected_items_to_restore = self.global_selected_channels & current_items
 
         for i in range(self.bus_chanl_num_listbox.size()):
             if self.bus_chanl_num_listbox.get(i) in selected_items_to_restore:
@@ -129,31 +133,25 @@ class AudienceTab(ttk.Frame):
         utils.tooltip_hide(self.tooltip)
 
     def section_specifics_setup(self):
-        """Sets up the specifics selection widget."""
-        # Main container
         container = ttk.Frame(self)
         container.pack(side='top', fill='x', expand=False, padx=20, pady=10)
 
-        # Sub-container for label and checkbox, centered
         label_checkbox_container = ttk.Frame(container)
         label_checkbox_container.pack(side='top', pady=(10, 5), anchor='center')
 
-        # Title label
         specifics_label = ttk.Label(label_checkbox_container, text="CUSTOM SELECTION", style='Title.TLabel')
         specifics_label.pack(side='left', padx=(0, 5))
 
-        # Enable checkbox
         self.specifics_var = BooleanVar()
         self.specifics_checkbox = ttk.Checkbutton(label_checkbox_container, text="enable",
                                                   variable=self.specifics_var,
                                                   command=self.section_specifics_checkbox_enable)
         self.specifics_checkbox.pack(side='left')
 
-        # Sub-container for buttons
+
         button_container = ttk.Frame(container)
         button_container.pack(side='top', expand=False, pady=(5, 5), anchor='center')
 
-        # Channels button
         self.channel_grouping_button = ttk.Button(button_container, text="Channels", command=self.grouping_channel_load,
                                                   width=10, style='AudienceTab.TButton')
         self.channel_grouping_button.pack(side='left', padx=(1, 5), pady=(0, 0))
@@ -173,11 +171,21 @@ class AudienceTab(ttk.Frame):
                                                                                  "Products Grouping\nsheet: Content_Product_Grouping WS 241\ncolumn: PROD_NUM"))
         self.product_grouping_button.bind("<Leave>", lambda e: self.hide_tooltip())
 
-        # Specifics frame containing listboxes
+
+        filter_container = ttk.Frame(container)
+        filter_container.pack(side='top', fill='x', padx=10, pady=(5, 5))
+
+        filter_label = ttk.Label(filter_container, text="Filter:")
+        filter_label.pack(side='left', padx=(0, 5))
+
+        self.filter_var = StringVar()
+        self.filter_bar = ttk.Entry(filter_container, textvariable=self.filter_var, width=40)
+        self.filter_bar.pack(side='left', fill='x', expand=True)
+        self.filter_bar.bind('<KeyRelease>', self.filter_listboxes)
+
         self.specifics_frame = ttk.Frame(container)
         self.specifics_frame.pack(side='top', fill='both', expand=True, padx=10, pady=(5, 15))
 
-        # Channel listbox setup
         bus_chanl_frame = ttk.Frame(self.specifics_frame)
         bus_chanl_frame.pack(side='left', fill='both', expand=True, padx=0, pady=0)
         self.bus_chanl_label = ttk.Label(bus_chanl_frame, text="BUS_CHANL_NUM")
@@ -222,8 +230,8 @@ class AudienceTab(ttk.Frame):
 
         self.prod_num_listbox.bind('<<ListboxSelect>>', self.section_specifics_counters_update)
         self.bus_chanl_num_listbox.bind('<<ListboxSelect>>', self.section_specifics_counters_update)
-        self.section_filter_bar_setup()
 
+        # Enable specifics functionality
         self.section_specifics_checkbox_enable()
 
     def section_specifics_listboxes_values(self):
@@ -407,9 +415,17 @@ class AudienceTab(ttk.Frame):
         self.section_specifics_listbox_highlight_top(self.prod_num_listbox)
 
     def section_specifics_listbox_reset(self, event=None):
-        """Resets the selections in both listboxes."""
+        """Resets the selections in both listboxes, clears the filter, and resets the highlights."""
+        self.filter_var.set("")
+
+        if hasattr(self, 'global_selected_channels'):
+            self.global_selected_channels.clear()
+
         self.prod_num_listbox.selection_clear(0, 'end')
         self.bus_chanl_num_listbox.selection_clear(0, 'end')
+
+        self.section_specifics_listboxes_values()
+
         self.section_specifics_counters_update()
 
     def enable_specifics(self):
@@ -529,6 +545,7 @@ class AudienceTab(ttk.Frame):
             # No need to reset the maps here either; just clear the UI elements
 
     def start_processing(self):
+        """Handles the start of the processing based on the selections."""
         if self.validate_all():
             references_month = self.references_month.get()
             references_year = self.references_year.get()
@@ -541,24 +558,26 @@ class AudienceTab(ttk.Frame):
                 return
 
             specifics_enabled = self.specifics_var.get()
-            selected_prod_nums = self.prod_num_listbox.curselection()
-            selected_bus_chanl_nums = self.bus_chanl_num_listbox.curselection()
 
-            selected_prod_nums_values = [self.prod_num_listbox.get(i) for i in selected_prod_nums]
-            selected_bus_chanl_display_values = [self.bus_chanl_num_listbox.get(i) for i in selected_bus_chanl_nums]
+            current_selected_bus_chanl_display_values = [self.bus_chanl_num_listbox.get(i) for i in
+                                                         self.bus_chanl_num_listbox.curselection()]
+            if hasattr(self, 'global_selected_channels'):
+                global_selected_bus_chanl_display_values = list(self.global_selected_channels)
+            else:
+                global_selected_bus_chanl_display_values = []
 
-            # Mapping BUS_CHANL_NUM values
-            selected_bus_chanl_nums_values = [self.bus_chanl_num_map.get(display_value, display_value) for display_value in selected_bus_chanl_display_values]
-            # Mapping PROD_NUM values
-            selected_prod_nums_values = [self.prod_num_map.get(display_value, display_value) for display_value in selected_prod_nums_values]
+            combined_selected_bus_chanl_display_values = set(
+                current_selected_bus_chanl_display_values + global_selected_bus_chanl_display_values)
+
+            combined_selected_bus_chanl_nums_values = [self.bus_chanl_num_map.get(display_value, display_value) for
+                                                       display_value in combined_selected_bus_chanl_display_values]
 
             print(f"References Month: {references_month}, Year: {references_year}")
             print(f"Target Start Year: {target_start_year}, End Year: {target_end_year}")
             print(f"File Path: {file_path}")
             print(f"Specifics Enabled: {specifics_enabled}")
             if specifics_enabled:
-                print(f"Selected PROD_NUMs: {selected_prod_nums_values}")
-                print(f"Selected BUS_CHANL_NUMs: {selected_bus_chanl_nums_values}")
+                print(f"Selected BUS_CHANL_NUMs: {combined_selected_bus_chanl_nums_values}")
 
             if self.output_dir is None:
                 show_message("Error", "No output directory selected.", type='error', master=self, custom=True)
@@ -566,8 +585,16 @@ class AudienceTab(ttk.Frame):
 
             start_time = time.time()
 
-            self.call_script(references_month, references_year, target_start_year, target_end_year,
-                             file_path, specifics_enabled, selected_prod_nums_values, selected_bus_chanl_nums_values)
+            self.call_script(
+                references_month,
+                references_year,
+                target_start_year,
+                target_end_year,
+                file_path,
+                specifics_enabled,
+                None,
+                combined_selected_bus_chanl_nums_values
+            )
 
             end_time = time.time()
             duration = end_time - start_time
