@@ -2,7 +2,7 @@ import os
 import tkinter as tk
 import tkinter.font as tkFont
 from datetime import timedelta, datetime
-from tkinter import ttk
+from tkinter import ttk, filedialog
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
@@ -230,13 +230,15 @@ class CostTab(ttk.Frame):
             show_message("Error", f"Failed to load cost file: {e}", type='error', master=self, custom=True)
 
     def load_cost_data(self):
-        file_path = open_file_and_update_config(
-            config_manager=self.config_manager,
-            config_key='cost_src',
+        file_path = filedialog.askopenfilename(
             title="Select Cost File",
             filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
         )
-        if isinstance(file_path, str) and file_path:
+
+        if file_path:
+            self.config_manager.update_config('cost_src', file_path)
+            self.config_manager.save_config()
+
             self.load_file(file_path)
         else:
             print("Invalid file path:", file_path)
@@ -318,6 +320,11 @@ class CostTab(ttk.Frame):
         self.rowconfigure(1, weight=1)
 
     def populate_dropdowns(self):
+        self.network_name_dropdown.set('')
+        self.cnt_name_grp_dropdown.set('')
+        self.business_model_dropdown.set('')
+        self.allocation_dropdown.set('')
+
         if self.data is None or self.data.empty:
             self.network_name_dropdown['values'] = ['']
             self.cnt_name_grp_dropdown['values'] = ['']
