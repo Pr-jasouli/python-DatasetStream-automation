@@ -228,7 +228,7 @@ def create_consolidated_excel(all_data, output_path, channel_grouping_df):
 
     #regex pour identifier les mots cles des options orange
     orange_option_keywords = re.compile(
-        r'be 1|be series|be seri|be cin|cine\+|cine\+|eleven pro|voosport world',
+        r'Be |be series|be seri|be cin|cine\+|cine\+|eleven pro|voosport world',
         re.IGNORECASE
     )
 
@@ -277,7 +277,9 @@ def create_consolidated_excel(all_data, output_path, channel_grouping_df):
 
             #determiner si la section est basic ou option pour voo
             if provider == "Voo":
-                if any(code in channel.split() for code in voo_info_codes.keys()):
+                if section == 'Chaînes Be tv':
+                    option = 'Option'
+                elif any(code in channel.split() for code in voo_info_codes.keys()):
                     option = 'Option'
                 else:
                     option = 'Basic'
