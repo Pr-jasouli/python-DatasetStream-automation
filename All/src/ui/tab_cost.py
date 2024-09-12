@@ -940,7 +940,7 @@ class CostTab(ttk.Frame):
 
                             self.generate_template(new_row)
 
-                new_deal_popup.destroy()
+                self.close_new_deal_popup(new_deal_popup)
                 self.display_metadata(self.network_name_var.get(), self.cnt_name_grp_var.get(),
                                       self.business_model_var.get())
 
