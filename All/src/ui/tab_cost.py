@@ -532,7 +532,7 @@ class CostTab(ttk.Frame):
 
         new_deal_popup = tk.Toplevel(self)
         new_deal_popup.title("New Deal")
-        new_deal_popup.geometry("800x700")
+        new_deal_popup.geometry("1000x750")
         new_deal_popup.grid_rowconfigure(0, weight=1)
         new_deal_popup.grid_columnconfigure(0, weight=1)
         set_window_icon(new_deal_popup)
@@ -645,54 +645,71 @@ class CostTab(ttk.Frame):
 
             for i, col in enumerate(field_order, start=1):
                 col_without_asterisk = col.replace('*', '')
+                entry_vars[col_without_asterisk] = tk.StringVar()
+                new_width = int(20 * 1.10)
 
                 if col_without_asterisk == 'Business model':
+                    tk.Label(left_frame, text="Business model").grid(row=i + 2, column=0, padx=10, pady=5, sticky='e')
+                    business_model_combobox = ttk.Combobox(left_frame, textvariable=business_model_var, width=new_width)
+                    business_model_combobox['values'] = [model for model in self.model_columns.keys()]
+                    business_model_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
+                    dynamic_widgets.append(business_model_combobox)
+                    business_model_combobox.set(selected_model)
+                    business_model_combobox.bind("<<ComboboxSelected>>", update_fields_based_on_business_model)
                     continue
 
                 label = tk.Label(left_frame, text=col)
                 label.grid(row=i + 2, column=0, padx=10, pady=5, sticky='e')
                 dynamic_widgets.append(label)
 
-                entry_vars[col_without_asterisk] = tk.StringVar()
                 if col_without_asterisk == 'CT_STARTDATE':
                     ct_startdate_entry = DateEntry(left_frame, textvariable=entry_vars[col_without_asterisk],
-                                                   date_pattern='dd-mm-yyyy', width=12)
+                                                   date_pattern='dd-mm-yyyy', width=new_width)
                     ct_startdate_entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='ew')
                     dynamic_widgets.append(ct_startdate_entry)
 
                 elif col_without_asterisk == 'CT_ENDDATE':
                     ct_enddate_entry = DateEntry(left_frame, textvariable=entry_vars[col_without_asterisk],
-                                                 date_pattern='dd-mm-yyyy', width=12)
+                                                 date_pattern='dd-mm-yyyy', width=new_width)
                     ct_enddate_entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='ew')
                     dynamic_widgets.append(ct_enddate_entry)
+
                 elif col_without_asterisk == 'CT_AVAIL_IN_SCARLET_FR' or col_without_asterisk == 'CT_AVAIL_IN_SCARLET_NL':
-                    avail_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
+                    avail_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk],
+                                                  width=new_width)
                     avail_combobox['values'] = ['Yes', 'No']
                     avail_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(avail_combobox)
+
                 else:
-                    entry = tk.Entry(left_frame, textvariable=entry_vars[col_without_asterisk])
+                    entry = tk.Entry(left_frame, textvariable=entry_vars[col_without_asterisk], width=new_width)
                     entry.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(entry)
 
                 if col_without_asterisk == 'allocation':
                     nonlocal allocation_combobox
-                    allocation_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
+                    allocation_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk],
+                                                       width=new_width)
                     allocation_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(allocation_combobox)
                     update_allocation_options(selected_model)
+
                 elif col_without_asterisk == 'NETWORK_NAME':
-                    network_name_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
+                    network_name_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk],
+                                                         width=new_width)
                     network_name_combobox['values'] = sorted(self.data['NETWORK_NAME'].dropna().unique().tolist())
                     network_name_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(network_name_combobox)
                     network_name_combobox.set(network_name)
                     network_name_combobox.bind("<<ComboboxSelected>>", lambda e: update_channels_listbox())
+
                 elif col_without_asterisk == 'CT_AUTORENEW':
-                    ct_autorenew_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
+                    ct_autorenew_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk],
+                                                         width=new_width)
                     ct_autorenew_combobox['values'] = ['Yes', 'No']
                     ct_autorenew_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(ct_autorenew_combobox)
+
                 elif col_without_asterisk == 'DATA_TYPE':
                     data_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
                     data_type_combobox['values'] = ['ACTUALS', 'FORECAST', 'PLAN']
@@ -709,13 +726,6 @@ class CostTab(ttk.Frame):
                                 style='AudienceTab.TButton')
         add_button.grid(row=0, column=1, padx=5, pady=5, sticky='e')
 
-        tk.Label(left_frame, text="Business model").grid(row=1, column=0, padx=10, pady=5, sticky='e')
-        business_model_combobox = ttk.Combobox(left_frame, textvariable=business_model_var)
-        business_model_combobox['values'] = [model for model in self.model_columns.keys() if
-                                             model not in ['fixed fee', 'free', 'fixed fee cogs']]
-        business_model_combobox.grid(row=1, column=1, padx=10, pady=5, sticky='w')
-
-        business_model_combobox.bind("<<ComboboxSelected>>", update_fields_based_on_business_model)
 
         right_frame = ttk.Frame(content_frame)
         right_frame.grid(row=0, column=1, padx=10, pady=5, sticky='nsew')
