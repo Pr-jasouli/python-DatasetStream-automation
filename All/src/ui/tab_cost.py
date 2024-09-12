@@ -711,7 +711,8 @@ class CostTab(ttk.Frame):
                     dynamic_widgets.append(ct_autorenew_combobox)
 
                 elif col_without_asterisk == 'DATA_TYPE':
-                    data_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk])
+                    data_type_combobox = ttk.Combobox(left_frame, textvariable=entry_vars[col_without_asterisk],
+                                                      width=new_width)
                     data_type_combobox['values'] = ['ACTUALS', 'FORECAST', 'PLAN']
                     data_type_combobox.grid(row=i + 2, column=1, padx=10, pady=5, sticky='w')
                     dynamic_widgets.append(data_type_combobox)
@@ -731,6 +732,7 @@ class CostTab(ttk.Frame):
         right_frame.grid(row=0, column=1, padx=10, pady=5, sticky='nsew')
 
         dynamic_listbox_pairs = []
+        filter_var = tk.StringVar()
 
         def load_channel_grouping_data():
             try:
@@ -762,25 +764,67 @@ class CostTab(ttk.Frame):
             channels = get_channels_for_network(entry_vars['NETWORK_NAME'].get())
 
             pair_frame = ttk.Frame(right_frame)
-            pair_frame.grid(row=len(dynamic_listbox_pairs) * 2, column=0, padx=5, pady=5, sticky='nsew')
+            pair_frame.grid(row=len(dynamic_listbox_pairs) * 3, column=0, padx=5, pady=5, sticky='nsew')
 
-            tk.Label(pair_frame, text="Select Channels:").grid(row=0, column=0, padx=5, pady=5, sticky='w')
-            tk.Label(pair_frame, text="Select TV Packs:").grid(row=0, column=1, padx=5, pady=5, sticky='w')
+            filter_var = tk.StringVar()
 
-            channels_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=6, exportselection=False)
-            channels_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='w')
+            filter_label = tk.Label(pair_frame, text="Channels Filtering")
+            filter_label.grid(row=0, column=1, padx=5, pady=5, sticky='w')
+
+            filter_entry = tk.Entry(pair_frame, textvariable=filter_var)
+            filter_entry.grid(row=0, column=0, padx=5, pady=5, sticky='ew')
+
+            tk.Label(pair_frame, text="Select Channels:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
+            tk.Label(pair_frame, text="Select TV Packs:").grid(row=1, column=1, padx=5, pady=5, sticky='w')
+
+            new_height = int(8 * 1.15)
+            new_width = int(30 * 1.15)
+
+            channels_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=new_height, width=new_width,
+                                          exportselection=False)
+            channels_listbox.grid(row=2, column=0, padx=5, pady=5, sticky='w')
+
+            packs_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=new_height, width=new_width,
+                                       exportselection=False)
+            packs_listbox.grid(row=2, column=1, padx=5, pady=5, sticky='w')
 
             for item in channels:
                 channels_listbox.insert(tk.END, item)
-
-            packs_listbox = tk.Listbox(pair_frame, selectmode='multiple', height=6, exportselection=False)
-            packs_listbox.grid(row=1, column=1, padx=5, pady=5, sticky='w')
 
             packs = sorted(self.data['PROD_EN_NAME'].dropna().unique())
             for item in packs:
                 packs_listbox.insert(tk.END, item)
 
             dynamic_listbox_pairs.append((channels_listbox, packs_listbox))
+
+            selected_channels = set()
+            visible_channels = []
+            def update_selected_channels(event=None):
+                current_selection = [channels_listbox.get(i) for i in channels_listbox.curselection()]
+
+                for item in current_selection:
+                    selected_channels.add(item)
+
+                for item in visible_channels:
+                    if item not in current_selection:
+                        selected_channels.discard(item)
+
+            channels_listbox.bind("<<ListboxSelect>>", update_selected_channels)
+
+            def filter_channels(event=None):
+                filter_text = filter_var.get().lower()
+                visible_channels.clear()
+                channels_listbox.delete(0, tk.END)
+
+                for item in channels:
+                    if filter_text in item.lower():
+                        channels_listbox.insert(tk.END, item)
+                        visible_channels.append(item)
+
+                        if item in selected_channels:
+                            channels_listbox.select_set(channels_listbox.size() - 1)
+
+            filter_entry.bind("<KeyRelease>", filter_channels)
 
             canvas.configure(scrollregion=canvas.bbox("all"))
 
