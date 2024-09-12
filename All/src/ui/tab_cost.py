@@ -553,21 +553,20 @@ class CostTab(ttk.Frame):
         def on_mouse_scroll(event):
             if event.delta:
                 canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-            else:
                 if event.num == 4:
                     canvas.yview_scroll(-1, "units")
                 elif event.num == 5:
                     canvas.yview_scroll(1, "units")
 
         new_deal_popup.bind_all("<MouseWheel>", on_mouse_scroll)
-
         new_deal_popup.bind_all("<Button-4>", on_mouse_scroll)
         new_deal_popup.bind_all("<Button-5>", on_mouse_scroll)
-
-        canvas.bind("<Configure>", lambda e: canvas.config(scrollregion=canvas.bbox("all")))
+        canvas = tk.Canvas(main_frame)
+        canvas.grid(row=0, column=0, sticky='nsew')
 
         v_scrollbar = ttk.Scrollbar(main_frame, orient='vertical', command=canvas.yview)
         v_scrollbar.grid(row=0, column=1, sticky='ns')
+
         h_scrollbar = ttk.Scrollbar(main_frame, orient='horizontal', command=canvas.xview)
         h_scrollbar.grid(row=1, column=0, sticky='ew')
 
@@ -578,8 +577,12 @@ class CostTab(ttk.Frame):
 
         def on_frame_configure(event):
             canvas.configure(scrollregion=canvas.bbox("all"))
+            canvas.yview_moveto(0)
 
         content_frame.bind("<Configure>", on_frame_configure)
+
+        main_frame.grid_rowconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(0, weight=1)
 
         left_frame = ttk.Frame(content_frame)
         left_frame.grid(row=0, column=0, padx=10, pady=5, sticky='nsew')
