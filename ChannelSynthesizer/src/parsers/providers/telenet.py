@@ -226,7 +226,14 @@ def clean_text(text, section_names):
         'Inclus dans votre',
         'abonnement.'
     ]
-
+    radio_channels = [
+        'MNM', 'Studio Brussel', 'Klara', 'Klara Continuo', 'MNM Hits', 'VRT NWS', 'De Tijdloze', 'Q-music radio',
+        'JOE fm', 'Radio Maria', 'TOPradio', 'Radio 2 Antwerpen', 'Radio 2 Limburg', 'Radio 2 Oost Vlaanderen',
+        'Radio 2 West Vlaanderen', 'Play Nostalgie', 'ROXX', 'La Première', 'VivaCité', 'Musiq3', 'Tipik', 'Classic21',
+        'RTBF Mix', 'Bel RTL', 'Radio Contact', 'Mint', 'Radio France Internationale', 'Family Radio', 'Willy',
+        'Q-Allstars', 'Q-Foute Radio', 'Joe 60’s-70’s', 'Joe 80’s & 90’s', 'Willy Class X', 'Joe Easy', 'Nostalgie+',
+        'Be One', 'Top Zen', 'NRJ', 'Radio Judaïca', 'BRF1', 'Stadradio Vlaanderen', 'One World Radio'
+    ]
     cleaned_lines = []
 
     for line in text.splitlines():
@@ -247,9 +254,13 @@ def clean_text(text, section_names):
                 continue
             match = re.match(r'(\d{3})(.*)', line)
             if match:
+                channel_name = match.group(2).strip()
+                if channel_name in radio_channels:
+                    channel_name += ' R'
+                else:
+                    channel_name += ' TV'
                 final_lines.append(match.group(1))
-                if match.group(2).strip():
-                    final_lines.append(match.group(2).strip())
+                final_lines.append(channel_name)
             else:
                 final_lines.append(line)
 
