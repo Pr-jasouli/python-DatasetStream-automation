@@ -64,9 +64,9 @@ class MainApplication(tk.Tk):
         file_menu = tk.Menu(menubar, tearoff=0)
 
         open_menu = tk.Menu(file_menu, tearoff=0)
-        for key, path in self.config_data.items():
-            if os.path.isfile(path):
-                open_menu.add_command(label=f"Open {key}", command=lambda k=key: self.replace_config_file(k))
+
+        open_menu.add_command(label="Open audience_src", command=lambda: self.replace_config_file('audience_src'))
+        open_menu.add_command(label="Open cost_src", command=lambda: self.replace_config_file('cost_src'))
 
         file_menu.add_cascade(label="Open", menu=open_menu)
         file_menu.add_command(label="Recent Files Loader", command=self.open_recent_files_loader)
@@ -98,13 +98,6 @@ class MainApplication(tk.Tk):
     def setup_edit_menu(self):
         """Create and return the edit menu."""
         edit_menu = tk.Menu(self.menubar, tearoff=0, background='SystemButtonFace', fg='black')
-        edit_menu.add_command(label="Undo",
-                              command=lambda: show_message("Undo", "Undo the last action!", type="info", master=self,
-                                                           custom=True))
-        edit_menu.add_command(label="Redo",
-                              command=lambda: show_message("Redo", "Redo the last undone action!", type="info",
-                                                           master=self, custom=True))
-        edit_menu.add_separator()
         edit_menu.add_command(label="Preferences", command=self.open_config)
         return edit_menu
 
@@ -203,7 +196,10 @@ class MainApplication(tk.Tk):
 
     def replace_config_file(self, key):
         """Replace the file for a specific configuration key."""
-        file_path = filedialog.askopenfilename(title=f"Select new file for {key}", filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")])
+        file_path = filedialog.askopenfilename(
+            title=f"Select new file for {key}",
+            filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
+        )
         if file_path:
             self.config_manager.update_config(key, file_path)
             self.config_manager.save_config()
