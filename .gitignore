@@ -3,6 +3,7 @@ ExcelAggregator/results/**/*.tsv
 ExcelAggregator/build/
 ExcelAggregator/dist/
 *.xlsx
+*.tsv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

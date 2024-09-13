@@ -10,14 +10,14 @@ from tkcalendar import DateEntry
 
 from parser.cps_over_mg_subs import CpsOverMgSubsHandler
 from parser.cps_over_mg_subs_index import CpsOverMgSubsIndexHandler
+from parser.fixedFee_channelGroupLevel import FixedFeeChannelGroupLevelHandler
 from parser.fixedFee_cogs import FixedFeeCogsLevelHandler
 from parser.fixedFee_index import FixedFeeIndexLevelHandler
-from parser.fixedFee_channelGroupLevel import FixedFeeChannelGroupLevelHandler
 from parser.fixedFee_providerLevel import FixedFeeProviderLevelHandler
 from parser.free import FreeLevelHandler
 from utilities import utils
 from utilities.config_manager import ConfigManager
-from utilities.utils import show_message, open_file_and_update_config, set_window_icon, center_window
+from utilities.utils import show_message, set_window_icon
 
 
 class CostTab(ttk.Frame):

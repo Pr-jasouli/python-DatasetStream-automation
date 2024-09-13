@@ -8,6 +8,7 @@ import pandas as pd
 
 from utilities.utils import center_window, show_message, set_window_icon
 
+
 class ViewDealsLoaderPopup(Toplevel):
     def __init__(self, master, config_manager):
         super().__init__(master)
